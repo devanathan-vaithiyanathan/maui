@@ -35,7 +35,7 @@ namespace Microsoft.Maui.Handlers
 			return platformView;
 		}
 
-		private sealed class HybridWebViewJavaScriptInterface : Java.Lang.Object, IHybridJavaScriptInterface
+		private sealed class HybridWebViewJavaScriptInterface : Java.Lang.Object
 		{
 			private readonly WeakReference<HybridWebViewHandler> _hybridWebViewHandler;
 

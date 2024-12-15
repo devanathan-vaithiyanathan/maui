@@ -279,24 +279,21 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				return _emptyUIView.Frame.Size.ToSize();
 			}
 
-			CGSize contentSize = CollectionView.CollectionViewLayout.CollectionViewContentSize;
-			CGSize headerSize = GetHeaderSize();
-			CGSize footerSize = GetFooterSize();
+			CGSize headerSize = CollectionView.ViewWithTag(HeaderTag)?.Frame.Size ?? CGSize.Empty;
+			CGSize footerSize = CollectionView.ViewWithTag(FooterTag)?.Frame.Size ?? CGSize.Empty;
 
+			CGSize contentSize = CollectionView.CollectionViewLayout.CollectionViewContentSize;
 			nfloat totalWidth = contentSize.Width;
 			nfloat totalHeight = contentSize.Height;
-			
-			// Ensure calculating the total width or height, consider the boundary conditions to ensure it does not exceed the boundaries of the view. 
-			// If it exceeds, the content becomes non-scrollable and is constrained to the view's screen size.
+
+			// Adjust total size based on orientation
 			if (IsHorizontal)
 			{
 				totalWidth += headerSize.Width + footerSize.Width;
-				totalWidth = (nfloat)Math.Min(totalWidth, CollectionView.Bounds.Width);
 			}
 			else
 			{
 				totalHeight += headerSize.Height + footerSize.Height;
-				totalHeight = (nfloat)Math.Min(totalHeight, CollectionView.Bounds.Height);
 			}
 
 			return new Size(totalWidth, totalHeight);

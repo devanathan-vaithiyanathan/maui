@@ -152,7 +152,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		{
 			var size = base.GetDesiredSize(widthConstraint, heightConstraint);
 
-			var potentialContentSize = Controller.GetSize();
+			var potentialContentSize = Controller.GetSize(widthConstraint, heightConstraint);
 
 			// If contentSize comes back null, it means none of the content has been realized yet;
 			// we need to return the expansive size the collection view wants by default to get
@@ -165,14 +165,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			var contentSize = potentialContentSize.Value;
 
 			// If contentSize does have a value, our target size is the smaller of it and the constraints
-			// Ensure calculating the total width or height, consider the boundary conditions to ensure it does not exceed the boundaries of the view. 
-			// If it exceeds, the content becomes non-scrollable and is constrained to the view's screen size.
-			Size devicesize = Devices.DeviceDisplay.MainDisplayInfo.GetScaledScreenSize();
-
-			if(double.IsInfinity(heightConstraint))
-				heightConstraint = devicesize.Height;
-			if(double.IsInfinity(widthConstraint))
-				widthConstraint = devicesize.Width;
 
 			size.Width = contentSize.Width <= widthConstraint ? contentSize.Width : widthConstraint;
 			size.Height = contentSize.Height <= heightConstraint ? contentSize.Height : heightConstraint;

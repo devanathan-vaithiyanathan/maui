@@ -272,7 +272,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		}
 
 
-		internal Size? GetSize()
+		internal Size? GetSize(double measuredWidth, double measuredHeight)
 		{
 			if (_emptyViewDisplayed)
 			{
@@ -286,7 +286,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			nfloat totalWidth = contentSize.Width;
 			nfloat totalHeight = contentSize.Height;
 
-			// Adjust total size based on orientation
 			if (IsHorizontal)
 			{
 				totalWidth += headerSize.Width + footerSize.Width;
@@ -296,17 +295,16 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				totalHeight += headerSize.Height + footerSize.Height;
 			}
 
+			// If we drop Infinity to base.DesiredSize causes it to consider the ContentSize when the value exceeds the screen size.  
+			// If it exceeds, the content becomes non-scrollable and is constrained to the view's screen size.
+			CGRect? screenFrame = CollectionView?.Window?.Frame;
+
+			if(double.IsInfinity(measuredHeight))
+				totalHeight = screenFrame.HasValue ? screenFrame.Value.Height : CollectionView.Bounds.Height;
+			if(double.IsInfinity(measuredWidth))
+				totalWidth = screenFrame.HasValue ? screenFrame.Value.Width : CollectionView.Bounds.Width;
+			
 			return new Size(totalWidth, totalHeight);
-		}
-
-		CGSize GetHeaderSize()
-		{
-			return CollectionView.ViewWithTag(HeaderTag)?.Frame.Size ?? CGSize.Empty;
-		}
-
-		CGSize GetFooterSize()
-		{
-			return CollectionView.ViewWithTag(FooterTag)?.Frame.Size ?? CGSize.Empty;
 		}
 
 		void ConstrainItemsToBounds()

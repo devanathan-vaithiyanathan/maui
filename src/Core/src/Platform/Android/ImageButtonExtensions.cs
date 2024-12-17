@@ -21,7 +21,7 @@ namespace Microsoft.Maui.Platform
 		public static void UpdateCornerRadius(this ShapeableImageView platformButton, IButtonStroke buttonStroke) =>
 			platformButton.UpdateButtonStroke(buttonStroke);
 
-		public static void UpdatePadding(this ShapeableImageView platformButton, IImageButton imageButton)
+		public static async void UpdatePadding(this ShapeableImageView platformButton, IImageButton imageButton)
 		{
 			var padding = platformButton.Context!.ToPixels(imageButton.Padding);
 			var (strokeWidth, _, _) = imageButton.GetStrokeProperties(platformButton.Context!, true);
@@ -38,10 +38,10 @@ namespace Microsoft.Maui.Platform
 			// The padding has a few issues, but setting and then resetting after some calculations
 			// are done seems to work. This is a workaround for the following issue:
 			// https://github.com/material-components/material-components-android/issues/2063
-			//await Task.Yield();
+			await Task.Yield();
 
-			//if (!platformButton.IsAlive())
-				//return;
+			if (!platformButton.IsAlive())
+				return;
 
 			// We must re-set all the paddings because the first time was not hard enough.
 			//platformButton.SetContentPadding((int)padding.Left, (int)padding.Top, (int)padding.Right, (int)padding.Bottom);
@@ -103,22 +103,7 @@ namespace Microsoft.Maui.Platform
 							.Build();
 				});
 
-
-				var context = platformView.Context;
-            int strokeWidth = (int)context.ToPixels(button.StrokeThickness);
-            int radius = (int)context.ToPixels(button.CornerRadius);
-            var strokeColor = button.StrokeColor?.ToPlatform() ?? Colors.Black.ToPlatform();
- 
-            platformView.ShapeAppearanceModel = platformView.ShapeAppearanceModel
-                .ToBuilder()
-                .SetTopLeftCorner(CornerFamily.Rounded, radius)
-                .SetTopRightCorner(CornerFamily.Rounded, radius)
-                .SetBottomLeftCorner(CornerFamily.Rounded, radius)
-                .SetBottomRightCorner(CornerFamily.Rounded, radius)
-                .Build();
- 
-            platformView.StrokeColor = ColorStateList.ValueOf(strokeColor);
-            platformView.StrokeWidth = strokeWidth;
+			UpdateButtonStroke(platformView, button);
 		}
 	}
 }

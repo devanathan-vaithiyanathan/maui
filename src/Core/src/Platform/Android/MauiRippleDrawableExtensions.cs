@@ -134,6 +134,9 @@ static class MauiRippleDrawableExtensions
 			var strokeColor = stroke.StrokeColor ?? Colors.Black;
 			var strokeColorList = ColorStateListExtensions.CreateButton(strokeColor.ToPlatform());
 			strokeDrawable.SetStroke(width, strokeColorList);
+			var inset = width/2;
+			// Adjust the stroke inset to prevent overflow lines
+			var insetStrokeDrawable = new InsetDrawable(strokeDrawable, inset); // Inset by 1 pixel
 
 			// Create the entire drawable structure
 			var rippleColor = getDefaultRippleColor?.Invoke() ?? ColorStateList.ValueOf(Colors.White.WithAlpha(DefaultRippleAlpha).ToPlatform());
@@ -143,14 +146,14 @@ static class MauiRippleDrawableExtensions
 					rippleColor,
 					new InsetDrawable(
 						layerDrawable = new LayerDrawable(
-							layers = [backgroundDrawable, strokeDrawable]),
+							layers = [backgroundDrawable, insetStrokeDrawable]),
 						0, 0, 0, 0),
 					maskDrawable);
 
 			// Assign IDs so we can find them later
 			var idx = Array.IndexOf(layers, backgroundDrawable);
 			layerDrawable.SetId(idx, MauiBackgroundDrawableId);
-			idx = Array.IndexOf(layers, strokeDrawable);
+			idx = Array.IndexOf(layers, insetStrokeDrawable);
 			layerDrawable.SetId(idx, MauiStrokeDrawableId);
 
 			beforeSet?.Invoke();

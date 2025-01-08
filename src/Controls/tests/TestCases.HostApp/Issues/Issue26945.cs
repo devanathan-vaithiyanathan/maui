@@ -99,13 +99,13 @@ namespace Maui.Controls.Sample.Issues
 				switch (toPosition)
 				{
 					case ScrollToPosition.Start:
-						ListView.ScrollTo(ListView.SelectedItem, ScrollToPosition.Start, true);
+						ListView.ScrollTo(ListView.SelectedItem, ScrollToPosition.Start, false);
 						break;
 					case ScrollToPosition.Center:
-						ListView.ScrollTo(ListView.SelectedItem, ScrollToPosition.Center, true);
+						ListView.ScrollTo(ListView.SelectedItem, ScrollToPosition.Center, false);
 						break;
 					case ScrollToPosition.End:
-						ListView.ScrollTo(ListView.SelectedItem, ScrollToPosition.End, true);
+						ListView.ScrollTo(ListView.SelectedItem, ScrollToPosition.End, false);
 						break;
 				}
 			}

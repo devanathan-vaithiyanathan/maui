@@ -15,10 +15,28 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 
 		[Test]
 		[Category(UITestCategories.ListView)]
-		public void Issue26945Test_SelectItem()
+		public void Issue26945_SelectItemPositionStart()
 		{
-			App.WaitForElement("Button");
-			App.Tap("Button");
+			App.WaitForElement("StartButton");
+			App.Tap("StartButton");
+			VerifyScreenshot();
+		}
+
+		[Test]
+		[Category(UITestCategories.ListView)]
+		public void Issue26945Test_SelectItemPositionCenter()
+		{
+			App.WaitForElement("CenterButton");
+			App.Tap("CenterButton");
+			VerifyScreenshot();
+		}
+
+		[Test]
+		[Category(UITestCategories.ListView)]
+		public void Issue26945Test_SelectItemPositionEnd()
+		{
+			App.WaitForElement("EndButton");
+			App.Tap("EndButton");
 			VerifyScreenshot();
 		}
 	}

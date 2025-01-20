@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Microsoft.Maui.Graphics;
 
 namespace Microsoft.Maui.Controls.Shapes
@@ -439,8 +440,7 @@ namespace Microsoft.Maui.Controls.Shapes
 
 			result.Height += StrokeThickness;
 			result.Width += StrokeThickness;
-
-			return result;
+			return base.MeasureOverride(result.Width, result.Height);
 		}
 
 		internal virtual double WidthForPathComputation

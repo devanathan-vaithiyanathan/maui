@@ -439,7 +439,12 @@ namespace Microsoft.Maui.Controls.Shapes
 
 			result.Height += StrokeThickness;
 			result.Width += StrokeThickness;
-			return base.MeasureOverride(result.Width, result.Height);
+			if ((result.Width != 0 ||result.Height != 0) && Aspect == Stretch.Fill)
+			{
+				return base.MeasureOverride(result.Width, result.Height);
+			}
+
+			return result;
 		}
 
 		internal virtual double WidthForPathComputation

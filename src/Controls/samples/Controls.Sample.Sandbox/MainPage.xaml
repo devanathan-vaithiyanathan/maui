@@ -2,4 +2,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+
+
+	<Grid>
+
+		<CollectionView IsEnabled="False"
+						SelectionMode="Single"
+						ItemsSource="{Binding Items}">
+			
+			<CollectionView.ItemTemplate>
+				<DataTemplate>
+					<Label Margin="10"
+						   Padding="10"
+						   VerticalTextAlignment="Center"
+						   HorizontalTextAlignment="Start"
+						   TextColor="{AppThemeBinding Dark=White, Light=Black}"
+						   Text="{Binding Name}" />
+				</DataTemplate>
+			</CollectionView.ItemTemplate>
+			
+		</CollectionView>
+
+	</Grid>
+
 </ContentPage>

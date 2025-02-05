@@ -4,12 +4,11 @@
              xmlns:local="clr-namespace:Maui.Controls.Sample">
 
 
-	<Grid>
-
-		<CollectionView IsEnabled="False"
-						SelectionMode="Single"
+	<Grid RowDefinitions="auto, *">
+         <Button Text="Change" Clicked="Button_Clicked"/>
+		<CollectionView Grid.Row="1"  x:Name="collectionView"   IsEnabled="False"
+						SelectionMode="Multiple"
 						ItemsSource="{Binding Items}">
-			
 			<CollectionView.ItemTemplate>
 				<DataTemplate>
 					<Label Margin="10"
@@ -20,9 +19,14 @@
 						   Text="{Binding Name}" />
 				</DataTemplate>
 			</CollectionView.ItemTemplate>
-			
+			<CollectionView.Header>
+			<Label Text="Header"/>
+		</CollectionView.Header>
+		<CollectionView.Footer>
+			<Label Text="Footer"/>
+		</CollectionView.Footer>
 		</CollectionView>
-
+		
 	</Grid>
 
 </ContentPage>

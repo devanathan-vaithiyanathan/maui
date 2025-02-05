@@ -240,6 +240,34 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			((IShellController)Shell).AddFlyoutBehaviorObserver(this);
 			UpdateFlowDirection();
 			UpdateFlyoutAccessibility();
+			//UpdateFlyoutItemsEnabled();
+		}
+
+		void UpdateFlyoutItemsEnabled()
+		{
+			var t = Shell.Items.Count;
+			foreach (var item in Shell.Items)
+			{
+				if (item is ShellItem shellItem)
+				{
+					item.IsEnabled = shellItem.IsEnabled;
+				}
+
+				if (item is FlyoutItem flyoutItem)
+				{
+					item.IsEnabled = flyoutItem.IsEnabled;
+					// foreach (var section in shellItem.Items)
+					// {
+					// 	foreach (var content in section.Items)
+					// 	{
+					// 		if (content is ShellContent shellContent)
+					// 		{
+					// 			//item.IsEnabled = shellContent.IsEnabled;
+					// 		}
+					// 	}
+					// }
+				}
+			}
 		}
 
 		protected override void Dispose(bool disposing)

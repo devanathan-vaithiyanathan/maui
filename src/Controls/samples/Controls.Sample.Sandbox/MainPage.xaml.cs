@@ -11,11 +11,37 @@ public partial class MainPage : ContentPage
 			new Item { Name = "Item 2" },
 			new Item { Name = "Item 3" },
 			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
+			new Item { Name = "Item 4" },
 		];
 
 		BindingContext = this;
 
 		InitializeComponent();
+		collectionView.SelectedItem = Items[3];
+
+	}
+
+	private void Button_Clicked(object sender, EventArgs e)
+	{
+		collectionView.IsEnabled = !collectionView.IsEnabled;
 	}
 }
 

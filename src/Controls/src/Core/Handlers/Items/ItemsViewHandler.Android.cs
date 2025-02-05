@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Android.Views;
 using AndroidX.RecyclerView.Widget;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
@@ -64,6 +65,16 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			(handler.PlatformView as IMauiRecyclerView<TItemsView>)?.UpdateItemsSource();
 		}
 
+		internal static void MapIsEnabled(ItemsViewHandler<TItemsView> handler, ItemsView itemsView)
+		{
+			var recyclerView = handler.PlatformView;
+    		bool isEnabled = itemsView.IsEnabled;
+			
+			//recyclerView.Enabled = isEnabled;
+			recyclerView.SetOnTouchListener(isEnabled ? null : new DisableTouchListener());
+			recyclerView.Alpha = isEnabled ? 1.0f : 0.5f;
+		}
+
 		public static void MapHorizontalScrollBarVisibility(ItemsViewHandler<TItemsView> handler, ItemsView itemsView)
 		{
 			(handler.PlatformView as IMauiRecyclerView<TItemsView>)?.UpdateHorizontalScrollBarVisibility();
@@ -112,6 +123,15 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				emptyViewAdapter.RecyclerViewWidth = width;
 				emptyViewAdapter.RecyclerViewHeight = height;
 			}
+		}
+	}
+
+	 class DisableTouchListener : Java.Lang.Object, Android.Views.View.IOnTouchListener
+{
+
+		public bool OnTouch(Android.Views.View v, MotionEvent e)
+		{
+			return true;
 		}
 	}
 }

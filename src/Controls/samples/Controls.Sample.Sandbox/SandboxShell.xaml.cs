@@ -6,4 +6,9 @@ public partial class SandboxShell : Shell
 	{
 		InitializeComponent();
 	}
+
+	private void ToolbarItem_Clicked(object sender, EventArgs e)
+	{
+		flyoutItems.IsEnabled = !flyoutItems.IsEnabled;
+	}
 }

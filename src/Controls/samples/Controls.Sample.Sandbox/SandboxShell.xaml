@@ -4,12 +4,50 @@
     x:Class="Maui.Controls.Sample.SandboxShell"
     xmlns:local="clr-namespace:Maui.Controls.Sample"
     x:Name="shell">
-	<ShellContent Title="Home"
+
+ <!-- <ShellItem Title="Home">
+    <ShellContent Title="Home"
+                  ContentTemplate="{DataTemplate local:MainPage}"
+                  Route="MainPage" />
+</ShellItem>
+
+<ShellItem Title="Disabled Section" IsEnabled="False" >
+     <ShellContent Title="Disabled" 
+                  ContentTemplate="{DataTemplate local:MainPage}"
+                  Route="MainPage1" />
+    <ShellContent Title="Disabled" IsEnabled="False"
+                  ContentTemplate="{DataTemplate local:MainPage}"
+                  Route="MainPage2" />
+</ShellItem> -->
+
+
+<!-- <FlyoutItem Title="Cats"
+                Icon="cat.png">
+       <Tab>
+           <ShellContent ContentTemplate="{DataTemplate local:MainPage}" />
+       </Tab>
+    </FlyoutItem>
+    <FlyoutItem Title="Dogs" IsEnabled="False" x:Name="flyoutItems"
+                Icon="dog.png">
+       <Tab>
+           <ShellContent ContentTemplate="{DataTemplate local:MainPage}" />
+       </Tab>
+    </FlyoutItem> -->
+<Shell.ToolbarItems>
+   <ToolbarItem Text="change" Clicked="ToolbarItem_Clicked"/>
+</Shell.ToolbarItems>
+
+	   <ShellContent Title="Home"
 				  ContentTemplate="{DataTemplate local:MainPage}"
 				  Route="MainPage" />
 
-	<ShellContent Title="Disabled"
+	<ShellContent Title="Disabled" x:Name="flyoutItems"
 				  ContentTemplate="{DataTemplate local:MainPage}"
 				  IsEnabled="False"
 				  Route="MainPage1" />
+
+	<ShellContent Title="Disabled"
+				  ContentTemplate="{DataTemplate local:MainPage}"
+				  IsEnabled="True"
+				  Route="MainPage12" />
 </Shell>

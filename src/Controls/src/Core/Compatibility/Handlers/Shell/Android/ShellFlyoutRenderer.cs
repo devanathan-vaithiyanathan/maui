@@ -149,6 +149,26 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			this.DrawerSlide += OnDrawerSlide;
 			this.DrawerOpened += OnDrawerOpened;
 			this.DrawerStateChanged += OnDrawerStateChanged;
+			UpdateFlyoutItemsEnabled();
+		}
+
+		void UpdateFlyoutItemsEnabled()
+		{
+			if (_flyoutContent?.AndroidView == null)
+				return;
+
+			foreach (var item in Shell.Items)
+			{
+				if (item is FlyoutItem flyoutItem)
+				{
+					item.IsEnabled = flyoutItem.IsEnabled;
+				}
+
+				if (item is ShellItem shellItem)
+				{
+					item.IsEnabled = shellItem.IsEnabled;
+				}
+			}
 		}
 
 		double FlyoutWidth => (_flyoutWidth == -1) ? _flyoutWidthDefault : _flyoutWidth;

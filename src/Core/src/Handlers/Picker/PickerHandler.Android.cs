@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Specialized;
 using Android.App;
+using Android.Content;
 using Android.Content.Res;
+using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.Text;
 using Android.Text.Style;
+using Android.Views;
+using Android.Widget;
 using AppCompatAlertDialog = AndroidX.AppCompat.App.AlertDialog;
 using AResource = Android.Resource;
 
@@ -79,6 +83,23 @@ namespace Microsoft.Maui.Handlers
 		public static void MapTextColor(IPickerHandler handler, IPicker picker)
 		{
 			handler.PlatformView.UpdateTextColor(picker);
+			if (handler is PickerHandler pickerHandler)
+				pickerHandler.UpdateDialogItemsColor(picker.TextColor.ToPlatform());
+			
+		}
+
+		internal void UpdateDialogItemsColor(Color? color)
+		{
+			if (_dialog?.ListView != null && color != null)
+            {
+                for (int i = 0; i < _dialog.ListView.ChildCount; i++)
+                {
+                    if (_dialog.ListView.GetChildAt(i) is TextView textView)
+                    {
+                    	textView.SetTextColor(color.Value);
+                    }
+                }
+            }
 		}
 
 		public static void MapVerticalTextAlignment(IPickerHandler handler, IPicker picker)
@@ -133,7 +154,9 @@ namespace Microsoft.Maui.Handlers
 							items[i] = String.Empty;
 					}
 
-					builder.SetItems(items, (s, e) =>
+					var adapter = new ColorAdapter(Context, Android.Resource.Layout.SelectDialogItem, items, VirtualView.TextColor?.ToPlatform());
+
+					builder.SetAdapter(adapter, (s, e) =>
 					{
 						var selectedIndex = e.Which;
 						VirtualView.SelectedIndex = selectedIndex;
@@ -164,6 +187,30 @@ namespace Microsoft.Maui.Handlers
 		static void Reload(IPickerHandler handler)
 		{
 			handler.PlatformView.UpdatePicker(handler.VirtualView);
+		}
+	}
+
+	class ColorAdapter : ArrayAdapter<string>
+	{
+		Color? _textColor;
+
+		public ColorAdapter(Context context, int resource, string[] objects, Color? textColor) 
+			: base(context, resource, objects)
+		{
+			_textColor = textColor;
+		}
+
+		public override View GetView(int position, View? convertView, ViewGroup parent)
+		{
+			View view = base.GetView(position, convertView, parent);
+
+			if (view is TextView textView && _textColor.HasValue)
+			{
+				textView.SetTextColor(_textColor.Value);
+				textView.SetTextSize(Android.Util.ComplexUnitType.Sp, 14);
+			}
+
+			return view;
 		}
 	}
 }

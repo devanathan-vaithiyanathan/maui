@@ -154,7 +154,7 @@ namespace Microsoft.Maui.Handlers
 							items[i] = String.Empty;
 					}
 
-					var adapter = new ColorAdapter(Context, Android.Resource.Layout.SelectDialogItem, items, VirtualView.TextColor?.ToPlatform());
+					var adapter = new ColorAdapter(Context, Android.Resource.Layout.SimpleListItem1, items, VirtualView.TextColor?.ToPlatform());
 
 					builder.SetAdapter(adapter, (s, e) =>
 					{

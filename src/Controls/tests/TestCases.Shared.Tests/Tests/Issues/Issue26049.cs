@@ -18,43 +18,39 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		{
 			App.WaitForElement("ChangeShellContentTitle");
 			App.Click("ChangeShellContentTitle");
-#if WINDOWS
-			App.Tap("navViewItem");
+			TapNavigationViewItemIfWindows();
 			VerifyScreenshot();
-			App.Tap("Nested Tabs");
-#else
-			VerifyScreenshot();
-#endif
 		}
 
 		[Test, Order(2)]
 		[Category(UITestCategories.Shell)]
 		public void VerifyNewlyAddedShellContentTitle()
 		{
+			TapNavigationViewItemIfWindows();
 			App.WaitForElement("AddShellContent");
-			App.Click("ChangeShellContentTitle");
 			App.Click("AddShellContent");
 			App.Click("UpdateNewShellContentTitle");
-#if WINDOWS
-			App.Tap("navViewItem");
+			TapNavigationViewItemIfWindows();
 			VerifyScreenshot();
-			App.Tap("navViewItem");
-#else
-			VerifyScreenshot();
-#endif
 		}
 
 		[Test, Order(3)]
 		[Category(UITestCategories.Shell)]
 		public void VerifyExistingTabTitle()
 		{
+			TapNavigationViewItemIfWindows();
 			App.WaitForElement("RemoveShellContent");
 			App.Click("RemoveShellContent");
 			App.Click("UpdateThirdTabTitle");
+			TapNavigationViewItemIfWindows();
+			VerifyScreenshot();
+		}
+
+		void TapNavigationViewItemIfWindows()
+		{
 #if WINDOWS
 			App.Tap("navViewItem");
 #endif
-			VerifyScreenshot();
 		}
 	}
 }

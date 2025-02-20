@@ -150,10 +150,6 @@ namespace Microsoft.Maui.Controls
 				return;
 
 			var previousPage = CurrentPage;
-			SendNavigating();
-			FireDisappearing(CurrentPage);
-			FireAppearing((Page)InternalChildren[0]);
-
 			Element[] childrenToRemove = InternalChildren.Skip(1).ToArray();
 			foreach (Element child in childrenToRemove)
 			{
@@ -162,6 +158,9 @@ namespace Microsoft.Maui.Controls
 
 			CurrentPage = RootPage;
 
+			SendNavigating();
+			FireDisappearing(CurrentPage);
+			FireAppearing((Page)InternalChildren[0]);
 			var args = new NavigationRequestedEventArgs(RootPage, animated);
 
 			EventHandler<NavigationRequestedEventArgs> requestPopToRoot = _popToRootRequested;

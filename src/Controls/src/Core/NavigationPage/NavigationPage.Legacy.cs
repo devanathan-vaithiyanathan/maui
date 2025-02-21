@@ -158,9 +158,9 @@ namespace Microsoft.Maui.Controls
 
 			CurrentPage = RootPage;
 
-			SendNavigating();
-			FireDisappearing(CurrentPage);
-			FireAppearing((Page)InternalChildren[0]);
+			SendNavigating(previousPage);
+			FireDisappearing(previousPage);
+			FireAppearing(RootPage);
 			var args = new NavigationRequestedEventArgs(RootPage, animated);
 
 			EventHandler<NavigationRequestedEventArgs> requestPopToRoot = _popToRootRequested;

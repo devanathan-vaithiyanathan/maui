@@ -3,6 +3,7 @@ using System;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Controls.Handlers.Items;
+using Microsoft.Maui.Graphics;
 using ObjCRuntime;
 using UIKit;
 
@@ -16,6 +17,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 		bool _disposed;
 
+		UIView _headerUIView;
+		VisualElement _headerViewFormsElement;
+
+		UIView _footerUIView;
+		VisualElement _footerViewFormsElement;
+
 		public StructuredItemsViewController2(TItemsView structuredItemsView, UICollectionViewLayout layout)
 			: base(structuredItemsView, layout)
 		{
@@ -24,11 +31,191 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 		protected override void RegisterViewTypes()
 		{
 			base.RegisterViewTypes();
-
+			
 			RegisterSupplementaryViews(UICollectionElementKindSection.Header);
 			RegisterSupplementaryViews(UICollectionElementKindSection.Footer);
 		}
 
+		internal override void Disconnect()
+		{
+			base.Disconnect();
+
+			if (_headerViewFormsElement is not null)
+			{
+				_headerViewFormsElement.MeasureInvalidated -= OnFormsElementMeasureInvalidated;
+			}
+
+			if (_footerViewFormsElement is not null)
+			{
+				_footerViewFormsElement.MeasureInvalidated -= OnFormsElementMeasureInvalidated;
+			}
+
+			_headerUIView = null;
+			_headerViewFormsElement = null;
+			_footerUIView = null;
+			_footerViewFormsElement = null;
+		}
+
+#pragma warning disable RS0016 // Add public types and members to the declared API
+		protected void OnFormsElementMeasureInvalidated(object sender, EventArgs e)
+#pragma warning restore RS0016 // Add public types and members to the declared API
+		{
+			if (sender is VisualElement formsElement)
+			{
+				HandleFormsElementMeasureInvalidated(formsElement);
+			}
+		}
+
+		
+
+#pragma warning disable RS0016 // Add public types and members to the declared API
+		protected virtual void HandleFormsElementMeasureInvalidated(VisualElement formsElement)
+#pragma warning restore RS0016 // Add public types and members to the declared API
+		{
+			RemeasureLayout(formsElement);
+		}
+
+#pragma warning disable RS0016 // Add public types and members to the declared API
+		protected void RemeasureLayout(VisualElement formsElement)
+#pragma warning restore RS0016 // Add public types and members to the declared API
+		{
+			if (IsHorizontal)
+			{
+				var request = formsElement.Measure(double.PositiveInfinity, CollectionView.Frame.Height);
+				formsElement.Arrange(new Rect(0, 0, request.Width, CollectionView.Frame.Height));
+			}
+			else
+			{
+				var request = formsElement.Measure(CollectionView.Frame.Width, double.PositiveInfinity);
+				formsElement.Arrange(new Rect(0, 0, CollectionView.Frame.Width, request.Height));
+			}
+		}
+
+		internal void UpdateFooterView()
+		{
+			UpdateSubview(ItemsView?.Footer, ItemsView?.FooterTemplate, FooterTag,
+				ref _footerUIView, ref _footerViewFormsElement);
+			UpdateHeaderFooterPosition();
+		}
+
+		internal void UpdateHeaderView()
+		{
+			UpdateSubview(ItemsView?.Header, ItemsView?.HeaderTemplate, HeaderTag,
+				ref _headerUIView, ref _headerViewFormsElement);
+			UpdateHeaderFooterPosition();
+		}
+
+
+		internal void UpdateSubview(object view, DataTemplate viewTemplate, nint viewTag, ref UIView uiView, ref VisualElement formsElement)
+		{
+			uiView?.RemoveFromSuperview();
+
+			if (formsElement != null)
+			{
+				ItemsView.RemoveLogicalChild(formsElement);
+				formsElement.MeasureInvalidated -= OnFormsElementMeasureInvalidated;
+			}
+
+			UpdateView(view, viewTemplate, ref uiView, ref formsElement);
+
+			if (uiView != null)
+			{
+				uiView.Tag = viewTag;
+				CollectionView.AddSubview(uiView);
+			}
+
+			if (formsElement != null)
+			{
+				ItemsView.AddLogicalChild(formsElement);
+			}
+
+			if (formsElement != null)
+			{
+				RemeasureLayout(formsElement);
+				formsElement.MeasureInvalidated += OnFormsElementMeasureInvalidated;
+			}
+			else
+			{
+				uiView?.SizeToFit();
+			}
+		}
+
+		void UpdateHeaderFooterPosition()
+		{
+			var emptyView = CollectionView.ViewWithTag(EmptyTag);
+
+			if (IsHorizontal)
+			{
+				var currentInset = CollectionView.ContentInset;
+
+				nfloat headerWidth = ((ItemsView?.Header is View) ? _headerViewFormsElement?.ToPlatform() : _headerUIView)?.Frame.Width ?? 0f;
+				nfloat footerWidth = ((ItemsView?.Footer is View) ? _footerViewFormsElement?.ToPlatform() : _footerUIView)?.Frame.Width ?? 0f;
+				nfloat emptyWidth = emptyView?.Frame.Width ?? 0f; 
+
+				if (_headerUIView != null )
+				{
+					_headerUIView.Frame = new CoreGraphics.CGRect(-headerWidth, 0, headerWidth, CollectionView.Frame.Height);
+				}
+
+				if (_footerUIView != null && (_footerUIView.Frame.X != ItemsViewLayout.CollectionViewContentSize.Width || emptyWidth > 0))
+					_footerUIView.Frame = new CoreGraphics.CGRect(ItemsViewLayout.CollectionViewContentSize.Width + emptyWidth, 0, footerWidth, CollectionView.Frame.Height);
+
+				if (true)
+				{
+					var currentOffset = CollectionView.ContentOffset;
+					CollectionView.ContentInset = new UIEdgeInsets(0, headerWidth, 0, footerWidth);
+
+					var xOffset = currentOffset.X + (currentInset.Left - CollectionView.ContentInset.Left);
+
+					if (CollectionView.ContentSize.Width + headerWidth <= CollectionView.Bounds.Width)
+						xOffset = -headerWidth;
+
+					CollectionView.ContentOffset = new CoreGraphics.CGPoint(xOffset, CollectionView.ContentOffset.Y);
+				}
+			}
+			else
+			{
+				var currentInset = CollectionView.ContentInset;
+				nfloat headerHeight = ((ItemsView?.Header is View) ? _headerViewFormsElement?.ToPlatform() : _headerUIView)?.Frame.Height ?? 0f;
+				nfloat footerHeight = ((ItemsView?.Footer is View) ? _footerViewFormsElement?.ToPlatform() : _footerUIView)?.Frame.Height ?? 0f;
+				nfloat emptyHeight = emptyView?.Frame.Height ?? 0f;
+
+				if (CollectionView.ContentInset.Top != headerHeight || CollectionView.ContentInset.Bottom != footerHeight)
+				{
+					var currentOffset = CollectionView.ContentOffset;
+					CollectionView.ContentInset = new UIEdgeInsets(headerHeight, 0, footerHeight, 0);
+
+					var yOffset = currentOffset.Y + (currentInset.Top - CollectionView.ContentInset.Top);
+
+					if (CollectionView.ContentSize.Height + headerHeight <= CollectionView.Bounds.Height)
+						yOffset = -headerHeight;
+
+					if (currentOffset.Y.Value < headerHeight)
+					{
+						CollectionView.ContentOffset = new CoreGraphics.CGPoint(CollectionView.ContentOffset.X, yOffset);
+					}
+				}
+
+				if (_headerUIView != null && _headerUIView.Frame.Y != headerHeight)
+				{
+					_headerUIView.Frame = new CoreGraphics.CGRect(0, -headerHeight, CollectionView.Frame.Width, headerHeight);
+				}
+
+				nfloat height = 0;
+
+				if (IsViewLoaded && View.Window != null)
+				{
+					height = ItemsViewLayout.CollectionViewContentSize.Height;
+				}
+
+				if (_footerUIView != null && (_footerUIView.Frame.Y != height || emptyHeight > 0 || _footerUIView.Frame.Height != footerHeight))
+				{
+					_footerUIView.Frame = new CoreGraphics.CGRect(0, height + emptyHeight, CollectionView.Frame.Width, footerHeight);
+				}
+			}
+		}
+
+		
 		protected override void Dispose(bool disposing)
 		{
 			if (_disposed)
@@ -182,6 +369,24 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 		public override void ViewWillLayoutSubviews()
 		{
 			base.ViewWillLayoutSubviews();
+
+			if (_footerUIView != null)
+			{
+				var emptyView = CollectionView.ViewWithTag(EmptyTag);
+
+				if (IsHorizontal)
+				{
+					if (_footerUIView.Frame.X != ItemsViewLayout.CollectionViewContentSize.Width ||
+						_footerUIView.Frame.X < emptyView?.Frame.X)
+						UpdateHeaderFooterPosition();
+				}
+				else
+				{
+					if (_footerUIView.Frame.Y != ItemsViewLayout.CollectionViewContentSize.Height ||
+						_footerUIView.Frame.Y < (emptyView?.Frame.Y + emptyView?.Frame.Height))
+						UpdateHeaderFooterPosition();
+				}
+			}
 		}
 	}
 }

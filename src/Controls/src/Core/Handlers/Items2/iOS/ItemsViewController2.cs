@@ -131,6 +131,11 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			return ItemsSource.ItemCountInGroup(section);
 		}
 
+		internal virtual void Disconnect()
+		{
+			DisposeItemsSource();
+		}
+
 		void CheckForEmptySource()
 		{
 			var wasEmpty = _isEmpty;

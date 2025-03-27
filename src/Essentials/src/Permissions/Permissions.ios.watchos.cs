@@ -219,22 +219,48 @@ namespace Microsoft.Maui.ApplicationModel
 
 			internal static async Task<PermissionStatus> RequestSensorPermission()
 			{
+				var status = CMMotionActivityManager.AuthorizationStatus;
+				
+				if (status == CMAuthorizationStatus.NotDetermined)
+				{
+					await RequestActivityPermission();
+					
+					status = CMMotionActivityManager.AuthorizationStatus;
+					System.Diagnostics.Debug.WriteLine("RequestSensorPermission: " + status);
+					return status == CMAuthorizationStatus.Authorized ? PermissionStatus.Granted : PermissionStatus.Denied;
+				}
+				else if (status == CMAuthorizationStatus.Authorized)
+				{
+					return PermissionStatus.Granted;
+				}
+				else
+				{
+					return PermissionStatus.Denied;
+				}
+			}
+
+			static async Task<bool> RequestActivityPermission()
+			{
 				var activityManager = new CMMotionActivityManager();
 
 				try
 				{
-					var results = await activityManager.QueryActivityAsync(NSDate.DistantPast, NSDate.DistantFuture, NSOperationQueue.MainQueue);
-					if (results != null)
-						return PermissionStatus.Granted;
+					var activities = await activityManager.QueryActivityAsync(NSDate.DistantPast, NSDate.DistantFuture, NSOperationQueue.MainQueue);
+					if (activities != null)
+					{
+						return true;
+					}
 				}
 				catch (Exception ex)
 				{
 					Debug.WriteLine("Unable to query activity manager: " + ex.Message);
-					return PermissionStatus.Denied;
+					return false;
 				}
 
-				return PermissionStatus.Unknown;
+				return false;
 			}
+
+
 		}
 
 		public partial class LocationAlways : BasePlatformPermission

@@ -6,6 +6,7 @@ namespace Microsoft.Maui.Platform
 	{
 		public static void UpdateIsRunning(this UIActivityIndicatorView activityIndicatorView, IActivityIndicator activityIndicator)
 		{
+			if (activityIndicator.Visibility == Visibility.Visible && activityIndicator.IsRunning)
 				activityIndicatorView.StartAnimating();
 			else
 				activityIndicatorView.StopAnimating();

@@ -10,8 +10,7 @@ namespace Microsoft.Maui.Platform
 	{
 		readonly WeakReference<IActivityIndicator>? _virtualView;
 
-		bool IsRunning => _virtualView is not null && _virtualView.TryGetTarget(out var a) ? a.IsRunning : false;
-		bool IsVisible => _virtualView is not null && _virtualView.TryGetTarget(out var a) ? a.Visibility == Visibility.Visible : false;
+		bool IsRunning => _virtualView is not null && _virtualView.TryGetTarget(out var a) ? a.IsRunning && a.Visibility == Visibility.Visible : false;
 
 		public MauiActivityIndicator(CGRect rect, IActivityIndicator? virtualView) : base(rect)
 		{
@@ -23,7 +22,7 @@ namespace Microsoft.Maui.Platform
 		{
 			base.Draw(rect);
 
-			if (IsRunning && IsVisible)
+			if (IsRunning)
 				StartAnimating();
 			else
 				StopAnimating();
@@ -33,7 +32,7 @@ namespace Microsoft.Maui.Platform
 		{
 			base.LayoutSubviews();
 
-			if (IsRunning && IsVisible)
+			if (IsRunning)
 				StartAnimating();
 			else
 				StopAnimating();

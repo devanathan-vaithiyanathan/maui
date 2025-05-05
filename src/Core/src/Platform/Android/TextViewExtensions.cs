@@ -19,8 +19,8 @@ namespace Microsoft.Maui.Platform
 		public static void UpdateTextHtml(this TextView textView, ILabel label)
 		{
 			var text = label.Text ?? string.Empty;
-			var htmlText = WebUtility.HtmlDecode(text);
-
+			// Escape standalone '<' after decoding to prevent Android HTML parser from treating it as a tag
+			var htmlText = WebUtility.HtmlDecode(text).Replace("<", "&lt;", StringComparison.Ordinal);
 			if (OperatingSystem.IsAndroidVersionAtLeast(24))
 				textView.SetText(Html.FromHtml(htmlText, FromHtmlOptions.ModeCompact), BufferType.Spannable);
 			else

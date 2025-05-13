@@ -24,7 +24,7 @@ namespace Microsoft.Maui.Controls
 		public const string DefaultItemVisualState = "DefaultItem";
 
 		/// <summary>Bindable property for <see cref="Loop"/>.</summary>
-		public static readonly BindableProperty LoopProperty = BindableProperty.Create(nameof(Loop), typeof(bool), typeof(CarouselView), true, BindingMode.OneTime);
+		public static readonly BindableProperty LoopProperty = BindableProperty.Create(nameof(Loop), typeof(bool), typeof(CarouselView), true, BindingMode.TwoWay);
 
 		/// <include file="../../../docs/Microsoft.Maui.Controls/CarouselView.xml" path="//Member[@MemberName='Loop']/Docs/*" />
 		public bool Loop

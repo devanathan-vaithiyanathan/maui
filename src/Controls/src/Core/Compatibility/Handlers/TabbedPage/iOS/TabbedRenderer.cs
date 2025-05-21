@@ -127,17 +127,6 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 		{
 			base.ViewDidLayoutSubviews();
 
-			foreach (var viewController in ViewControllers)
-			{
-				if (viewController != null)
-				{
-					if (viewController != null)
-					{
-						FindAndAdjustScrollViews(viewController.View, TabBar.Frame.Height);
-					}
-				}
-			}
-
 			if (Element is IView view)
 				view.Arrange(View.Bounds.ToRectangle());
 		}
@@ -153,7 +142,7 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			{
 				foreach (var subview in view.Subviews)
 				{
-					FindAndAdjustScrollViews(subview, TabBar.Frame.Height);
+					FindAndAdjustScrollViews(subview, tabBarHeight);
 				}
 			}
 		}
@@ -228,6 +217,12 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 				controller = GetViewController(currentPage);
 			if (controller != null && controller != base.SelectedViewController)
 				base.SelectedViewController = controller;
+
+			foreach (var viewController in ViewControllers)
+			{
+				if (viewController?.View != null)
+					FindAndAdjustScrollViews(viewController.View, TabBar.Frame.Height);
+			}
 
 			UpdateBarBackgroundColor();
 			UpdateBarTextColor();

@@ -127,8 +127,35 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 		{
 			base.ViewDidLayoutSubviews();
 
+			foreach (var viewController in ViewControllers)
+			{
+				if (viewController != null)
+				{
+					if (viewController != null)
+					{
+						FindAndAdjustScrollViews(viewController.View, TabBar.Frame.Height);
+					}
+				}
+			}
+
 			if (Element is IView view)
 				view.Arrange(View.Bounds.ToRectangle());
+		}
+
+		void FindAndAdjustScrollViews(UIKit.UIView view, nfloat tabBarHeight)
+		{
+			if (view is UIKit.UIScrollView scrollView)
+			{
+				scrollView.ContentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentBehavior.Always;
+			}
+
+			if (view.Subviews != null)
+			{
+				foreach (var subview in view.Subviews)
+				{
+					FindAndAdjustScrollViews(subview, TabBar.Frame.Height);
+				}
+			}
 		}
 
 		protected override void Dispose(bool disposing)

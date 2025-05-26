@@ -131,7 +131,7 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 				view.Arrange(View.Bounds.ToRectangle());
 		}
 
-		void FindAndAdjustScrollViews(UIKit.UIView view, nfloat tabBarHeight)
+		void UpdateScrollViewAdjustmentBehavior(UIKit.UIView view)
 		{
 			if (view is UIKit.UIScrollView scrollView)
 			{
@@ -142,7 +142,7 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			{
 				foreach (var subview in view.Subviews)
 				{
-					FindAndAdjustScrollViews(subview, tabBarHeight);
+					UpdateScrollViewAdjustmentBehavior(subview);
 				}
 			}
 		}
@@ -221,7 +221,7 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 			foreach (var viewController in ViewControllers)
 			{
 				if (viewController?.View != null)
-					FindAndAdjustScrollViews(viewController.View, TabBar.Frame.Height);
+					UpdateScrollViewAdjustmentBehavior(viewController.View);
 			}
 
 			UpdateBarBackgroundColor();

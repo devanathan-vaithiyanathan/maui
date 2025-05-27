@@ -163,9 +163,6 @@ namespace Microsoft.Maui.Controls
 			if (label.HasFormattedTextSpans)
 				return false;
 
-			if (label.TextType != TextType.Text)
-				return false;
-
 			return true;
 		}
 

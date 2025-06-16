@@ -165,9 +165,12 @@ namespace Microsoft.Maui.Platform
 				if (nativeImageSource is CanvasImageSource canvas)
 				{
 					var size = canvas.GetImageSourceSize(platformButton);
-					nativeImage.Width = size.Width;
-					nativeImage.Height = size.Height;
-					nativeImage.MaxHeight = double.PositiveInfinity;
+					if (nativeImage.Stretch == UI.Xaml.Media.Stretch.Fill)
+					{
+						nativeImage.Width = size.Width;
+						nativeImage.Height = size.Height;
+						nativeImage.MaxHeight = double.PositiveInfinity;
+					}
 				}
 
 				// Ensure that we only scale images down and never up

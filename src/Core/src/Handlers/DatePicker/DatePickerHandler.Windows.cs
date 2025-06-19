@@ -40,7 +40,8 @@ namespace Microsoft.Maui.Handlers
 
 		public static partial void MapCharacterSpacing(IDatePickerHandler handler, IDatePicker datePicker)
 		{
-			handler.PlatformView.UpdateCharacterSpacing(datePicker);
+			handler.UpdateValue(nameof(IDatePicker.Format));
+			//handler.PlatformView.UpdateCharacterSpacing(datePicker);
 		}
 
 		public static partial void MapFont(IDatePickerHandler handler, IDatePicker datePicker)

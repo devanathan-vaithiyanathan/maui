@@ -14,9 +14,14 @@ namespace Microsoft.Maui.Platform
 
 			var format = datePicker.Format;
 			var dateFormat = format.ToDateFormat();
+			var updatedFormat = string.Empty;
+			if (datePicker.CharacterSpacing > 0)
+			{
+				// If the format contains spaces and is a WinUI format, apply character spacing
+				updatedFormat = ApplyCharacterSpacingToDateFormat(dateFormat, datePicker.CharacterSpacing);
+			}
 
-			if (!string.IsNullOrEmpty(dateFormat))
-				platformDatePicker.DateFormat = dateFormat;
+			platformDatePicker.DateFormat = updatedFormat == string.Empty ? dateFormat : updatedFormat;
 
 			platformDatePicker.UpdateTextColor(datePicker);
 		}
@@ -24,6 +29,44 @@ namespace Microsoft.Maui.Platform
 		public static void UpdateDate(this CalendarDatePicker platformDatePicker, DateTime dateTime)
 		{
 			platformDatePicker.Date = dateTime;
+		}
+
+		private static string ApplyCharacterSpacingToDateFormat(string dateFormat, double characterSpacing)
+		{
+			// Convert character spacing to a reasonable space multiplier
+			// Since CalendarDatePicker uses format strings, we add spaces between separators
+			if (characterSpacing <= 0)
+				return dateFormat;
+
+			// Calculate number of spaces to add based on character spacing value
+			// Character spacing is typically a small decimal, so we scale it appropriately
+			int spaceCount = Math.Max(1, (int)Math.Round(characterSpacing));
+			string spacing = new string(' ', spaceCount);
+
+			// Handle common date format separators
+			var separators = new[] { "/", "-", ".", " " };
+			foreach (var separator in separators)
+			{
+
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+				if (dateFormat.Contains(separator) || dateFormat == "d")
+				{
+					// Replace separators with separator + extra spacing
+					dateFormat = dateFormat.Replace(separator, separator + spacing);
+					break;
+				}
+			}
+
+			// For WinUI CalendarDatePicker format patterns like "{month.integer(2)}/{day.integer(2)}/{year.full}"
+			// Also add spacing after format tokens
+			if (dateFormat.Contains('{') && dateFormat.Contains('}'))
+			{
+				dateFormat = dateFormat.Replace("}", "}" + spacing);
+			}
+#pragma warning restore CA1307 // Specify StringComparison for clarity
+
+
+			return dateFormat.TrimEnd(); // Remove trailing spaces
 		}
 
 		public static void UpdateMinimumDate(this CalendarDatePicker platformDatePicker, IDatePicker datePicker)

@@ -358,7 +358,7 @@ namespace Microsoft.Maui.Controls
 					new ColumnDefinition(GridLength.Auto), // Subtitle content
 					new ColumnDefinition(GridLength.Star), // Content
 					new ColumnDefinition(GridLength.Auto), // Trailing content
-#if MACCATALYST
+#if !MACCATALYST
 					new ColumnDefinition(150),             // Min drag region + padding for system buttons
 #endif
 				},

@@ -350,7 +350,6 @@ namespace Microsoft.Maui.Controls
 			var contentGrid = new Grid()
 			{
 				HorizontalOptions = LayoutOptions.Fill,
-#if WINDOWS
 				ColumnDefinitions =
 				{
 					new ColumnDefinition(GridLength.Auto), // Leading content
@@ -359,19 +358,10 @@ namespace Microsoft.Maui.Controls
 					new ColumnDefinition(GridLength.Auto), // Subtitle content
 					new ColumnDefinition(GridLength.Star), // Content
 					new ColumnDefinition(GridLength.Auto), // Trailing content
+#if MACCATALYST
 					new ColumnDefinition(150),             // Min drag region + padding for system buttons
-				},
-#elif MACCATALYST
-				ColumnDefinitions =
-				{
-					new ColumnDefinition(GridLength.Auto), // Leading content
-					new ColumnDefinition(GridLength.Auto), // Icon content
-					new ColumnDefinition(GridLength.Auto), // Title content
-					new ColumnDefinition(GridLength.Auto), // Subtitle content
-					new ColumnDefinition(GridLength.Star), // Content
-					new ColumnDefinition(GridLength.Auto), // Trailing content
-				},
 #endif
+				},
 				IgnoreSafeArea = true,
 			};
 
@@ -383,12 +373,6 @@ namespace Microsoft.Maui.Controls
 				source: RelativeBindingSource.TemplatedParent,
 				converter: new WindowsColumnDefinitionsConverter());
 #endif
-
-			// Add FlowDirection binding to handle RTL properly
-			contentGrid.SetBinding(
-				FlowDirectionProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent);
 
 			// Platform-specific margin handling for RTL
 #if MACCATALYST

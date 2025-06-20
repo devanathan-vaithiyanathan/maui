@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Converters;
 
 namespace Microsoft.Maui.Controls
 {
@@ -395,6 +394,7 @@ namespace Microsoft.Maui.Controls
 				OpacityProperty,
 				static (TitleBar tb) => tb.Opacity,
 				source: RelativeBindingSource.TemplatedParent);
+
 			#endregion
 
 			#region Leading content
@@ -410,6 +410,15 @@ namespace Microsoft.Maui.Controls
 				ContentView.ContentProperty,
 				static (TitleBar tb) => tb.LeadingContent,
 				source: RelativeBindingSource.TemplatedParent);
+
+#if WINDOWS
+			// Add Windows-specific RTL margin handling ONLY for leading content
+			leadingContent.SetBinding(
+				MarginProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsRTLMarginConverter());
+#endif
 
 			var leadingVisibleGroup = GetVisibleStateGroup(TitleBarLeading, LeadingVisibleState, LeadingHiddenState);
 			leadingVisibleGroup.Name = "LeadingContentGroup";
@@ -603,7 +612,7 @@ namespace Microsoft.Maui.Controls
 	}
 
 #if MACCATALYST
-	// Move converter class outside of TitleBar class to avoid nesting issues
+	// MacOS RTL margin converter
 	internal class MacRTLMarginConverter : IValueConverter
 	{
 		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -613,7 +622,6 @@ namespace Microsoft.Maui.Controls
 				if (flowDirection == FlowDirection.RightToLeft)
 				{
 					// In RTL, traffic lights are on the right, so add right margin
-					// and reduce left margin to prevent overlap
 					return new Thickness(0, 0, 80, 0);
 				}
 				else
@@ -623,6 +631,27 @@ namespace Microsoft.Maui.Controls
 				}
 			}
 			return new Thickness(80, 0, 0, 0); // Default LTR margin
+		}
+
+		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+#endif
+
+#if WINDOWS
+	// Windows-specific RTL margin converter for leading content
+	internal class WindowsRTLMarginConverter : IValueConverter
+	{
+		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			if (value is FlowDirection flowDirection && flowDirection == FlowDirection.RightToLeft)
+			{
+				// Add right margin to prevent overlap with minimize/maximize/close buttons
+				return new Thickness(0, 0, 140, 0);
+			}
+			return new Thickness(0); // Default LTR margin
 		}
 
 		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

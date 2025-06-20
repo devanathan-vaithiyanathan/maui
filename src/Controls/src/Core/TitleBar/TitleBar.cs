@@ -440,15 +440,6 @@ namespace Microsoft.Maui.Controls
 				static (TitleBar tb) => tb.LeadingContent,
 				source: RelativeBindingSource.TemplatedParent);
 
-#if WINDOWS
-			// Add Windows-specific RTL margin handling ONLY for leading content
-			leadingContent.SetBinding(
-				MarginProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsRTLMarginConverter());
-#endif
-
 			var leadingVisibleGroup = GetVisibleStateGroup(TitleBarLeading, LeadingVisibleState, LeadingHiddenState);
 			leadingVisibleGroup.Name = "LeadingContentGroup";
 			visualStateGroups.Add(leadingVisibleGroup);
@@ -802,25 +793,6 @@ namespace Microsoft.Maui.Controls
 				"Trailing" => 5,
 				_ => 0
 			};
-		}
-
-		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-	}
-
-	// Windows-specific RTL margin converter for leading content
-	internal class WindowsRTLMarginConverter : IValueConverter
-	{
-		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			if (value is FlowDirection flowDirection && flowDirection == FlowDirection.RightToLeft)
-			{
-				// Add right margin to prevent overlap with minimize/maximize/close buttons
-				return new Thickness(0, 0, 140, 0);
-			}
-			return new Thickness(0); // Default LTR margin
 		}
 
 		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

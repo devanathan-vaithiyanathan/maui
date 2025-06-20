@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Converters;
 
 namespace Microsoft.Maui.Controls
 {
@@ -347,9 +350,6 @@ namespace Microsoft.Maui.Controls
 			#region Root Grid
 			var contentGrid = new Grid()
 			{
-#if MACCATALYST
-				Margin = new Thickness(80, 0, 0, 0),
-#endif
 				HorizontalOptions = LayoutOptions.Fill,
 				ColumnDefinitions =
 				{
@@ -365,6 +365,21 @@ namespace Microsoft.Maui.Controls
 				},
 				IgnoreSafeArea = true,
 			};
+
+			// Add FlowDirection binding to handle RTL properly
+			contentGrid.SetBinding(
+				FlowDirectionProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent);
+
+			// Platform-specific margin handling for RTL
+#if MACCATALYST
+			contentGrid.SetBinding(
+				MarginProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new MacRTLMarginConverter());
+#endif
 
 			contentGrid.SetBinding(
 				BackgroundColorProperty,
@@ -586,4 +601,34 @@ namespace Microsoft.Maui.Controls
 			return visualGroup;
 		}
 	}
+
+#if MACCATALYST
+	// Move converter class outside of TitleBar class to avoid nesting issues
+	internal class MacRTLMarginConverter : IValueConverter
+	{
+		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			if (value is FlowDirection flowDirection)
+			{
+				if (flowDirection == FlowDirection.RightToLeft)
+				{
+					// In RTL, traffic lights are on the right, so add right margin
+					// and reduce left margin to prevent overlap
+					return new Thickness(0, 0, 80, 0);
+				}
+				else
+				{
+					// In LTR, traffic lights are on the left, so add left margin
+					return new Thickness(80, 0, 0, 0);
+				}
+			}
+			return new Thickness(80, 0, 0, 0); // Default LTR margin
+		}
+
+		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+#endif
 }

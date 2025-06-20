@@ -350,6 +350,7 @@ namespace Microsoft.Maui.Controls
 			var contentGrid = new Grid()
 			{
 				HorizontalOptions = LayoutOptions.Fill,
+#if WINDOWS
 				ColumnDefinitions =
 				{
 					new ColumnDefinition(GridLength.Auto), // Leading content
@@ -358,12 +359,30 @@ namespace Microsoft.Maui.Controls
 					new ColumnDefinition(GridLength.Auto), // Subtitle content
 					new ColumnDefinition(GridLength.Star), // Content
 					new ColumnDefinition(GridLength.Auto), // Trailing content
-#if !MACCATALYST
 					new ColumnDefinition(150),             // Min drag region + padding for system buttons
-#endif
 				},
+#elif MACCATALYST
+				ColumnDefinitions =
+				{
+					new ColumnDefinition(GridLength.Auto), // Leading content
+					new ColumnDefinition(GridLength.Auto), // Icon content
+					new ColumnDefinition(GridLength.Auto), // Title content
+					new ColumnDefinition(GridLength.Auto), // Subtitle content
+					new ColumnDefinition(GridLength.Star), // Content
+					new ColumnDefinition(GridLength.Auto), // Trailing content
+				},
+#endif
 				IgnoreSafeArea = true,
 			};
+
+#if WINDOWS
+			// Windows: Use binding to set column definitions based on FlowDirection
+			contentGrid.SetBinding(
+				Grid.ColumnDefinitionsProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnDefinitionsConverter());
+#endif
 
 			// Add FlowDirection binding to handle RTL properly
 			contentGrid.SetBinding(
@@ -404,7 +423,17 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(leadingContent);
+#if WINDOWS
+			// Windows: Use binding to set column index based on FlowDirection
+			leadingContent.SetBinding(
+				Grid.ColumnProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnIndexConverter(),
+				converterParameter: "Leading");
+#else
 			contentGrid.SetColumn(leadingContent, 0);
+#endif
 
 			leadingContent.SetBinding(
 				ContentView.ContentProperty,
@@ -436,7 +465,16 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(icon);
+#if WINDOWS
+			icon.SetBinding(
+				Grid.ColumnProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnIndexConverter(),
+				converterParameter: "Icon");
+#else
 			contentGrid.SetColumn(icon, 1);
+#endif
 
 			icon.SetBinding(
 				Image.SourceProperty,
@@ -461,7 +499,16 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(titleLabel);
+#if WINDOWS
+			titleLabel.SetBinding(
+				Grid.ColumnProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnIndexConverter(),
+				converterParameter: "Title");
+#else
 			contentGrid.SetColumn(titleLabel, 2);
+#endif
 
 			titleLabel.SetBinding(
 				Label.TextProperty,
@@ -515,7 +562,16 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(subtitleLabel);
+#if WINDOWS
+			subtitleLabel.SetBinding(
+				Grid.ColumnProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnIndexConverter(),
+				converterParameter: "Subtitle");
+#else
 			contentGrid.SetColumn(subtitleLabel, 3);
+#endif
 
 			subtitleLabel.SetBinding(
 				Label.TextProperty,
@@ -539,7 +595,16 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(content);
+#if WINDOWS
+			content.SetBinding(
+				Grid.ColumnProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnIndexConverter(),
+				converterParameter: "Content");
+#else
 			contentGrid.SetColumn(content, 4);
+#endif
 
 			content.SetBinding(
 				ContentView.ContentProperty,
@@ -558,7 +623,16 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(trailingContent);
+#if WINDOWS
+			trailingContent.SetBinding(
+				Grid.ColumnProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnIndexConverter(),
+				converterParameter: "Trailing");
+#else
 			contentGrid.SetColumn(trailingContent, 5);
+#endif
 
 			trailingContent.SetBinding(
 				ContentView.ContentProperty,
@@ -641,6 +715,101 @@ namespace Microsoft.Maui.Controls
 #endif
 
 #if WINDOWS
+	// Windows-specific column definitions converter
+	internal class WindowsColumnDefinitionsConverter : IValueConverter
+	{
+		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			var columnDefinitions = new ColumnDefinitionCollection();
+			
+			if (value is FlowDirection flowDirection && flowDirection == FlowDirection.RightToLeft)
+			{
+				// RTL: System buttons column first
+				columnDefinitions.Add(new ColumnDefinition(150));             // System buttons
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Leading content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Icon content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Title content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Subtitle content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Star)); // Content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Trailing content
+			}
+			else
+			{
+				// LTR: Original order
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Leading content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Icon content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Title content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Subtitle content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Star)); // Content
+				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Trailing content
+				columnDefinitions.Add(new ColumnDefinition(150));             // System buttons
+			}
+			
+			return columnDefinitions;
+		}
+
+		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
+	// Windows-specific column index converter
+	internal class WindowsColumnIndexConverter : IValueConverter
+	{
+		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			if (value is FlowDirection flowDirection && parameter is string columnType)
+			{
+				if (flowDirection == FlowDirection.RightToLeft)
+				{
+					// RTL column mapping: [150, Auto, Auto, Auto, Auto, Star, Auto]
+					return columnType switch
+					{
+						"Leading" => 1,
+						"Icon" => 2,
+						"Title" => 3,
+						"Subtitle" => 4,
+						"Content" => 5,
+						"Trailing" => 6,
+						_ => 0
+					};
+				}
+				else
+				{
+					// LTR column mapping: [Auto, Auto, Auto, Auto, Star, Auto, 150]
+					return columnType switch
+					{
+						"Leading" => 0,
+						"Icon" => 1,
+						"Title" => 2,
+						"Subtitle" => 3,
+						"Content" => 4,
+						"Trailing" => 5,
+						_ => 0
+					};
+				}
+			}
+			
+			// Default LTR indices
+			return parameter switch
+			{
+				"Leading" => 0,
+				"Icon" => 1,
+				"Title" => 2,
+				"Subtitle" => 3,
+				"Content" => 4,
+				"Trailing" => 5,
+				_ => 0
+			};
+		}
+
+		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
+
 	// Windows-specific RTL margin converter for leading content
 	internal class WindowsRTLMarginConverter : IValueConverter
 	{

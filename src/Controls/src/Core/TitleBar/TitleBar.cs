@@ -408,13 +408,7 @@ namespace Microsoft.Maui.Controls
 
 			contentGrid.Add(leadingContent);
 #if WINDOWS
-			// Windows: Use binding to set column index based on FlowDirection
-			leadingContent.SetBinding(
-				Grid.ColumnProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnIndexConverter(),
-				converterParameter: "Leading");
+			SetWindowsColumnBinding(leadingContent, "Leading");
 #else
 			contentGrid.SetColumn(leadingContent, 0);
 #endif
@@ -441,12 +435,7 @@ namespace Microsoft.Maui.Controls
 
 			contentGrid.Add(icon);
 #if WINDOWS
-			icon.SetBinding(
-				Grid.ColumnProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnIndexConverter(),
-				converterParameter: "Icon");
+			SetWindowsColumnBinding(icon, "Icon");
 #else
 			contentGrid.SetColumn(icon, 1);
 #endif
@@ -475,12 +464,7 @@ namespace Microsoft.Maui.Controls
 
 			contentGrid.Add(titleLabel);
 #if WINDOWS
-			titleLabel.SetBinding(
-				Grid.ColumnProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnIndexConverter(),
-				converterParameter: "Title");
+			SetWindowsColumnBinding(titleLabel, "Title");
 #else
 			contentGrid.SetColumn(titleLabel, 2);
 #endif
@@ -538,12 +522,7 @@ namespace Microsoft.Maui.Controls
 
 			contentGrid.Add(subtitleLabel);
 #if WINDOWS
-			subtitleLabel.SetBinding(
-				Grid.ColumnProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnIndexConverter(),
-				converterParameter: "Subtitle");
+			SetWindowsColumnBinding(subtitleLabel, "Subtitle");
 #else
 			contentGrid.SetColumn(subtitleLabel, 3);
 #endif
@@ -571,12 +550,7 @@ namespace Microsoft.Maui.Controls
 
 			contentGrid.Add(content);
 #if WINDOWS
-			content.SetBinding(
-				Grid.ColumnProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnIndexConverter(),
-				converterParameter: "Content");
+			SetWindowsColumnBinding(content, "Content");
 #else
 			contentGrid.SetColumn(content, 4);
 #endif
@@ -599,12 +573,7 @@ namespace Microsoft.Maui.Controls
 
 			contentGrid.Add(trailingContent);
 #if WINDOWS
-			trailingContent.SetBinding(
-				Grid.ColumnProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnIndexConverter(),
-				converterParameter: "Trailing");
+			SetWindowsColumnBinding(trailingContent, "Trailing");
 #else
 			contentGrid.SetColumn(trailingContent, 5);
 #endif
@@ -633,6 +602,23 @@ namespace Microsoft.Maui.Controls
 
 			return contentGrid;
 		}
+
+#if WINDOWS
+		/// <summary>
+		/// Helper method to set Windows-specific column binding based on FlowDirection
+		/// </summary>
+		/// <param name="view">The view to apply the binding to</param>
+		/// <param name="columnType">The column type identifier</param>
+		private static void SetWindowsColumnBinding(View view, string columnType)
+		{
+			view.SetBinding(
+				Grid.ColumnProperty,
+				static (TitleBar tb) => tb.FlowDirection,
+				source: RelativeBindingSource.TemplatedParent,
+				converter: new WindowsColumnIndexConverter(),
+				converterParameter: columnType);
+		}
+#endif
 
 		static VisualStateGroup GetVisibleStateGroup(string targetName, string visibleState, string hiddenState)
 		{

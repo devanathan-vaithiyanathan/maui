@@ -590,12 +590,6 @@ namespace Microsoft.Maui.Controls
 			return contentGrid;
 		}
 
-		/// <summary>
-		/// Helper method to set column for an element based on platform
-		/// </summary>
-		/// <param name="view">The view to apply the column to</param>
-		/// <param name="elementType">The element type</param>
-		/// <param name="defaultColumn">Default column index to use</param>
 		static void SetColumnForElement(View view, TitleBarElement elementType, int defaultColumn)
 		{
 #if WINDOWS
@@ -605,7 +599,7 @@ namespace Microsoft.Maui.Controls
 				static (TitleBar tb) => tb.FlowDirection,
 				source: RelativeBindingSource.TemplatedParent,
 				converter: new WindowsColumnIndexConverter(),
-				converterParameter: elementType.ToString());
+				converterParameter: elementType); // Pass enum directly instead of ToString()
 #else
 			// Other platforms: Use direct column assignment
 			Grid.SetColumn(view, defaultColumn);
@@ -712,55 +706,40 @@ namespace Microsoft.Maui.Controls
 	{
 		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 		{
-			if (value is FlowDirection flowDirection && parameter is string elementTypeStr)
+			// Since we're now passing the enum directly, we can simplify this converter
+			if (value is FlowDirection flowDirection && parameter is TitleBar.TitleBarElement elementType)
 			{
-				if (Enum.TryParse<TitleBar.TitleBarElement>(elementTypeStr, out var elementType))
+				if (flowDirection == FlowDirection.RightToLeft)
 				{
-					if (flowDirection == FlowDirection.RightToLeft)
+					// RTL column mapping
+					return elementType switch
 					{
-						// RTL column mapping: [150, Auto, Auto, Auto, Auto, Star, Auto]
-						return elementType switch
-						{
-							TitleBar.TitleBarElement.Leading => 1,
-							TitleBar.TitleBarElement.Icon => 2,
-							TitleBar.TitleBarElement.Title => 3,
-							TitleBar.TitleBarElement.Subtitle => 4,
-							TitleBar.TitleBarElement.Content => 5,
-							TitleBar.TitleBarElement.Trailing => 6,
-							TitleBar.TitleBarElement.SystemButtons => 0,
-							_ => 0
-						};
-					}
-					else
+						TitleBar.TitleBarElement.Leading => 1,
+						TitleBar.TitleBarElement.Icon => 2,
+						TitleBar.TitleBarElement.Title => 3,
+						TitleBar.TitleBarElement.Subtitle => 4,
+						TitleBar.TitleBarElement.Content => 5,
+						TitleBar.TitleBarElement.Trailing => 6,
+						TitleBar.TitleBarElement.SystemButtons => 0,
+						_ => 0
+					};
+				}
+				else
+				{
+					// LTR column mapping
+					return elementType switch
 					{
-						// LTR column mapping: [Auto, Auto, Auto, Auto, Star, Auto, 150]
-						return elementType switch
-						{
-							TitleBar.TitleBarElement.Leading => 0,
-							TitleBar.TitleBarElement.Icon => 1,
-							TitleBar.TitleBarElement.Title => 2,
-							TitleBar.TitleBarElement.Subtitle => 3,
-							TitleBar.TitleBarElement.Content => 4,
-							TitleBar.TitleBarElement.Trailing => 5,
-							TitleBar.TitleBarElement.SystemButtons => 6,
-							_ => 0
-						};
-					}
+						TitleBar.TitleBarElement.Leading => 0,
+						TitleBar.TitleBarElement.Icon => 1,
+						TitleBar.TitleBarElement.Title => 2,
+						TitleBar.TitleBarElement.Subtitle => 3,
+						TitleBar.TitleBarElement.Content => 4,
+						TitleBar.TitleBarElement.Trailing => 5,
+						TitleBar.TitleBarElement.SystemButtons => 6,
+						_ => 0
+					};
 				}
 			}
-			
-			// Fallback to old string-based approach for backward compatibility
-			return parameter switch
-			{
-				"Leading" => 0,
-				"Icon" => 1,
-				"Title" => 2,
-				"Subtitle" => 3,
-				"Content" => 4,
-				"Trailing" => 5,
-				"SystemButtons" => 6,
-				_ => 0
-			};
 		}
 
 		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

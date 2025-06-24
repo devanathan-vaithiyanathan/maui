@@ -408,7 +408,6 @@ namespace Microsoft.Maui.Controls
 				OpacityProperty,
 				static (TitleBar tb) => tb.Opacity,
 				source: RelativeBindingSource.TemplatedParent);
-
 			#endregion
 
 			#region Leading content

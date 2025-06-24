@@ -16,6 +16,17 @@ namespace Microsoft.Maui.Controls
 	/// </summary>
 	public partial class TitleBar : TemplatedView, ITitleBar, ISafeAreaView
 	{
+		enum TitleBarElement
+		{
+			Leading,
+			Icon,
+			Title,
+			Subtitle,
+			Content,
+			Trailing,
+			SystemButtons
+		}
+
 		public const string TemplateRootName = "PART_Root";
 
 		public const string TitleBarIcon = "PART_Icon";
@@ -407,11 +418,7 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(leadingContent);
-#if WINDOWS
-			SetWindowsColumnBinding(leadingContent, "Leading");
-#else
-			contentGrid.SetColumn(leadingContent, 0);
-#endif
+			SetColumnForElement(leadingContent, TitleBarElement.Leading, 0);
 
 			leadingContent.SetBinding(
 				ContentView.ContentProperty,
@@ -434,11 +441,7 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(icon);
-#if WINDOWS
-			SetWindowsColumnBinding(icon, "Icon");
-#else
-			contentGrid.SetColumn(icon, 1);
-#endif
+			SetColumnForElement(icon, TitleBarElement.Icon, 1);
 
 			icon.SetBinding(
 				Image.SourceProperty,
@@ -463,11 +466,7 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(titleLabel);
-#if WINDOWS
-			SetWindowsColumnBinding(titleLabel, "Title");
-#else
-			contentGrid.SetColumn(titleLabel, 2);
-#endif
+			SetColumnForElement(titleLabel, TitleBarElement.Title, 2);
 
 			titleLabel.SetBinding(
 				Label.TextProperty,
@@ -521,11 +520,7 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(subtitleLabel);
-#if WINDOWS
-			SetWindowsColumnBinding(subtitleLabel, "Subtitle");
-#else
-			contentGrid.SetColumn(subtitleLabel, 3);
-#endif
+			SetColumnForElement(subtitleLabel, TitleBarElement.Subtitle, 3);
 
 			subtitleLabel.SetBinding(
 				Label.TextProperty,
@@ -549,11 +544,7 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(content);
-#if WINDOWS
-			SetWindowsColumnBinding(content, "Content");
-#else
-			contentGrid.SetColumn(content, 4);
-#endif
+			SetColumnForElement(content, TitleBarElement.Content, 4);
 
 			content.SetBinding(
 				ContentView.ContentProperty,
@@ -572,11 +563,7 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(trailingContent);
-#if WINDOWS
-			SetWindowsColumnBinding(trailingContent, "Trailing");
-#else
-			contentGrid.SetColumn(trailingContent, 5);
-#endif
+			SetColumnForElement(trailingContent, TitleBarElement.Trailing, 5);
 
 			trailingContent.SetBinding(
 				ContentView.ContentProperty,
@@ -603,22 +590,27 @@ namespace Microsoft.Maui.Controls
 			return contentGrid;
 		}
 
-#if WINDOWS
 		/// <summary>
-		/// Helper method to set Windows-specific column binding based on FlowDirection
+		/// Helper method to set column for an element based on platform
 		/// </summary>
-		/// <param name="view">The view to apply the binding to</param>
-		/// <param name="columnType">The column type identifier</param>
-		private static void SetWindowsColumnBinding(View view, string columnType)
+		/// <param name="view">The view to apply the column to</param>
+		/// <param name="elementType">The element type</param>
+		/// <param name="defaultColumn">Default column index to use</param>
+		static void SetColumnForElement(View view, TitleBarElement elementType, int defaultColumn)
 		{
+#if WINDOWS
+			// Windows: Use binding to set column based on FlowDirection
 			view.SetBinding(
 				Grid.ColumnProperty,
 				static (TitleBar tb) => tb.FlowDirection,
 				source: RelativeBindingSource.TemplatedParent,
 				converter: new WindowsColumnIndexConverter(),
-				converterParameter: columnType);
-		}
+				converterParameter: elementType.ToString());
+#else
+			// Other platforms: Use direct column assignment
+			Grid.SetColumn(view, defaultColumn);
 #endif
+		}
 
 		static VisualStateGroup GetVisibleStateGroup(string targetName, string visibleState, string hiddenState)
 		{
@@ -720,39 +712,44 @@ namespace Microsoft.Maui.Controls
 	{
 		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 		{
-			if (value is FlowDirection flowDirection && parameter is string columnType)
+			if (value is FlowDirection flowDirection && parameter is string elementTypeStr)
 			{
-				if (flowDirection == FlowDirection.RightToLeft)
+				if (Enum.TryParse<TitleBar.TitleBarElement>(elementTypeStr, out var elementType))
 				{
-					// RTL column mapping: [150, Auto, Auto, Auto, Auto, Star, Auto]
-					return columnType switch
+					if (flowDirection == FlowDirection.RightToLeft)
 					{
-						"Leading" => 1,
-						"Icon" => 2,
-						"Title" => 3,
-						"Subtitle" => 4,
-						"Content" => 5,
-						"Trailing" => 6,
-						_ => 0
-					};
-				}
-				else
-				{
-					// LTR column mapping: [Auto, Auto, Auto, Auto, Star, Auto, 150]
-					return columnType switch
+						// RTL column mapping: [150, Auto, Auto, Auto, Auto, Star, Auto]
+						return elementType switch
+						{
+							TitleBar.TitleBarElement.Leading => 1,
+							TitleBar.TitleBarElement.Icon => 2,
+							TitleBar.TitleBarElement.Title => 3,
+							TitleBar.TitleBarElement.Subtitle => 4,
+							TitleBar.TitleBarElement.Content => 5,
+							TitleBar.TitleBarElement.Trailing => 6,
+							TitleBar.TitleBarElement.SystemButtons => 0,
+							_ => 0
+						};
+					}
+					else
 					{
-						"Leading" => 0,
-						"Icon" => 1,
-						"Title" => 2,
-						"Subtitle" => 3,
-						"Content" => 4,
-						"Trailing" => 5,
-						_ => 0
-					};
+						// LTR column mapping: [Auto, Auto, Auto, Auto, Star, Auto, 150]
+						return elementType switch
+						{
+							TitleBar.TitleBarElement.Leading => 0,
+							TitleBar.TitleBarElement.Icon => 1,
+							TitleBar.TitleBarElement.Title => 2,
+							TitleBar.TitleBarElement.Subtitle => 3,
+							TitleBar.TitleBarElement.Content => 4,
+							TitleBar.TitleBarElement.Trailing => 5,
+							TitleBar.TitleBarElement.SystemButtons => 6,
+							_ => 0
+						};
+					}
 				}
 			}
 			
-			// Default LTR indices
+			// Fallback to old string-based approach for backward compatibility
 			return parameter switch
 			{
 				"Leading" => 0,
@@ -761,6 +758,7 @@ namespace Microsoft.Maui.Controls
 				"Subtitle" => 3,
 				"Content" => 4,
 				"Trailing" => 5,
+				"SystemButtons" => 6,
 				_ => 0
 			};
 		}

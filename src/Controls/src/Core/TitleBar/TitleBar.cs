@@ -16,7 +16,7 @@ namespace Microsoft.Maui.Controls
 	/// </summary>
 	public partial class TitleBar : TemplatedView, ITitleBar, ISafeAreaView
 	{
-		enum TitleBarElement
+		internal enum TitleBarElement
 		{
 			Leading,
 			Icon,
@@ -701,50 +701,53 @@ namespace Microsoft.Maui.Controls
 	}
 
 	// Windows-specific column index converter
-	internal class WindowsColumnIndexConverter : IValueConverter
-	{
-		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			// Since we're now passing the enum directly, we can simplify this converter
-			if (value is FlowDirection flowDirection && parameter is TitleBar.TitleBarElement elementType)
-			{
-				if (flowDirection == FlowDirection.RightToLeft)
-				{
-					// RTL column mapping
-					return elementType switch
-					{
-						TitleBar.TitleBarElement.Leading => 1,
-						TitleBar.TitleBarElement.Icon => 2,
-						TitleBar.TitleBarElement.Title => 3,
-						TitleBar.TitleBarElement.Subtitle => 4,
-						TitleBar.TitleBarElement.Content => 5,
-						TitleBar.TitleBarElement.Trailing => 6,
-						TitleBar.TitleBarElement.SystemButtons => 0,
-						_ => 0
-					};
-				}
-				else
-				{
-					// LTR column mapping
-					return elementType switch
-					{
-						TitleBar.TitleBarElement.Leading => 0,
-						TitleBar.TitleBarElement.Icon => 1,
-						TitleBar.TitleBarElement.Title => 2,
-						TitleBar.TitleBarElement.Subtitle => 3,
-						TitleBar.TitleBarElement.Content => 4,
-						TitleBar.TitleBarElement.Trailing => 5,
-						TitleBar.TitleBarElement.SystemButtons => 6,
-						_ => 0
-					};
-				}
-			}
-		}
+	  internal class WindowsColumnIndexConverter : IValueConverter
+    {
+        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            // Ensure all code paths return a value
+            if (value is FlowDirection flowDirection && parameter is TitleBar.TitleBarElement elementType)
+            {
+                if (flowDirection == FlowDirection.RightToLeft)
+                {
+                    // RTL column mapping
+                    return elementType switch
+                    {
+                        TitleBar.TitleBarElement.Leading => 1,
+                        TitleBar.TitleBarElement.Icon => 2,
+                        TitleBar.TitleBarElement.Title => 3,
+                        TitleBar.TitleBarElement.Subtitle => 4,
+                        TitleBar.TitleBarElement.Content => 5,
+                        TitleBar.TitleBarElement.Trailing => 6,
+                        TitleBar.TitleBarElement.SystemButtons => 0,
+                        _ => 0
+                    };
+                }
+                else
+                {
+                    // LTR column mapping
+                    return elementType switch
+                    {
+                        TitleBar.TitleBarElement.Leading => 0,
+                        TitleBar.TitleBarElement.Icon => 1,
+                        TitleBar.TitleBarElement.Title => 2,
+                        TitleBar.TitleBarElement.Subtitle => 3,
+                        TitleBar.TitleBarElement.Content => 4,
+                        TitleBar.TitleBarElement.Trailing => 5,
+                        TitleBar.TitleBarElement.SystemButtons => 6,
+                        _ => 0
+                    };
+                }
+            }
 
-		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-	}
+            // Default return value for unsupported cases
+            return 0;
+        }
+
+        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 #endif
 }

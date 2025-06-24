@@ -597,7 +597,7 @@ namespace Microsoft.Maui.Controls
 				static (TitleBar tb) => tb.FlowDirection,
 				source: RelativeBindingSource.TemplatedParent,
 				converter: new WindowsColumnIndexConverter(),
-				converterParameter: elementType); // Pass enum directly instead of ToString()
+				converterParameter: elementType);
 #else
 			// Other platforms: Use direct column assignment
 			Grid.SetColumn(view, defaultColumn);

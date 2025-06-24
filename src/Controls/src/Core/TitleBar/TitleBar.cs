@@ -24,7 +24,6 @@ namespace Microsoft.Maui.Controls
 			Subtitle,
 			Content,
 			Trailing,
-			SystemButtons
 		}
 
 		public const string TemplateRootName = "PART_Root";
@@ -719,7 +718,6 @@ namespace Microsoft.Maui.Controls
                         TitleBar.TitleBarElement.Subtitle => 4,
                         TitleBar.TitleBarElement.Content => 5,
                         TitleBar.TitleBarElement.Trailing => 6,
-                        TitleBar.TitleBarElement.SystemButtons => 0,
                         _ => 0
                     };
                 }
@@ -734,7 +732,6 @@ namespace Microsoft.Maui.Controls
                         TitleBar.TitleBarElement.Subtitle => 3,
                         TitleBar.TitleBarElement.Content => 4,
                         TitleBar.TitleBarElement.Trailing => 5,
-                        TitleBar.TitleBarElement.SystemButtons => 6,
                         _ => 0
                     };
                 }

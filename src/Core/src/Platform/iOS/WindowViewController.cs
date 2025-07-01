@@ -1,6 +1,7 @@
 #if MACCATALYST
 using System;
 using System.Diagnostics.CodeAnalysis;
+using AppKit;
 using CoreGraphics;
 using UIKit;
 using System.Threading.Tasks;
@@ -139,6 +140,13 @@ internal class WindowViewController : UIViewController
 		{
 			platformTitleBar.TitleVisibility = UITitlebarTitleVisibility.Hidden;
 			
+			// Create an empty toolbar for proper macOS integration and traffic lights positioning
+			var toolbar = new NSToolbar();
+#pragma warning disable CA1422 // Validate platform compatibility
+			toolbar.ShowsBaselineSeparator = false;
+#pragma warning restore CA1422
+			platformTitleBar.Toolbar = toolbar;
+			
 			// Configure toolbar style to ensure proper traffic lights positioning
 			// UITitlebarToolbarStyle.Expanded provides better vertical centering for traffic lights
 			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Expanded;
@@ -147,6 +155,7 @@ internal class WindowViewController : UIViewController
 		else if (newTitleBar is null && platformTitleBar is not null)
 		{
 			platformTitleBar.TitleVisibility = UITitlebarTitleVisibility.Visible;
+			platformTitleBar.Toolbar = null;
 			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Automatic;
 		}
 

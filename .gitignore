@@ -7,6 +7,9 @@
 .buildtasks/
 templatesTest/
 
+# Test files
+test_*.cs
+
 # User-specific files
 *.rsuser
 *.suo

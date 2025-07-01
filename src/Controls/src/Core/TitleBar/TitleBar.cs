@@ -42,7 +42,7 @@ namespace Microsoft.Maui.Controls
 
 		public const string TitleBarActiveState = "TitleBarTitleActive";
 		public const string TitleBarInactiveState = "TitleBarTitleInactive";
-		
+
 		internal const string TitleBarLTRState = "TitleBarLeftToRight";
 		internal const string TitleBarRTLState = "TitleBarRightToLeft";
 
@@ -300,10 +300,10 @@ namespace Microsoft.Maui.Controls
 
 		private void UpdateFlowDirectionState()
 		{
-			string flowDirectionState = FlowDirection == FlowDirection.RightToLeft 
-				? TitleBarRTLState 
+			string flowDirectionState = FlowDirection == FlowDirection.RightToLeft
+				? TitleBarRTLState
 				: TitleBarLTRState;
-			
+
 			ApplyVisibleState(flowDirectionState);
 		}
 
@@ -559,7 +559,7 @@ namespace Microsoft.Maui.Controls
 
 			#region FlowDirection states
 			var flowDirectionGroup = new VisualStateGroup() { Name = "FlowDirectionGroup" };
-			
+
 			// Left-to-Right state (default)
 			var ltrState = new VisualState() { Name = TitleBarLTRState };
 			ltrState.Setters.Add(new Setter()
@@ -573,7 +573,7 @@ namespace Microsoft.Maui.Controls
 #endif
 			});
 			flowDirectionGroup.States.Add(ltrState);
-			
+
 			// Right-to-Left state
 			var rtlState = new VisualState() { Name = TitleBarRTLState };
 			rtlState.Setters.Add(new Setter()
@@ -587,7 +587,7 @@ namespace Microsoft.Maui.Controls
 #endif
 			});
 			flowDirectionGroup.States.Add(rtlState);
-			
+
 			visualStateGroups.Add(flowDirectionGroup);
 			#endregion
 

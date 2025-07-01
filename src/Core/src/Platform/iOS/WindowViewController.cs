@@ -138,11 +138,16 @@ internal class WindowViewController : UIViewController
 		if (newTitleBar is not null && platformTitleBar is not null)
 		{
 			platformTitleBar.TitleVisibility = UITitlebarTitleVisibility.Hidden;
+			
+			// Configure toolbar style to ensure proper traffic lights positioning
+			// UITitlebarToolbarStyle.Expanded provides better vertical centering for traffic lights
+			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Expanded;
 		}
 
 		else if (newTitleBar is null && platformTitleBar is not null)
 		{
 			platformTitleBar.TitleVisibility = UITitlebarTitleVisibility.Visible;
+			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Automatic;
 		}
 
 		IsFirstLayout = true;

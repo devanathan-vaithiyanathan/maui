@@ -379,24 +379,6 @@ namespace Microsoft.Maui.Controls
 				IgnoreSafeArea = true,
 			};
 
-#if WINDOWS
-			// Windows: Use binding to set column definitions based on FlowDirection
-			contentGrid.SetBinding(
-				Grid.ColumnDefinitionsProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnDefinitionsConverter());
-#endif
-
-			// Platform-specific margin handling for RTL
-#if MACCATALYST
-			contentGrid.SetBinding(
-				MarginProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new MacRTLMarginConverter());
-#endif
-
 			contentGrid.SetBinding(
 				BackgroundColorProperty,
 				static (TitleBar tb) => tb.BackgroundColor,

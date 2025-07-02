@@ -16,16 +16,6 @@ namespace Microsoft.Maui.Controls
 	/// </summary>
 	public partial class TitleBar : TemplatedView, ITitleBar, ISafeAreaView
 	{
-		internal enum TitleBarElement
-		{
-			Leading,
-			Icon,
-			Title,
-			Subtitle,
-			Content,
-			Trailing,
-		}
-
 		public const string TemplateRootName = "PART_Root";
 
 		public const string TitleBarIcon = "PART_Icon";
@@ -54,6 +44,9 @@ namespace Microsoft.Maui.Controls
 
 		public const string TitleBarActiveState = "TitleBarTitleActive";
 		public const string TitleBarInactiveState = "TitleBarTitleInactive";
+
+		internal const string TitleBarLTRState = "TitleBarLeftToRight";
+		internal const string TitleBarRTLState = "TitleBarRightToLeft";
 
 		/// <summary>Bindable property for <see cref="Icon"/>.</summary>
 		public static readonly BindableProperty IconProperty = BindableProperty.Create(nameof(Icon), typeof(ImageSource),
@@ -291,6 +284,19 @@ namespace Microsoft.Maui.Controls
 				Window.Activated += Window_Activated;
 				Window.Deactivated += Window_Deactivated;
 			}
+			else if (e.PropertyName == nameof(FlowDirection))
+			{
+				UpdateFlowDirectionState();
+			}
+		}
+
+		void UpdateFlowDirectionState()
+		{
+			string flowDirectionState = FlowDirection == FlowDirection.RightToLeft
+				? TitleBarRTLState
+				: TitleBarLTRState;
+
+			ApplyVisibleState(flowDirectionState);
 		}
 
 		internal void ApplyVisibleState(string stateGroup)
@@ -340,6 +346,7 @@ namespace Microsoft.Maui.Controls
 			}
 
 			ApplyVisibleState(TitleBarActiveState);
+			UpdateFlowDirectionState();
 		}
 
 		private void Window_Activated(object? sender, System.EventArgs e)
@@ -368,9 +375,6 @@ namespace Microsoft.Maui.Controls
 					new ColumnDefinition(GridLength.Auto), // Subtitle content
 					new ColumnDefinition(GridLength.Star), // Content
 					new ColumnDefinition(GridLength.Auto), // Trailing content
-#if !MACCATALYST
-					new ColumnDefinition(150),             // Min drag region + padding for system buttons
-#endif
 				},
 				IgnoreSafeArea = true,
 			};
@@ -416,7 +420,6 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(leadingContent);
-			SetColumnForElement(leadingContent, TitleBarElement.Leading, 0);
 
 			leadingContent.SetBinding(
 				ContentView.ContentProperty,
@@ -439,7 +442,6 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(icon);
-			SetColumnForElement(icon, TitleBarElement.Icon, 1);
 
 			icon.SetBinding(
 				Image.SourceProperty,
@@ -464,7 +466,6 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(titleLabel);
-			SetColumnForElement(titleLabel, TitleBarElement.Title, 2);
 
 			titleLabel.SetBinding(
 				Label.TextProperty,
@@ -518,7 +519,6 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(subtitleLabel);
-			SetColumnForElement(subtitleLabel, TitleBarElement.Subtitle, 3);
 
 			subtitleLabel.SetBinding(
 				Label.TextProperty,
@@ -542,7 +542,6 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(content);
-			SetColumnForElement(content, TitleBarElement.Content, 4);
 
 			content.SetBinding(
 				ContentView.ContentProperty,
@@ -561,7 +560,6 @@ namespace Microsoft.Maui.Controls
 			};
 
 			contentGrid.Add(trailingContent);
-			SetColumnForElement(trailingContent, TitleBarElement.Trailing, 5);
 
 			trailingContent.SetBinding(
 				ContentView.ContentProperty,
@@ -571,6 +569,40 @@ namespace Microsoft.Maui.Controls
 			var trailingContentVisibleGroup = GetVisibleStateGroup(TitleBarTrailing, TrailingVisibleState, TrailingHiddenState);
 			trailingContentVisibleGroup.Name = "TrailingContentGroup";
 			visualStateGroups.Add(trailingContentVisibleGroup);
+			#endregion
+
+			#region FlowDirection states
+			var flowDirectionGroup = new VisualStateGroup() { Name = "FlowDirectionGroup" };
+
+			// Left-to-Right state (default)
+			var ltrState = new VisualState() { Name = TitleBarLTRState };
+			ltrState.Setters.Add(new Setter()
+			{
+				Property = MarginProperty,
+				TargetName = TemplateRootName,
+#if MACCATALYST
+				Value = new Thickness(80, 0, 0, 0)  // System buttons on left in macOS
+#else
+				Value = new Thickness(0, 0, 150, 0)  // System buttons on right in Windows
+#endif
+			});
+			flowDirectionGroup.States.Add(ltrState);
+
+			// Right-to-Left state
+			var rtlState = new VisualState() { Name = TitleBarRTLState };
+			rtlState.Setters.Add(new Setter()
+			{
+				Property = MarginProperty,
+				TargetName = TemplateRootName,
+#if MACCATALYST
+				Value = new Thickness(0, 0, 80, 0)  // System buttons on right in macOS RTL
+#else
+				Value = new Thickness(150, 0, 0, 0)  // System buttons on left in Windows RTL
+#endif
+			});
+			flowDirectionGroup.States.Add(rtlState);
+
+			visualStateGroups.Add(flowDirectionGroup);
 			#endregion
 
 			INameScope nameScope = new NameScope();
@@ -586,22 +618,6 @@ namespace Microsoft.Maui.Controls
 			VisualStateManager.SetVisualStateGroups(contentGrid, visualStateGroups);
 
 			return contentGrid;
-		}
-
-		static void SetColumnForElement(View view, TitleBarElement elementType, int defaultColumn)
-		{
-#if WINDOWS
-			// Windows: Use binding to set column based on FlowDirection
-			view.SetBinding(
-				Grid.ColumnProperty,
-				static (TitleBar tb) => tb.FlowDirection,
-				source: RelativeBindingSource.TemplatedParent,
-				converter: new WindowsColumnIndexConverter(),
-				converterParameter: elementType);
-#else
-			// Other platforms: Use direct column assignment
-			Grid.SetColumn(view, defaultColumn);
-#endif
 		}
 
 		static VisualStateGroup GetVisibleStateGroup(string targetName, string visibleState, string hiddenState)
@@ -629,122 +645,4 @@ namespace Microsoft.Maui.Controls
 			return visualGroup;
 		}
 	}
-
-#if MACCATALYST
-	// MacOS RTL margin converter
-	internal class MacRTLMarginConverter : IValueConverter
-	{
-		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			if (value is FlowDirection flowDirection)
-			{
-				if (flowDirection == FlowDirection.RightToLeft)
-				{
-					// In RTL, traffic lights are on the right, so add right margin
-					return new Thickness(0, 0, 80, 0);
-				}
-				else
-				{
-					// In LTR, traffic lights are on the left, so add left margin
-					return new Thickness(80, 0, 0, 0);
-				}
-			}
-			return new Thickness(80, 0, 0, 0); // Default LTR margin
-		}
-
-		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-	}
-#endif
-
-#if WINDOWS
-	// Windows-specific column definitions converter
-	internal class WindowsColumnDefinitionsConverter : IValueConverter
-	{
-		public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			var columnDefinitions = new ColumnDefinitionCollection();
-			
-			if (value is FlowDirection flowDirection && flowDirection == FlowDirection.RightToLeft)
-			{
-				// RTL: System buttons column first
-				columnDefinitions.Add(new ColumnDefinition(150));             // System buttons
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Leading content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Icon content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Title content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Subtitle content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Star)); // Content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Trailing content
-			}
-			else
-			{
-				// LTR: Original order
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Leading content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Icon content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Title content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Subtitle content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Star)); // Content
-				columnDefinitions.Add(new ColumnDefinition(GridLength.Auto)); // Trailing content
-				columnDefinitions.Add(new ColumnDefinition(150));             // System buttons
-			}
-			
-			return columnDefinitions;
-		}
-
-		public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-		{
-			throw new NotImplementedException();
-		}
-	}
-
-	// Windows-specific column index converter
-	  internal class WindowsColumnIndexConverter : IValueConverter
-    {
-        public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            // Ensure all code paths return a value
-            if (value is FlowDirection flowDirection && parameter is TitleBar.TitleBarElement elementType)
-            {
-                if (flowDirection == FlowDirection.RightToLeft)
-                {
-                    // RTL column mapping
-                    return elementType switch
-                    {
-                        TitleBar.TitleBarElement.Leading => 1,
-                        TitleBar.TitleBarElement.Icon => 2,
-                        TitleBar.TitleBarElement.Title => 3,
-                        TitleBar.TitleBarElement.Subtitle => 4,
-                        TitleBar.TitleBarElement.Content => 5,
-                        TitleBar.TitleBarElement.Trailing => 6,
-                        _ => 0
-                    };
-                }
-                else
-                {
-                    // LTR column mapping
-                    return elementType switch
-                    {
-                        TitleBar.TitleBarElement.Leading => 0,
-                        TitleBar.TitleBarElement.Icon => 1,
-                        TitleBar.TitleBarElement.Title => 2,
-                        TitleBar.TitleBarElement.Subtitle => 3,
-                        TitleBar.TitleBarElement.Content => 4,
-                        TitleBar.TitleBarElement.Trailing => 5,
-                        _ => 0
-                    };
-                }
-            }
-
-            // Default return value for unsupported cases
-            return 0;
-        }
-
-        public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-#endif
 }

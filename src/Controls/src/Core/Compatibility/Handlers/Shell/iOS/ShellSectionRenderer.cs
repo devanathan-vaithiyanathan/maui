@@ -300,6 +300,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		{
 			if (e.Is(VisualElement.FlowDirectionProperty))
 				UpdateFlowDirection();
+			else if (e.PropertyName == Shell.NavBarIsVisibleProperty.PropertyName)
+				UpdateNavigationBarHidden();
 		}
 
 		protected virtual void HandlePropertyChanged(object sender, PropertyChangedEventArgs e)

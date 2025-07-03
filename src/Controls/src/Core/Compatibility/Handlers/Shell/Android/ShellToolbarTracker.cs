@@ -293,6 +293,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		{
 			if (e.Is(Shell.FlyoutIconProperty))
 				UpdateLeftBarButtonItem();
+			else if (e.PropertyName == Shell.NavBarIsVisibleProperty.PropertyName)
+				UpdateNavBarVisible(_platformToolbar, Page);
 		}
 
 		BackButtonBehavior _backButtonBehavior = null;
@@ -589,6 +591,11 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		protected virtual void UpdateNavBarVisible(AToolbar toolbar, Page page)
 		{
+			if (page == null || !_appBar.IsAlive())
+				return;
+
+			var navBarIsVisible = Shell.GetNavBarIsVisible(page);
+			_appBar.Visibility = navBarIsVisible ? ViewStates.Visible : ViewStates.Gone;
 		}
 
 		void UpdateNavBarHasShadow(Page page)

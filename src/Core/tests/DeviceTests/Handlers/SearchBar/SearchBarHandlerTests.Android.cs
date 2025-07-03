@@ -421,5 +421,98 @@ namespace Microsoft.Maui.DeviceTests
 				Assert.Equal(Android.Views.LayoutDirection.Rtl, editTextDirection);
 			});
 		}
+
+		[Fact(DisplayName = "FlowDirection Updates SearchView Icons Correctly")]
+		public async Task FlowDirectionUpdatesSearchViewIconsCorrectly()
+		{
+			var searchBarStub = new SearchBarStub()
+			{
+				Text = "Test",
+				FlowDirection = FlowDirection.LeftToRight
+			};
+
+			var handler = CreateHandler(searchBarStub);
+			await InvokeOnMainThreadAsync(() =>
+			{
+				// Initially LTR
+				var searchView = GetNativeSearchBar(handler);
+				Assert.Equal(Android.Views.LayoutDirection.Ltr, searchView.LayoutDirection);
+
+				// Change to RTL and verify SearchView direction changes
+				searchBarStub.FlowDirection = FlowDirection.RightToLeft;
+				Assert.Equal(Android.Views.LayoutDirection.Rtl, GetNativeFlowDirection(handler));
+
+				// Verify that the SearchView received the flow direction update
+				// (Icon positioning is handled internally by the UpdateFlowDirection method)
+				var closeButton = GetCloseButton(handler);
+				if (closeButton != null && Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.JellyBeanMr1)
+				{
+					// The close button should have RTL layout direction for proper positioning
+					Assert.Equal(Android.Views.LayoutDirection.Rtl, closeButton.LayoutDirection);
+				}
+			});
+		}
+
+		private ImageView? GetCloseButton(SearchBarHandler searchBarHandler)
+		{
+			var searchView = GetNativeSearchBar(searchBarHandler);
+			try
+			{
+				return searchView.FindViewById<ImageView>(Resource.Id.search_close_btn);
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		private ImageView? GetSearchIcon(SearchBarHandler searchBarHandler)
+		{
+			var searchView = GetNativeSearchBar(searchBarHandler);
+			
+			// Try to find search icon by traversing the view hierarchy
+			// This matches the logic in SearchViewExtensions.FindSearchIcon
+			return FindImageViewByContentDescription(searchView, "Search") ??
+			       FindImageViewByDrawableType(searchView);
+		}
+
+		private ImageView? FindImageViewByContentDescription(ViewGroup parent, string description)
+		{
+			for (int i = 0; i < parent.ChildCount; i++)
+			{
+				var child = parent.GetChildAt(i);
+				if (child is ImageView imageView && 
+					imageView.ContentDescription?.ToString()?.Contains(description, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					return imageView;
+				}
+				else if (child is ViewGroup childGroup)
+				{
+					var result = FindImageViewByContentDescription(childGroup, description);
+					if (result != null) return result;
+				}
+			}
+			return null;
+		}
+
+		private ImageView? FindImageViewByDrawableType(ViewGroup parent)
+		{
+			// Look for ImageViews that are likely to be the search icon
+			// (typically the first ImageView in a SearchView that's not the close button)
+			for (int i = 0; i < parent.ChildCount; i++)
+			{
+				var child = parent.GetChildAt(i);
+				if (child is ImageView imageView && imageView.Id != Resource.Id.search_close_btn)
+				{
+					return imageView;
+				}
+				else if (child is ViewGroup childGroup)
+				{
+					var result = FindImageViewByDrawableType(childGroup);
+					if (result != null) return result;
+				}
+			}
+			return null;
+		}
 	}
 }

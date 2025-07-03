@@ -1,5 +1,7 @@
-﻿using Android.Content.Res;
+﻿using System;
+using Android.Content.Res;
 using Android.Text;
+using Android.Views;
 using Android.Widget;
 using SearchView = AndroidX.AppCompat.Widget.SearchView;
 
@@ -180,9 +182,118 @@ namespace Microsoft.Maui.Platform
 			searchView.UpdateFlowDirection((IView)searchBar);
 
 			// Update the internal EditText if available
-			if (editText != null)
+			editText?.UpdateFlowDirection((IView)searchBar);
+
+			// Update icon positioning based on flow direction
+			UpdateSearchViewIcons(searchView, searchBar);
+		}
+
+		private static void UpdateSearchViewIcons(SearchView searchView, ISearchBar searchBar)
+		{
+			var flowDirection = ((IView)searchBar).FlowDirection;
+
+			// Handle search (magnifying glass) icon positioning
+			UpdateSearchIcon(searchView, flowDirection);
+
+			// Handle close/clear button positioning  
+			UpdateCloseButton(searchView, flowDirection);
+		}
+
+		private static void UpdateSearchIcon(SearchView searchView, FlowDirection flowDirection)
+		{
+			// Try to find the search icon using common resource identifiers
+			// Note: SearchView's internal structure may vary across Android versions
+			try
 			{
-				editText.UpdateFlowDirection((IView)searchBar);
+				// Try to find search icon by traversing the view hierarchy
+				var searchIconView = FindSearchIcon(searchView);
+				if (searchIconView != null)
+				{
+					// Update the search icon's layout direction and positioning
+					if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.JellyBeanMr1)
+					{
+						var layoutDirection = flowDirection == FlowDirection.RightToLeft
+							? Android.Views.LayoutDirection.Rtl
+							: Android.Views.LayoutDirection.Ltr;
+
+						searchIconView.LayoutDirection = layoutDirection;
+					}
+				}
+			}
+			catch
+			{
+				// Ignore errors - icon positioning is not critical for basic functionality
+			}
+		}
+
+		private static ImageView? FindSearchIcon(SearchView searchView)
+		{
+			// SearchView typically contains an ImageView for the search icon
+			// We'll search through the view hierarchy to find it
+			return FindImageViewByContentDescription(searchView, "Search") ??
+				   FindImageViewByDrawableType(searchView);
+		}
+
+		private static ImageView? FindImageViewByContentDescription(ViewGroup parent, string description)
+		{
+			for (int i = 0; i < parent.ChildCount; i++)
+			{
+				var child = parent.GetChildAt(i);
+				if (child is ImageView imageView &&
+					imageView.ContentDescription?.ToString()?.Contains(description, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					return imageView;
+				}
+				else if (child is ViewGroup childGroup)
+				{
+					var result = FindImageViewByContentDescription(childGroup, description);
+					if (result != null)
+						return result;
+				}
+			}
+			return null;
+		}
+
+		private static ImageView? FindImageViewByDrawableType(ViewGroup parent)
+		{
+			// Look for ImageViews that are likely to be the search icon
+			// (typically the first ImageView in a SearchView that's not the close button)
+			for (int i = 0; i < parent.ChildCount; i++)
+			{
+				var child = parent.GetChildAt(i);
+				if (child is ImageView imageView && imageView.Id != Resource.Id.search_close_btn)
+				{
+					return imageView;
+				}
+				else if (child is ViewGroup childGroup)
+				{
+					var result = FindImageViewByDrawableType(childGroup);
+					if (result != null)
+						return result;
+				}
+			}
+			return null;
+		}
+
+		private static void UpdateCloseButton(SearchView searchView, FlowDirection flowDirection)
+		{
+			// Handle close/clear button positioning
+			var searchCloseButtonIdentifier = Resource.Id.search_close_btn;
+			if (searchCloseButtonIdentifier > 0)
+			{
+				var closeButton = searchView.FindViewById<ImageView>(searchCloseButtonIdentifier);
+				if (closeButton != null)
+				{
+					// Update the close button's layout direction
+					if (Android.OS.Build.VERSION.SdkInt >= Android.OS.BuildVersionCodes.JellyBeanMr1)
+					{
+						var layoutDirection = flowDirection == FlowDirection.RightToLeft
+							? Android.Views.LayoutDirection.Rtl
+							: Android.Views.LayoutDirection.Ltr;
+
+						closeButton.LayoutDirection = layoutDirection;
+					}
+				}
 			}
 		}
 	}

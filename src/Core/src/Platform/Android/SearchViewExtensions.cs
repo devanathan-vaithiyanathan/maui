@@ -171,5 +171,19 @@ namespace Microsoft.Maui.Platform
 
 			editText.SetInputType(searchBar);
 		}
+
+		internal static void UpdateFlowDirection(this SearchView searchView, ISearchBar searchBar, EditText? editText = null)
+		{
+			editText ??= searchView.GetFirstChildOfType<EditText>();
+
+			// Update the SearchView itself
+			searchView.UpdateFlowDirection((IView)searchBar);
+
+			// Update the internal EditText if available
+			if (editText != null)
+			{
+				editText.UpdateFlowDirection((IView)searchBar);
+			}
+		}
 	}
 }

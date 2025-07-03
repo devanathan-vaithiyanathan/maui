@@ -358,5 +358,68 @@ namespace Microsoft.Maui.DeviceTests
 
 			return !inputTypes.HasFlag(InputTypes.TextFlagNoSuggestions);
 		}
+
+		Android.Views.LayoutDirection GetNativeFlowDirection(SearchBarHandler searchBarHandler)
+		{
+			var searchView = GetNativeSearchBar(searchBarHandler);
+			return searchView.LayoutDirection;
+		}
+
+		Android.Views.LayoutDirection GetNativeEditTextFlowDirection(SearchBarHandler searchBarHandler)
+		{
+			var searchView = GetNativeSearchBar(searchBarHandler);
+			var editText = searchView.GetChildrenOfType<EditText>().FirstOrDefault();
+			return editText?.LayoutDirection ?? Android.Views.LayoutDirection.Inherit;
+		}
+
+		[Fact(DisplayName = "FlowDirection Initializes Correctly")]
+		public async Task FlowDirectionInitializesCorrectly()
+		{
+			var searchBarStub = new SearchBarStub()
+			{
+				Text = "Test",
+				FlowDirection = FlowDirection.RightToLeft
+			};
+
+			var values = await GetValueAsync(searchBarStub, (handler) =>
+			{
+				return new
+				{
+					ViewValue = searchBarStub.FlowDirection,
+					PlatformViewValue = GetNativeFlowDirection(handler),
+					EditTextFlowDirection = GetNativeEditTextFlowDirection(handler)
+				};
+			});
+
+			Assert.Equal(FlowDirection.RightToLeft, values.ViewValue);
+			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.PlatformViewValue);
+			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.EditTextFlowDirection);
+		}
+
+		[Fact(DisplayName = "FlowDirection Updates Correctly")]
+		public async Task FlowDirectionUpdatesCorrectly()
+		{
+			var searchBarStub = new SearchBarStub()
+			{
+				Text = "Test",
+				FlowDirection = FlowDirection.LeftToRight
+			};
+
+			await ValidatePropertyUpdatesValue(
+				searchBarStub,
+				nameof(IView.FlowDirection),
+				GetNativeFlowDirection,
+				FlowDirection.RightToLeft,
+				Android.Views.LayoutDirection.Rtl);
+
+			// Also verify EditText flow direction updates
+			var handler = CreateHandler(searchBarStub);
+			await InvokeOnMainThreadAsync(() =>
+			{
+				searchBarStub.FlowDirection = FlowDirection.RightToLeft;
+				var editTextDirection = GetNativeEditTextFlowDirection(handler);
+				Assert.Equal(Android.Views.LayoutDirection.Rtl, editTextDirection);
+			});
+		}
 	}
 }

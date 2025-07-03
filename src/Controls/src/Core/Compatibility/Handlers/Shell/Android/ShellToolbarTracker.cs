@@ -594,7 +594,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			if (page == null || !_appBar.IsAlive())
 				return;
 
-			var navBarIsVisible = Shell.GetNavBarIsVisible(page);
+			// Use GetEffectiveValue to check the hierarchy like ShellToolbar does
+			var navBarIsVisible = _shell.GetEffectiveValue(Shell.NavBarIsVisibleProperty, () => true, observer: null, element: page);
 			_appBar.Visibility = navBarIsVisible ? ViewStates.Visible : ViewStates.Gone;
 		}
 

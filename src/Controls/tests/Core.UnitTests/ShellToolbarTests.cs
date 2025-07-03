@@ -215,22 +215,22 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			var page = new ContentPage() { Title = "Test Page" };
 			var testShell = new TestShell(page);
 			var toolBar = testShell.Toolbar;
-			
+
 			// Initial state should be visible by default
 			Assert.True(toolBar.IsVisible);
-			
+
 			// Test runtime change to Shell NavBarIsVisible property
 			Shell.SetNavBarIsVisible(testShell, false);
 			Assert.False(toolBar.IsVisible);
-			
+
 			// Test runtime change back to visible
 			Shell.SetNavBarIsVisible(testShell, true);
 			Assert.True(toolBar.IsVisible);
-			
+
 			// Test runtime change to Page NavBarIsVisible property
 			Shell.SetNavBarIsVisible(page, false);
 			Assert.False(toolBar.IsVisible);
-			
+
 			// Test runtime change back to visible
 			Shell.SetNavBarIsVisible(page, true);
 			Assert.True(toolBar.IsVisible);

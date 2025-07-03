@@ -694,7 +694,12 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		void UpdateNavigationBarHidden()
 		{
-			SetNavigationBarHidden(!Shell.GetNavBarIsVisible(_displayedPage), true);
+			if (_displayedPage == null)
+				return;
+				
+			// Use GetEffectiveValue to check the hierarchy like ShellToolbar does
+			var navBarIsVisible = _context.Shell.GetEffectiveValue(Shell.NavBarIsVisibleProperty, () => true, observer: null, element: _displayedPage);
+			SetNavigationBarHidden(!navBarIsVisible, true);
 		}
 
 		void UpdateNavigationBarHasShadow()

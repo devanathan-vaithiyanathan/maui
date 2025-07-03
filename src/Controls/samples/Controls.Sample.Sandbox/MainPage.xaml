@@ -2,4 +2,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+    <ScrollView>
+        <StackLayout Padding="20">
+            <Label Text="SearchBar FlowDirection Test" FontSize="20" Margin="0,0,0,20"/>
+            
+            <!-- Default FlowDirection -->
+            <Label Text="Default FlowDirection (MatchParent):" FontAttributes="Bold"/>
+            <SearchBar x:Name="SearchBar1" Placeholder="Search here..." Text="Hello World"/>
+            
+            <!-- Left to Right -->
+            <Label Text="FlowDirection.LeftToRight:" FontAttributes="Bold" Margin="0,20,0,0"/>
+            <SearchBar x:Name="SearchBar2" FlowDirection="LeftToRight" Placeholder="Search here..." Text="Hello World"/>
+            
+            <!-- Right to Left -->
+            <Label Text="FlowDirection.RightToLeft:" FontAttributes="Bold" Margin="0,20,0,0"/>
+            <SearchBar x:Name="SearchBar3" FlowDirection="RightToLeft" Placeholder="Search here..." Text="مرحبا بالعالم"/>
+            
+            <!-- Toggle Button -->
+            <Button x:Name="ToggleButton" Text="Toggle All to RTL" Clicked="OnToggleClicked" Margin="0,20,0,0"/>
+            
+            <!-- Status -->
+            <Label x:Name="StatusLabel" Text="Current state: Default" Margin="0,20,0,0"/>
+        </StackLayout>
+    </ScrollView>
 </ContentPage>

@@ -132,6 +132,11 @@ namespace Microsoft.Maui.Handlers
 				handler.QueryEditor?.Focus(request);
 		}
 
+		internal static void MapFlowDirection(ISearchBarHandler handler, ISearchBar searchBar)
+		{
+			handler.PlatformView?.UpdateFlowDirection(searchBar, handler.QueryEditor);
+		}
+
 		void OnQueryTextSubmit(object? sender, QueryTextSubmitEventArgs e)
 		{
 			VirtualView.SearchButtonPressed();

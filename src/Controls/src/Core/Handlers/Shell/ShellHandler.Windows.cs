@@ -201,6 +201,41 @@ namespace Microsoft.Maui.Controls.Handlers
 			handler.UpdateFlyoutHeaderBehavior(view);
 		}
 
+		public static void MapNavBarIsVisible(ShellHandler handler, Shell view)
+		{
+			handler.UpdateNavBarIsVisible();
+		}
+
+		void UpdateNavBarIsVisible()
+		{
+			if (PlatformView == null || VirtualView == null)
+				return;
+
+			// Get the current page to evaluate NavBarIsVisible hierarchy
+			var currentPage = VirtualView.GetCurrentShellPage();
+			
+			// Use GetEffectiveValue to check the hierarchy like ShellToolbar does
+			var navBarIsVisible = VirtualView.GetEffectiveValue(Shell.NavBarIsVisibleProperty, () => true, observer: null, element: currentPage);
+			
+			// In Windows, the navigation bar is represented by the Header of the NavigationView
+			// When navBarIsVisible is false, we hide the header; when true, we show it
+			if (PlatformView is MauiNavigationView mauiNavView)
+			{
+				// The Header is set via the Toolbar property, but we control its visibility
+				// by setting the Header to null or restoring it
+				if (navBarIsVisible)
+				{
+					// If there should be a toolbar, ensure it's shown
+					UpdateValue(nameof(IToolbarElement.Toolbar));
+				}
+				else
+				{
+					// Hide the navigation bar by clearing the header
+					mauiNavView.Header = null;
+				}
+			}
+		}
+
 		public static void MapItems(ShellHandler handler, Shell view)
 		{
 			handler.PlatformView.UpdateMenuItemSource();

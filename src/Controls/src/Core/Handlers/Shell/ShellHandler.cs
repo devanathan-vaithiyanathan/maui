@@ -37,6 +37,7 @@ namespace Microsoft.Maui.Controls.Handlers
 					[nameof(Shell.FlowDirection)] = MapFlowDirection,
 					[nameof(Shell.FlyoutBackgroundImage)] = MapFlyoutBackgroundImage,
 					[nameof(Shell.FlyoutBackgroundImageAspect)] = MapFlyoutBackgroundImage,
+					[Shell.NavBarIsVisibleProperty.PropertyName] = MapNavBarIsVisible,
 #endif
 				};
 

@@ -16,6 +16,7 @@ namespace Microsoft.Maui.Controls.Handlers
 		double? _topAreaHeight = null;
 		double? _headerHeight = null;
 		double? _headerOffset = null;
+		Page _currentPage;
 
 		protected override ShellView CreatePlatformView()
 		{
@@ -36,6 +37,16 @@ namespace Microsoft.Maui.Controls.Handlers
 			platformView.PaneOpening += OnPaneOpening;
 			platformView.PaneClosing += OnPaneClosing;
 			platformView.ItemInvoked += OnMenuItemInvoked;
+			
+			// Subscribe to Shell property changes for runtime updates
+			if (VirtualView != null)
+			{
+				VirtualView.PropertyChanged += HandleShellPropertyChanged;
+				VirtualView.Navigated += OnShellNavigated;
+			}
+			
+			// Initialize current page tracking
+			UpdateCurrentPage();
 		}
 
 		private void OnLoaded(object sender, UI.Xaml.RoutedEventArgs e)
@@ -57,6 +68,17 @@ namespace Microsoft.Maui.Controls.Handlers
 			platformView.PaneOpening -= OnPaneOpening;
 			platformView.PaneClosing -= OnPaneClosing;
 			platformView.ItemInvoked -= OnMenuItemInvoked;
+			
+			// Unsubscribe from Shell property changes
+			if (VirtualView != null)
+			{
+				VirtualView.PropertyChanged -= HandleShellPropertyChanged;
+				VirtualView.Navigated -= OnShellNavigated;
+			}
+			
+			// Unsubscribe from current page
+			if (_currentPage != null)
+				_currentPage.PropertyChanged -= HandlePagePropertyChanged;
 		}
 
 		void OnMenuItemInvoked(Microsoft.UI.Xaml.Controls.NavigationView sender, Microsoft.UI.Xaml.Controls.NavigationViewItemInvokedEventArgs args)
@@ -199,6 +221,79 @@ namespace Microsoft.Maui.Controls.Handlers
 		public static void MapFlyoutHeaderBehavior(ShellHandler handler, Shell view)
 		{
 			handler.UpdateFlyoutHeaderBehavior(view);
+		}
+
+		public static void MapNavBarIsVisible(ShellHandler handler, Shell view)
+		{
+			handler.UpdateNavBarIsVisible();
+		}
+
+		void UpdateNavBarIsVisible()
+		{
+			if (PlatformView == null || VirtualView == null)
+				return;
+
+			// Get the current page to evaluate NavBarIsVisible hierarchy
+			var currentPage = VirtualView.GetCurrentShellPage();
+			
+			// Use GetEffectiveValue to check the hierarchy like ShellToolbar does
+			var navBarIsVisible = VirtualView.GetEffectiveValue(Shell.NavBarIsVisibleProperty, () => true, observer: null, element: currentPage);
+			
+			// In Windows, the navigation bar is represented by the Header of the NavigationView
+			// When navBarIsVisible is false, we hide the header; when true, we show it
+			if (PlatformView is MauiNavigationView mauiNavView)
+			{
+				// The Header is set via the Toolbar property, but we control its visibility
+				// by setting the Header to null or restoring it
+				if (navBarIsVisible)
+				{
+					// If there should be a toolbar, ensure it's shown
+					UpdateValue(nameof(IToolbarElement.Toolbar));
+				}
+				else
+				{
+					// Hide the navigation bar by clearing the header
+					mauiNavView.Header = null;
+				}
+			}
+		}
+
+		void HandleShellPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == Shell.NavBarIsVisibleProperty.PropertyName)
+				UpdateNavBarIsVisible();
+		}
+
+		void HandlePagePropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == Shell.NavBarIsVisibleProperty.PropertyName)
+				UpdateNavBarIsVisible();
+		}
+
+		void UpdateCurrentPage()
+		{
+			var newCurrentPage = VirtualView?.GetCurrentShellPage();
+			
+			if (_currentPage == newCurrentPage)
+				return;
+				
+			// Unsubscribe from old page
+			if (_currentPage != null)
+				_currentPage.PropertyChanged -= HandlePagePropertyChanged;
+				
+			_currentPage = newCurrentPage;
+			
+			// Subscribe to new page
+			if (_currentPage != null)
+				_currentPage.PropertyChanged += HandlePagePropertyChanged;
+				
+			// Update the navigation bar visibility with the new page
+			UpdateNavBarIsVisible();
+		}
+
+		void OnShellNavigated(object sender, ShellNavigatedEventArgs e)
+		{
+			UpdateCurrentPage();
 		}
 
 		public static void MapItems(ShellHandler handler, Shell view)

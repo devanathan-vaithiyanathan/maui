@@ -302,12 +302,6 @@ namespace Microsoft.Maui.Controls
 			// This check is wrong but will work for testing
 			if (shellContent.ContentTemplate == null)
 			{
-				// deparent old item
-				if (oldValue is Page oldElement)
-				{
-					shellContent.ContentCache = null;
-				}
-
 				if (newValue is Page newElement)
 				{
 					shellContent.ContentCache = newElement;
@@ -315,6 +309,11 @@ namespace Microsoft.Maui.Controls
 				else if (newValue != null)
 				{
 					throw new InvalidOperationException($"{nameof(ShellContent)} {nameof(Content)} should be of type {nameof(Page)}. Title {shellContent?.Title}, Route {shellContent?.Route} ");
+				}
+				else
+				{
+					// Only set to null if newValue is null
+					shellContent.ContentCache = null;
 				}
 			}
 

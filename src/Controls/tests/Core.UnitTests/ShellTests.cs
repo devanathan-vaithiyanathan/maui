@@ -220,6 +220,42 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 		}
 
 		[Fact]
+		public void ShellContentChangesVisualContent()
+		{
+			// Test for issue: Changing Content property of ShellContent doesn't change visual content
+			var shell = new Shell();
+			var shellItem = new ShellItem();
+			var shellSection = new ShellSection();
+			var shellContent = new ShellContent();
+
+			// Create initial page
+			var initialPage = new ContentPage { Title = "Initial Page" };
+			shellContent.Content = initialPage;
+
+			// Build shell structure
+			shellSection.Items.Add(shellContent);
+			shellItem.Items.Add(shellSection);
+			shell.Items.Add(shellItem);
+
+			// Verify initial setup
+			Assert.Same(initialPage, ((IShellContentController)shellContent).Page);
+			Assert.Same(initialPage, shellSection.DisplayedPage);
+
+			// Create and set new page - this should work immediately without intermediate null state
+			var newPage = new ContentPage { Title = "New Page" };
+			shellContent.Content = newPage;
+
+			// Verify the content changed properly and DisplayedPage is updated immediately
+			Assert.Same(newPage, ((IShellContentController)shellContent).Page);
+			Assert.Same(newPage, shellSection.DisplayedPage);
+			
+			// Test edge case: setting content to null should work
+			shellContent.Content = null;
+			Assert.Null(((IShellContentController)shellContent).Page);
+			Assert.Null(shellSection.DisplayedPage);
+		}
+
+		[Fact]
 		public void NavigationProxyWireUpTest()
 		{
 			var page = new ContentPage();

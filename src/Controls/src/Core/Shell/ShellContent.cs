@@ -299,12 +299,28 @@ namespace Microsoft.Maui.Controls
 		{
 			var shellContent = (ShellContent)bindable;
 			shellContent._createdViaService = false;
-			// This check is wrong but will work for testing
+			
 			if (shellContent.ContentTemplate == null)
 			{
+				// Clear bindings from old page
+				if (oldValue is TemplatedPage)
+				{
+					shellContent.RemoveBinding(TitleProperty);
+					shellContent.RemoveBinding(IconProperty);
+					shellContent.RemoveBinding(FlyoutIconProperty);
+				}
+
 				if (newValue is Page newElement)
 				{
 					shellContent.ContentCache = newElement;
+
+					// Set up bindings to new page (same as implicit conversion)
+					if (newElement is TemplatedPage templatedPage)
+					{
+						shellContent.SetBinding(TitleProperty, static (TemplatedPage page) => page.Title, BindingMode.OneWay, source: templatedPage);
+						shellContent.SetBinding(IconProperty, static (TemplatedPage page) => page.IconImageSource, BindingMode.OneWay, source: templatedPage);
+						shellContent.SetBinding(FlyoutIconProperty, static (TemplatedPage page) => page.IconImageSource, BindingMode.OneWay, source: templatedPage);
+					}
 				}
 				else if (newValue != null)
 				{

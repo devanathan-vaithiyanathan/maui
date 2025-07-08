@@ -240,6 +240,7 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			// Verify initial setup
 			Assert.Same(initialPage, ((IShellContentController)shellContent).Page);
 			Assert.Same(initialPage, shellSection.DisplayedPage);
+			Assert.Equal("Initial Page", shellContent.Title);
 
 			// Create and set new page - this should work immediately without intermediate null state
 			var newPage = new ContentPage { Title = "New Page" };
@@ -248,6 +249,13 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			// Verify the content changed properly and DisplayedPage is updated immediately
 			Assert.Same(newPage, ((IShellContentController)shellContent).Page);
 			Assert.Same(newPage, shellSection.DisplayedPage);
+			
+			// Verify that bindings are properly set up and title is updated
+			Assert.Equal("New Page", shellContent.Title);
+			
+			// Test that changing page title updates ShellContent title via binding
+			newPage.Title = "Updated Title";
+			Assert.Equal("Updated Title", shellContent.Title);
 			
 			// Test edge case: setting content to null should work
 			shellContent.Content = null;

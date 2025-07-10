@@ -183,7 +183,7 @@ internal class WindowViewController : UIViewController
 	}
 
 	/// <summary>
-	/// Configures toolbar based on titlebar height to ensure proper traffic lights vertical alignment.
+	/// Configures titlebar accessories to help with traffic lights vertical alignment based on custom titlebar height.
 	/// </summary>
 	void ConfigureToolbarForTrafficLights(nfloat titleBarHeight)
 	{
@@ -193,18 +193,33 @@ internal class WindowViewController : UIViewController
 		// Only configure when we have a custom titlebar with measurable height
 		if (platformTitleBar?.TitleVisibility == UITitlebarTitleVisibility.Hidden && titleBarHeight > 0)
 		{
-			// Create or update toolbar to help center traffic lights based on titlebar height
-			var toolbar = platformTitleBar.Toolbar ?? new NSToolbar();
+			// Clear any existing toolbar to let traffic lights position naturally
+			platformTitleBar.Toolbar = null;
 			
-			// Configure toolbar properties for optimal traffic lights positioning
-			toolbar.ShowsBaselineSeparator = false;
-			
-			// Assign the toolbar to influence traffic lights positioning
-			platformTitleBar.Toolbar = toolbar;
-			
-			// Use expanded style to give more space for proper traffic lights centering
-			// This helps the system position traffic lights relative to the custom titlebar height
-			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Expanded;
+			// Use UITitlebarAccessoryViewController to influence traffic lights layout
+			// This provides better control over titlebar layout than creating toolbars
+			if (platformTitleBar.TitlebarAccessoryViewControllers?.Length == 0 || 
+				platformTitleBar.TitlebarAccessoryViewControllers == null)
+			{
+				var accessoryViewController = new UITitlebarAccessoryViewController();
+				
+				// Create a minimal view that helps establish proper layout context
+				var accessoryView = new UIView();
+				accessoryView.Frame = new CGRect(0, 0, 1, titleBarHeight);
+				accessoryView.Hidden = true; // Invisible but influences layout
+				
+				accessoryViewController.View = accessoryView;
+				accessoryViewController.LayoutAttribute = NSLayoutAttribute.Leading;
+				
+				// This accessory helps the system understand the custom titlebar height context
+				platformTitleBar.TitlebarAccessoryViewControllers = new[] { accessoryViewController };
+			}
+		}
+		else if (platformTitleBar?.TitleVisibility == UITitlebarTitleVisibility.Visible)
+		{
+			// Clean up when reverting to system titlebar
+			platformTitleBar.TitlebarAccessoryViewControllers = new UITitlebarAccessoryViewController[0];
+			platformTitleBar.Toolbar = null;
 		}
 	}
 

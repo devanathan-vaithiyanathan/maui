@@ -176,13 +176,40 @@ namespace Microsoft.Maui.Platform
 
 		internal static void UpdateFlowDirection(this SearchView searchView, ISearchBar searchBar, EditText? editText = null)
 		{
-			editText ??= searchView.GetFirstChildOfType<EditText>();
-
-			// Update the SearchView itself
+			// Update the SearchView itself first - this handles the container layout direction
 			searchView.UpdateFlowDirection((IView)searchBar);
 
-			// Update the internal EditText if available
-			editText?.UpdateFlowDirection((IView)searchBar);
+			// Get the internal EditText - try multiple times if needed since it may not be available immediately
+			editText ??= searchView.GetFirstChildOfType<EditText>();
+			
+			// If EditText is available, update its flow direction
+			if (editText != null)
+			{
+				editText.UpdateFlowDirection((IView)searchBar);
+			}
+			else
+			{
+				// If EditText isn't available yet, post a delayed update
+				// This can happen during initialization when the SearchView hierarchy isn't fully built
+				searchView.Post(() =>
+				{
+					var delayedEditText = searchView.GetFirstChildOfType<EditText>();
+					if (delayedEditText != null)
+					{
+						delayedEditText.UpdateFlowDirection((IView)searchBar);
+					}
+				});
+			}
+			
+			// For inheritance scenarios, ensure we handle view hierarchy updates
+			// by triggering a layout pass which will propagate inherited layout directions
+			if (searchBar.FlowDirection == FlowDirection.MatchParent)
+			{
+				searchView.Post(() =>
+				{
+					searchView.RequestLayout();
+				});
+			}
 		}
 	}
 }

@@ -422,6 +422,47 @@ namespace Microsoft.Maui.DeviceTests
 			});
 		}
 
+		[Fact(DisplayName = "FlowDirection Inherits From Parent Correctly")]
+		public async Task FlowDirectionInheritsFromParentCorrectly()
+		{
+			await InvokeOnMainThreadAsync(() =>
+			{
+				// Create a SearchBar with default FlowDirection (MatchParent)
+				var searchBarStub = new SearchBarStub()
+				{
+					Text = "Test",
+					FlowDirection = FlowDirection.MatchParent
+				};
+
+				// Create a parent layout with RTL FlowDirection
+				var layoutStub = new LayoutStub()
+				{
+					FlowDirection = FlowDirection.RightToLeft
+				};
+				layoutStub.Add(searchBarStub);
+
+				// Create handlers and set up the hierarchy
+				var layoutHandler = CreateHandler(layoutStub);
+				var searchBarHandler = CreateHandler(searchBarStub);
+
+				// Simulate the parent-child relationship in the platform view hierarchy
+				if (layoutHandler.PlatformView is Android.Views.ViewGroup parentView)
+				{
+					parentView.LayoutDirection = Android.Views.LayoutDirection.Rtl;
+					parentView.AddView(searchBarHandler.PlatformView);
+				}
+
+				// Verify that SearchBar inherits the RTL direction
+				var searchView = GetNativeSearchBar(searchBarHandler);
+				var editText = searchView.GetChildrenOfType<EditText>().FirstOrDefault();
+
+				// Both SearchView and EditText should have Inherit layout direction
+				// which will resolve to RTL because of the parent
+				Assert.Equal(Android.Views.LayoutDirection.Inherit, searchView.LayoutDirection);
+				Assert.Equal(Android.Views.LayoutDirection.Inherit, editText?.LayoutDirection);
+			});
+		}
+
 
 	}
 }

@@ -177,27 +177,47 @@ namespace Microsoft.Maui.Platform
 
 		internal static void UpdateFlowDirection(this SearchView searchView, ISearchBar searchBar, EditText? editText = null)
 		{
-			// Update the SearchView itself first - this handles the container layout direction and inheritance properly
-			searchView.UpdateFlowDirection((IView)searchBar);
-
-			// Get the internal EditText
+			// Get the internal EditText first
 			editText ??= searchView.GetFirstChildOfType<EditText>();
 			
-			// For the EditText, we want it to inherit from the SearchView's layout direction
-			// instead of trying to resolve the SearchBar's FlowDirection again
-			void UpdateEditTextFlowDirection(EditText et)
+			// Resolve the effective FlowDirection for the SearchBar
+			// This handles both direct assignments and inherited values from parent elements
+			var effectiveFlowDirection = GetEffectiveFlowDirection(searchBar);
+			
+			void UpdateFlowDirectionForViews(EditText et)
 			{
-				// Set EditText to inherit from its SearchView parent
-				// This ensures proper inheritance chain: ContentPage -> SearchBar -> SearchView -> EditText
-				et.LayoutDirection = Android.Views.LayoutDirection.Inherit;
+				// Apply the resolved FlowDirection to both SearchView and EditText
+				// We can't rely on inheritance for SearchBar because we're applying FlowDirection 
+				// to the inner EditText, so we need to handle MatchParent scenarios manually
+				switch (effectiveFlowDirection)
+				{
+					case FlowDirection.RightToLeft:
+						searchView.LayoutDirection = Android.Views.LayoutDirection.Rtl;
+						et.LayoutDirection = Android.Views.LayoutDirection.Rtl;
 #pragma warning disable CA1416 // Introduced in API 23
-				et.TextDirection = ATextDirection.Inherit;
+						et.TextDirection = ATextDirection.FirstStrongRtl;
 #pragma warning restore CA1416
+						break;
+					case FlowDirection.LeftToRight:
+						searchView.LayoutDirection = Android.Views.LayoutDirection.Ltr;
+						et.LayoutDirection = Android.Views.LayoutDirection.Ltr;
+#pragma warning disable CA1416 // Introduced in API 23
+						et.TextDirection = ATextDirection.FirstStrongLtr;
+#pragma warning restore CA1416
+						break;
+					default: // MatchParent or unspecified - use system default (LTR)
+						searchView.LayoutDirection = Android.Views.LayoutDirection.Ltr;
+						et.LayoutDirection = Android.Views.LayoutDirection.Ltr;
+#pragma warning disable CA1416 // Introduced in API 23
+						et.TextDirection = ATextDirection.FirstStrongLtr;
+#pragma warning restore CA1416
+						break;
+				}
 			}
 			
 			if (editText != null)
 			{
-				UpdateEditTextFlowDirection(editText);
+				UpdateFlowDirectionForViews(editText);
 			}
 			else
 			{
@@ -208,10 +228,29 @@ namespace Microsoft.Maui.Platform
 					var delayedEditText = searchView.GetFirstChildOfType<EditText>();
 					if (delayedEditText != null)
 					{
-						UpdateEditTextFlowDirection(delayedEditText);
+						UpdateFlowDirectionForViews(delayedEditText);
 					}
 				});
 			}
+		}
+
+		private static FlowDirection GetEffectiveFlowDirection(ISearchBar searchBar)
+		{
+			// If SearchBar has an explicit FlowDirection, use it
+			if (searchBar.FlowDirection != FlowDirection.MatchParent)
+				return searchBar.FlowDirection;
+
+			// For MatchParent, traverse up the parent chain to find the effective FlowDirection
+			var currentView = searchBar.Parent;
+			while (currentView != null)
+			{
+				if (currentView is IView view && view.FlowDirection != FlowDirection.MatchParent)
+					return view.FlowDirection;
+				currentView = currentView.Parent;
+			}
+
+			// Default to LeftToRight if no explicit FlowDirection is found in the hierarchy
+			return FlowDirection.LeftToRight;
 		}
 	}
 }

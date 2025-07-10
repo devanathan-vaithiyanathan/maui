@@ -393,7 +393,8 @@ namespace Microsoft.Maui.DeviceTests
 
 			Assert.Equal(FlowDirection.RightToLeft, values.ViewValue);
 			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.PlatformViewValue);
-			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.EditTextFlowDirection);
+			// EditText should inherit from SearchView, so it should be set to Inherit
+			Assert.Equal(Android.Views.LayoutDirection.Inherit, values.EditTextFlowDirection);
 		}
 
 		[Fact(DisplayName = "FlowDirection Updates Correctly")]
@@ -418,7 +419,8 @@ namespace Microsoft.Maui.DeviceTests
 			{
 				searchBarStub.FlowDirection = FlowDirection.RightToLeft;
 				var editTextDirection = GetNativeEditTextFlowDirection(handler);
-				Assert.Equal(Android.Views.LayoutDirection.Rtl, editTextDirection);
+				// EditText should inherit from SearchView, so it should be set to Inherit
+				Assert.Equal(Android.Views.LayoutDirection.Inherit, editTextDirection);
 			});
 		}
 

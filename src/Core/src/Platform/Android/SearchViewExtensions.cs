@@ -4,6 +4,7 @@ using Android.Text;
 using Android.Views;
 using Android.Widget;
 using SearchView = AndroidX.AppCompat.Widget.SearchView;
+using ATextDirection = Android.Views.TextDirection;
 
 namespace Microsoft.Maui.Platform
 {
@@ -176,16 +177,27 @@ namespace Microsoft.Maui.Platform
 
 		internal static void UpdateFlowDirection(this SearchView searchView, ISearchBar searchBar, EditText? editText = null)
 		{
-			// Update the SearchView itself first - this handles the container layout direction
+			// Update the SearchView itself first - this handles the container layout direction and inheritance properly
 			searchView.UpdateFlowDirection((IView)searchBar);
 
-			// Get the internal EditText - try multiple times if needed since it may not be available immediately
+			// Get the internal EditText
 			editText ??= searchView.GetFirstChildOfType<EditText>();
 			
-			// If EditText is available, update its flow direction
+			// For the EditText, we want it to inherit from the SearchView's layout direction
+			// instead of trying to resolve the SearchBar's FlowDirection again
+			void UpdateEditTextFlowDirection(EditText et)
+			{
+				// Set EditText to inherit from its SearchView parent
+				// This ensures proper inheritance chain: ContentPage -> SearchBar -> SearchView -> EditText
+				et.LayoutDirection = Android.Views.LayoutDirection.Inherit;
+#pragma warning disable CA1416 // Introduced in API 23
+				et.TextDirection = ATextDirection.Inherit;
+#pragma warning restore CA1416
+			}
+			
 			if (editText != null)
 			{
-				editText.UpdateFlowDirection((IView)searchBar);
+				UpdateEditTextFlowDirection(editText);
 			}
 			else
 			{
@@ -196,18 +208,8 @@ namespace Microsoft.Maui.Platform
 					var delayedEditText = searchView.GetFirstChildOfType<EditText>();
 					if (delayedEditText != null)
 					{
-						delayedEditText.UpdateFlowDirection((IView)searchBar);
+						UpdateEditTextFlowDirection(delayedEditText);
 					}
-				});
-			}
-			
-			// For inheritance scenarios, ensure we handle view hierarchy updates
-			// by triggering a layout pass which will propagate inherited layout directions
-			if (searchBar.FlowDirection == FlowDirection.MatchParent)
-			{
-				searchView.Post(() =>
-				{
-					searchView.RequestLayout();
 				});
 			}
 		}

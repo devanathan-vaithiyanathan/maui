@@ -321,6 +321,21 @@ namespace Microsoft.Maui.Controls
 						shellContent.SetBinding(IconProperty, static (TemplatedPage page) => page.IconImageSource, BindingMode.OneWay, source: templatedPage);
 						shellContent.SetBinding(FlyoutIconProperty, static (TemplatedPage page) => page.IconImageSource, BindingMode.OneWay, source: templatedPage);
 					}
+
+					// Ensure proper lifecycle events are triggered for the new content
+					// This is critical for handler setup in programmatic content changes
+					if (shellContent.Parent is ShellSection shellSection && shellSection.CurrentItem == shellContent)
+					{
+						// If this is the current item, we need to ensure the displayed page updates
+						// and triggers proper handler lifecycle events
+						shellSection.UpdateDisplayedPage();
+						
+						// Force page appearing events which are necessary for proper handler setup
+						if (shellSection.IsVisibleSection)
+						{
+							shellContent.SendAppearing();
+						}
+					}
 				}
 				else if (newValue != null)
 				{

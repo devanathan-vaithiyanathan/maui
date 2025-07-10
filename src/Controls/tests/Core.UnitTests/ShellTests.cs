@@ -242,6 +242,10 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.Same(initialPage, shellSection.DisplayedPage);
 			Assert.Equal("Initial Page", shellContent.Title);
 
+			// Store reference to initial page's parent for later verification
+			var initialParent = initialPage.Parent;
+			Assert.Same(shellContent, initialParent);
+
 			// Create and set new page - this should work immediately without intermediate null state
 			var newPage = new ContentPage { Title = "New Page" };
 			shellContent.Content = newPage;
@@ -253,14 +257,31 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			// Verify that bindings are properly set up and title is updated
 			Assert.Equal("New Page", shellContent.Title);
 			
+			// Verify the new page has the correct parent (critical for handler setup)
+			Assert.Same(shellContent, newPage.Parent);
+			
+			// Verify the old page has been properly disconnected
+			Assert.Null(initialPage.Parent);
+			
 			// Test that changing page title updates ShellContent title via binding
 			newPage.Title = "Updated Title";
 			Assert.Equal("Updated Title", shellContent.Title);
+			
+			// Test another content change to ensure it works consistently
+			var thirdPage = new ContentPage { Title = "Third Page" };
+			shellContent.Content = thirdPage;
+			
+			Assert.Same(thirdPage, ((IShellContentController)shellContent).Page);
+			Assert.Same(thirdPage, shellSection.DisplayedPage);
+			Assert.Equal("Third Page", shellContent.Title);
+			Assert.Same(shellContent, thirdPage.Parent);
+			Assert.Null(newPage.Parent);
 			
 			// Test edge case: setting content to null should work
 			shellContent.Content = null;
 			Assert.Null(((IShellContentController)shellContent).Page);
 			Assert.Null(shellSection.DisplayedPage);
+			Assert.Null(thirdPage.Parent);
 		}
 
 		[Fact]

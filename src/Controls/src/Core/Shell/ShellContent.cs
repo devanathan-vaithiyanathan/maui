@@ -322,18 +322,19 @@ namespace Microsoft.Maui.Controls
 						shellContent.SetBinding(FlyoutIconProperty, static (TemplatedPage page) => page.IconImageSource, BindingMode.OneWay, source: templatedPage);
 					}
 
-					// Ensure proper lifecycle events are triggered for the new content
-					// This is critical for handler setup in programmatic content changes
-					if (shellContent.Parent is ShellSection shellSection && shellSection.CurrentItem == shellContent)
+					// Ensure the new page gets properly integrated into the Shell's visual hierarchy
+					// This is critical for handler setup when content is changed programmatically
+					if (shellContent.Parent is ShellSection shellSection)
 					{
-						// If this is the current item, we need to ensure the displayed page updates
-						// and triggers proper handler lifecycle events
+						// Force the section to recognize the content change and update its displayed page
+						// This ensures the new page gets properly connected to the visual tree and handlers are created
 						shellSection.UpdateDisplayedPage();
 						
-						// Force page appearing events which are necessary for proper handler setup
-						if (shellSection.IsVisibleSection)
+						// If this ShellContent is currently active, ensure proper appearing lifecycle
+						if (shellSection.CurrentItem == shellContent && shellSection.IsVisibleSection)
 						{
-							shellContent.SendAppearing();
+							// Trigger the appearing lifecycle which sets up handlers and updates the visual tree
+							newElement.SendAppearing();
 						}
 					}
 				}
@@ -343,7 +344,7 @@ namespace Microsoft.Maui.Controls
 				}
 				else
 				{
-					// Only set to null if newValue is null
+					// Only set to null if newValue is null, avoid intermediate null state for non-null changes
 					shellContent.ContentCache = null;
 				}
 			}

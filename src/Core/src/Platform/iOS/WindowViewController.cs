@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using CoreGraphics;
 using UIKit;
 using System.Threading.Tasks;
+using AppKit;
 
 namespace Microsoft.Maui.Platform;
 
@@ -138,16 +139,13 @@ internal class WindowViewController : UIViewController
 		if (newTitleBar is not null && platformTitleBar is not null)
 		{
 			platformTitleBar.TitleVisibility = UITitlebarTitleVisibility.Hidden;
-			
-			// Configure toolbar style to ensure proper traffic lights positioning
-			// UITitlebarToolbarStyle.Expanded provides better vertical centering for traffic lights
-			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Expanded;
 		}
 
 		else if (newTitleBar is null && platformTitleBar is not null)
 		{
 			platformTitleBar.TitleVisibility = UITitlebarTitleVisibility.Visible;
-			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Automatic;
+			// Clear any custom toolbar when reverting to system titlebar
+			platformTitleBar.Toolbar = null;
 		}
 
 		IsFirstLayout = true;
@@ -178,7 +176,36 @@ internal class WindowViewController : UIViewController
 
 		_contentWrapperTopConstraint.Constant = titleBarHeight;
 
+		// Configure toolbar based on titlebar height for proper traffic lights alignment
+		ConfigureToolbarForTrafficLights(titleBarHeight);
+
 		UpdateContentWrapperContentFrame();
+	}
+
+	/// <summary>
+	/// Configures toolbar based on titlebar height to ensure proper traffic lights vertical alignment.
+	/// </summary>
+	void ConfigureToolbarForTrafficLights(nfloat titleBarHeight)
+	{
+		var platformWindow = View?.Window;
+		var platformTitleBar = platformWindow?.WindowScene?.Titlebar;
+		
+		// Only configure when we have a custom titlebar with measurable height
+		if (platformTitleBar?.TitleVisibility == UITitlebarTitleVisibility.Hidden && titleBarHeight > 0)
+		{
+			// Create or update toolbar to help center traffic lights based on titlebar height
+			var toolbar = platformTitleBar.Toolbar ?? new NSToolbar();
+			
+			// Configure toolbar properties for optimal traffic lights positioning
+			toolbar.ShowsBaselineSeparator = false;
+			
+			// Assign the toolbar to influence traffic lights positioning
+			platformTitleBar.Toolbar = toolbar;
+			
+			// Use expanded style to give more space for proper traffic lights centering
+			// This helps the system position traffic lights relative to the custom titlebar height
+			platformTitleBar.ToolbarStyle = UITitlebarToolbarStyle.Expanded;
+		}
 	}
 
 	public void SetTitleBarVisibility(bool isVisible)

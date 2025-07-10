@@ -183,7 +183,7 @@ internal class WindowViewController : UIViewController
 	}
 
 	/// <summary>
-	/// Configures titlebar accessories to help with traffic lights vertical alignment based on custom titlebar height.
+	/// Configures window-level properties to help with traffic lights positioning for custom titlebar.
 	/// </summary>
 	void ConfigureToolbarForTrafficLights(nfloat titleBarHeight)
 	{
@@ -193,32 +193,44 @@ internal class WindowViewController : UIViewController
 		// Only configure when we have a custom titlebar with measurable height
 		if (platformTitleBar?.TitleVisibility == UITitlebarTitleVisibility.Hidden && titleBarHeight > 0)
 		{
-			// Clear any existing toolbar to let traffic lights position naturally
-			platformTitleBar.Toolbar = null;
-			
-			// Use UITitlebarAccessoryViewController to influence traffic lights layout
-			// This provides better control over titlebar layout than creating toolbars
-			if (platformTitleBar.TitlebarAccessoryViewControllers?.Length == 0 || 
-				platformTitleBar.TitlebarAccessoryViewControllers == null)
+			// For MacCatalyst, the traffic lights positioning is largely controlled by the system
+			// We can try to influence it by configuring the window's minimum size constraints
+			// to hint at the titlebar area dimensions
+			var windowScene = platformWindow?.WindowScene;
+			if (windowScene?.SizeRestrictions != null)
 			{
-				var accessoryViewController = new UITitlebarAccessoryViewController();
+				// Get current window size
+				var currentSize = platformWindow?.Bounds.Size ?? CGSize.Empty;
 				
-				// Create a minimal view that helps establish proper layout context
-				var accessoryView = new UIView();
-				accessoryView.Frame = new CGRect(0, 0, 1, titleBarHeight);
-				accessoryView.Hidden = true; // Invisible but influences layout
-				
-				accessoryViewController.View = accessoryView;
-				accessoryViewController.LayoutAttribute = NSLayoutAttribute.Leading;
-				
-				// This accessory helps the system understand the custom titlebar height context
-				platformTitleBar.TitlebarAccessoryViewControllers = new[] { accessoryViewController };
+				// If we have a valid current size, ensure minimum height accounts for custom titlebar
+				if (currentSize.Height > 0)
+				{
+					var minHeight = Math.Max(titleBarHeight + 100, currentSize.Height); // Ensure adequate space
+					var currentMinSize = windowScene.SizeRestrictions.MinimumSize;
+					
+					// Only update if we're increasing the minimum constraints
+					if (currentMinSize.Height < minHeight)
+					{
+						windowScene.SizeRestrictions.MinimumSize = new CGSize(
+							Math.Max(currentMinSize.Width, 300), // Reasonable minimum width
+							minHeight
+						);
+					}
+				}
+			}
+			
+			// Alternative approach: Use a minimal toolbar configuration that may help with layout
+			// Some users report better results with an empty toolbar vs no toolbar
+			if (platformTitleBar.Toolbar == null)
+			{
+				var toolbar = new NSToolbar("CustomTitleBarToolbar");
+				toolbar.ShowsBaselineSeparator = false;
+				platformTitleBar.Toolbar = toolbar;
 			}
 		}
 		else if (platformTitleBar?.TitleVisibility == UITitlebarTitleVisibility.Visible)
 		{
 			// Clean up when reverting to system titlebar
-			platformTitleBar.TitlebarAccessoryViewControllers = new UITitlebarAccessoryViewController[0];
 			platformTitleBar.Toolbar = null;
 		}
 	}

@@ -312,6 +312,7 @@ namespace Microsoft.Maui.Controls
 
 				if (newValue is Page newElement)
 				{
+					var oldPage = shellContent.ContentCache;
 					shellContent.ContentCache = newElement;
 
 					// Set up bindings to new page (same as implicit conversion)
@@ -322,18 +323,35 @@ namespace Microsoft.Maui.Controls
 						shellContent.SetBinding(FlyoutIconProperty, static (TemplatedPage page) => page.IconImageSource, BindingMode.OneWay, source: templatedPage);
 					}
 
-					// Ensure the new page gets properly integrated into the Shell's visual hierarchy
-					// This is critical for handler setup when content is changed programmatically
+					// Ensure proper handler setup for programmatic content changes
 					if (shellContent.Parent is ShellSection shellSection)
 					{
+						// Get the Shell's MauiContext for handler creation
+						var shell = shellSection.Parent?.Parent as Shell;
+						var mauiContext = shell?.FindMauiContext();
+						
+						if (mauiContext != null && newElement.Handler == null)
+						{
+							// Create handler for the new page using the Shell's context
+							// This ensures the new page gets proper platform integration
+							try
+							{
+								newElement.ToHandler(mauiContext);
+							}
+							catch (Exception ex)
+							{
+								// Log the error but don't fail - fall back to normal lifecycle
+								System.Diagnostics.Debug.WriteLine($"Failed to create handler for new content: {ex.Message}");
+							}
+						}
+
 						// Force the section to recognize the content change and update its displayed page
-						// This ensures the new page gets properly connected to the visual tree and handlers are created
 						shellSection.UpdateDisplayedPage();
 						
 						// If this ShellContent is currently active, ensure proper appearing lifecycle
 						if (shellSection.CurrentItem == shellContent && shellSection.IsVisibleSection)
 						{
-							// Trigger the appearing lifecycle which sets up handlers and updates the visual tree
+							// Trigger the appearing lifecycle for additional handler setup
 							newElement.SendAppearing();
 						}
 					}

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.Issues.SearchBarThemeIssue"
+             Title="SearchBar Theme Issue Test">
+
+    <StackLayout Padding="20">
+        <Label Text="Test: SearchBar icon should change color when switching themes at runtime" 
+               FontSize="16" 
+               Margin="0,0,0,20"/>
+        
+        <SearchBar x:Name="testSearchBar" 
+                   Text="Search" 
+                   Placeholder="Enter search text"
+                   WidthRequest="400" 
+                   Margin="0,0,0,20"/>
+
+        <Button x:Name="changeThemeButton"
+                Text="Switch to Dark Theme" 
+                WidthRequest="400"
+                Clicked="OnChangeThemeClicked" 
+                Margin="0,0,0,10"/>
+                
+        <Button x:Name="resetThemeButton"
+                Text="Switch to Light Theme" 
+                WidthRequest="400"
+                Clicked="OnResetThemeClicked" 
+                Margin="0,0,0,20"/>
+
+        <Label x:Name="statusLabel" 
+               Text="Current theme: Light" 
+               FontSize="14"/>
+    </StackLayout>
+
+</ContentPage>

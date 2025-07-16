@@ -27,8 +27,8 @@ namespace Microsoft.Maui.Handlers
 			platformView.LostFocus += OnLostFocus;
 
 			// Subscribe to theme changes to update QueryIcon
-			if (Application.Current is not null)
-				Application.Current.RequestedThemeChanged += OnAppThemeChanged;
+			if (Microsoft.Maui.Controls.Application.Current is not null)
+				Microsoft.Maui.Controls.Application.Current.RequestedThemeChanged += OnAppThemeChanged;
 		}
 
 		protected override void DisconnectHandler(AutoSuggestBox platformView)
@@ -40,8 +40,8 @@ namespace Microsoft.Maui.Handlers
 			platformView.LostFocus -= OnLostFocus;
 
 			// Unsubscribe from theme changes
-			if (Application.Current is not null)
-				Application.Current.RequestedThemeChanged -= OnAppThemeChanged;
+			if (Microsoft.Maui.Controls.Application.Current is not null)
+				Microsoft.Maui.Controls.Application.Current.RequestedThemeChanged -= OnAppThemeChanged;
 		}
 
 		public static void MapBackground(ISearchBarHandler handler, ISearchBar searchBar)

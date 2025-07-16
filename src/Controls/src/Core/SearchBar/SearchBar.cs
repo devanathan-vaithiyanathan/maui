@@ -78,6 +78,45 @@ namespace Microsoft.Maui.Controls
 			get { return (Color)GetValue(CancelButtonColorProperty); }
 			set { SetValue(CancelButtonColorProperty, value); }
 		}
+	
+#pragma warning disable RS0016 // Add public types and members to the declared API
+		protected override void OnHandlerChanging(HandlerChangingEventArgs args)
+#pragma warning restore RS0016 // Add public types and members to the declared API
+		{
+		base.OnHandlerChanging(args);
+		
+		if (args.NewHandler == null && args.OldHandler != null)
+		{
+			Application.Current.RequestedThemeChanged -= OnThemeChanged;
+		}
+		else if (args.NewHandler != null && args.OldHandler == null)
+		{
+			Application.Current.RequestedThemeChanged += OnThemeChanged;
+		}
+	}
+
+		private void OnThemeChanged(object sender, AppThemeChangedEventArgs e)
+		{
+			Handler?.UpdateValue(nameof(TextColor));
+			Handler?.UpdateValue(nameof(PlaceholderColor));
+			Handler?.UpdateValue(nameof(CancelButtonColor));
+		}
+
+#pragma warning disable RS0016 // Add public types and members to the declared API
+		protected override void OnHandlerChanged()
+#pragma warning restore RS0016 // Add public types and members to the declared API
+		{
+			base.OnHandlerChanged();
+
+			if (Handler != null)
+			{
+				Application.Current.RequestedThemeChanged += OnThemeChanged;
+			}
+			else
+			{
+				Application.Current.RequestedThemeChanged -= OnThemeChanged;
+			}
+		}
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/SearchBar.xml" path="//Member[@MemberName='HorizontalTextAlignment']/Docs/*" />
 		public TextAlignment HorizontalTextAlignment

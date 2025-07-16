@@ -85,6 +85,7 @@ namespace Microsoft.Maui.Handlers
 		public static void MapTextColor(ISearchBarHandler handler, ISearchBar searchBar)
 		{
 			handler?.PlatformView?.UpdateTextColor(searchBar);
+			handler?.PlatformView?.UpdateQueryIconColor(searchBar);
 		}
 
 		public static void MapIsTextPredictionEnabled(ISearchBarHandler handler, ISearchBar searchBar)
@@ -130,6 +131,7 @@ namespace Microsoft.Maui.Handlers
 				PlatformView?.UpdateIsSpellCheckEnabled(VirtualView);
 				PlatformView?.UpdateCancelButtonColor(VirtualView);
 				PlatformView?.UpdateKeyboard(VirtualView);
+				PlatformView?.UpdateQueryIconColor(VirtualView);
 			}
 		}
 

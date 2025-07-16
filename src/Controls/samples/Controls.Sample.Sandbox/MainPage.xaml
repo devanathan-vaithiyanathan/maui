@@ -2,4 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+
+             <StackLayout>
+        <SearchBar x:Name="searchBar" Text="Search" WidthRequest="500" />
+
+        <Button Text="ChangeTo Dark theme" WidthRequest="500"
+                Clicked="Button_Clicked" />
+    </StackLayout>
 </ContentPage>

@@ -690,7 +690,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 			try
 			{
-				if (TryGetInputPane(out _inputPane))
+				_inputPane = global::Windows.UI.ViewManagement.InputPane.GetForCurrentView();
+				if (_inputPane != null)
 				{
 					_inputPane.Showing += OnInputPaneShowing;
 					_inputPane.Hiding += OnInputPaneHiding;

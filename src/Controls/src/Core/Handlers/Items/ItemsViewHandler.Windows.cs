@@ -13,6 +13,8 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
+using Windows.UI.ViewManagement;
 using WASDKApp = Microsoft.UI.Xaml.Application;
 using WASDKDataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using WASDKScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility;
@@ -32,6 +34,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		bool _emptyViewDisplayed;
 		double _previousHorizontalOffset;
 		double _previousVerticalOffset;
+		InputPane _inputPane;
+		bool _isKeyboardHandlingEnabled = true;
 		protected ListViewBase ListViewBase => PlatformView;
 		protected TItemsView ItemsView => VirtualView;
 		protected TItemsView Element => VirtualView;
@@ -52,11 +56,13 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			base.ConnectHandler(platformView);
 			VirtualView.ScrollToRequested += ScrollToRequested;
 			FindScrollViewer(ListViewBase);
+			SetupKeyboardHandling();
 		}
 
 		protected override void DisconnectHandler(ListViewBase platformView)
 		{
 			VirtualView.ScrollToRequested -= ScrollToRequested;
+			CleanUpKeyboardHandling();
 			CleanUpCollectionViewSource(platformView);
 			_formsEmptyView?.Handler?.DisconnectHandler();
 			base.DisconnectHandler(platformView);
@@ -674,6 +680,144 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		protected virtual object GetItem(int index)
 		{
 			return CollectionViewSource.View[index];
+		}
+
+		void SetupKeyboardHandling()
+		{
+			if (!_isKeyboardHandlingEnabled)
+				return;
+
+			try
+			{
+				if (PlatformView?.TryGetInputPane(out _inputPane) == true)
+				{
+					_inputPane.Showing += OnInputPaneShowing;
+					_inputPane.Hiding += OnInputPaneHiding;
+				}
+			}
+			catch (Exception ex)
+			{
+				// InputPane might not be available in all scenarios (e.g., desktop without touch)
+				// Gracefully handle the exception and disable keyboard handling
+				_isKeyboardHandlingEnabled = false;
+				System.Diagnostics.Debug.WriteLine($"InputPane not available: {ex.Message}");
+			}
+		}
+
+		void CleanUpKeyboardHandling()
+		{
+			if (_inputPane != null)
+			{
+				_inputPane.Showing -= OnInputPaneShowing;
+				_inputPane.Hiding -= OnInputPaneHiding;
+				_inputPane = null;
+			}
+		}
+
+		void OnInputPaneShowing(InputPane sender, InputPaneVisibilityEventArgs args)
+		{
+			// Find the currently focused element
+			var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
+			if (focusedElement == null)
+				return;
+
+			// Check if the focused element is inside our CollectionView
+			var focusedEntry = FindParentEntry(focusedElement);
+			if (focusedEntry == null)
+				return;
+
+			// Find the container (ListViewItem) that contains this Entry
+			var container = FindParentContainer(focusedEntry);
+			if (container == null)
+				return;
+
+			// Schedule the scroll operation for the next UI update cycle
+			PlatformView?.DispatcherQueue?.TryEnqueue(() =>
+			{
+				ScrollToFocusedElement(container, args.OccludedRect.Height);
+			});
+		}
+
+		void OnInputPaneHiding(InputPane sender, InputPaneVisibilityEventArgs args)
+		{
+			// Optional: Could restore scroll position if needed
+			// For now, we'll let the CollectionView maintain its current scroll position
+		}
+
+		FrameworkElement FindParentEntry(FrameworkElement element)
+		{
+			var current = element;
+			while (current != null)
+			{
+				// Check if this is a TextBox (the native control for Entry)
+				if (current is TextBox textBox)
+				{
+					// Verify this TextBox is within our CollectionView
+					if (IsWithinCollectionView(textBox))
+						return textBox;
+				}
+
+				current = current.Parent as FrameworkElement;
+			}
+			return null;
+		}
+
+		FrameworkElement FindParentContainer(FrameworkElement element)
+		{
+			var current = element;
+			while (current != null)
+			{
+				// Look for ListViewItem or SelectorItem which are the container types
+				if (current is ListViewItem || current is SelectorItem)
+					return current;
+
+				current = current.Parent as FrameworkElement;
+			}
+			return null;
+		}
+
+		bool IsWithinCollectionView(FrameworkElement element)
+		{
+			var current = element;
+			while (current != null)
+			{
+				if (current == PlatformView)
+					return true;
+
+				current = current.Parent as FrameworkElement;
+			}
+			return false;
+		}
+
+		void ScrollToFocusedElement(FrameworkElement container, double keyboardHeight)
+		{
+			if (PlatformView == null || _scrollViewer == null)
+				return;
+
+			try
+			{
+				// Get the position of the focused element relative to the CollectionView
+				var elementPosition = container.TransformToVisual(PlatformView).TransformPoint(new Windows.Foundation.Point(0, 0));
+				var elementBottom = elementPosition.Y + container.ActualHeight;
+
+				// Calculate the visible area height (subtract keyboard height)
+				var visibleHeight = PlatformView.ActualHeight - keyboardHeight;
+
+				// Check if the element is obscured by the keyboard
+				if (elementBottom > visibleHeight)
+				{
+					// Calculate how much we need to scroll to bring the element into view
+					var scrollOffset = elementBottom - visibleHeight + 20; // Add some padding
+
+					// Scroll to bring the element into view
+					var newVerticalOffset = _scrollViewer.VerticalOffset + scrollOffset;
+					_scrollViewer.ChangeView(null, newVerticalOffset, null, false);
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error scrolling to focused element: {ex.Message}");
+			}
 		}
 	}
 }

@@ -5,20 +5,25 @@ namespace Maui.Controls.Sample.Issues
 {
     [Issue(IssueTracker.None, 0, "CollectionView doesn't scroll when keyboard appears", 
            PlatformAffected.Windows)]
-    public partial class IssueCollectionViewKeyboardScroll : ContentPage
+    public partial class IssueCollectionViewKeyboardAutoScroll : TestContentPage
     {
-        public IssueCollectionViewKeyboardScroll()
+        public IssueCollectionViewKeyboardAutoScroll()
         {
             InitializeComponent();
-            BindingContext = new IssueCollectionViewKeyboardScrollViewModel();
+            BindingContext = new IssueCollectionViewKeyboardAutoScrollViewModel();
+        }
+
+        protected override void Init()
+        {
+            // TestContentPage requires this method
         }
     }
 
-    public class IssueCollectionViewKeyboardScrollViewModel
+    public class IssueCollectionViewKeyboardAutoScrollViewModel
     {
         public ObservableCollection<TestItem> Items { get; set; }
 
-        public IssueCollectionViewKeyboardScrollViewModel()
+        public IssueCollectionViewKeyboardAutoScrollViewModel()
         {
             Items = new ObservableCollection<TestItem>();
             

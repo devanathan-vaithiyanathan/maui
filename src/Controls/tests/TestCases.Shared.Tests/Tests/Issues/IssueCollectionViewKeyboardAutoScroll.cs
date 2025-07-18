@@ -4,11 +4,11 @@ using UITest.Core;
 
 namespace Microsoft.Maui.TestCases.Tests.Issues
 {
-    public class IssueCollectionViewKeyboardScroll : _IssuesUITest
+    public class IssueCollectionViewKeyboardAutoScroll : _IssuesUITest
     {
         public override string Issue => "CollectionView doesn't scroll when keyboard appears";
 
-        public IssueCollectionViewKeyboardScroll(TestDevice device) : base(device) { }
+        public IssueCollectionViewKeyboardAutoScroll(TestDevice device) : base(device) { }
 
         [Test]
         [Category(UITestCategories.CollectionView)]

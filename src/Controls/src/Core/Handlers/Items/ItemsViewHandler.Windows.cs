@@ -716,26 +716,33 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		void OnInputPaneShowing(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
-			// Find the currently focused element
-			var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
-			if (focusedElement == null)
-				return;
-
-			// Check if the focused element is inside our CollectionView
-			var focusedEntry = FindParentEntry(focusedElement);
-			if (focusedEntry == null)
-				return;
-
-			// Find the container (ListViewItem) that contains this Entry
-			var container = FindParentContainer(focusedEntry);
-			if (container == null)
-				return;
-
-			// Schedule the scroll operation for the next UI update cycle
-			PlatformView?.DispatcherQueue?.TryEnqueue(() =>
+			try
 			{
-				ScrollToFocusedElement(container, args.OccludedRect.Height);
-			});
+				// Find the currently focused element
+				var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
+				if (focusedElement == null)
+					return;
+
+				// Check if the focused element is inside our CollectionView
+				var focusedEntry = FindParentEntry(focusedElement);
+				if (focusedEntry == null)
+					return;
+
+				// Find the container (ListViewItem) that contains this Entry
+				var container = FindParentContainer(focusedEntry);
+				if (container == null)
+					return;
+
+				// Schedule the scroll operation for the next UI update cycle
+				PlatformView?.DispatcherQueue?.TryEnqueue(() =>
+				{
+					ScrollToFocusedElement(container, args.OccludedRect.Height);
+				});
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error in OnInputPaneShowing: {ex.Message}");
+			}
 		}
 
 		void OnInputPaneHiding(InputPane sender, InputPaneVisibilityEventArgs args)
@@ -791,11 +798,15 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		void ScrollToFocusedElement(FrameworkElement container, double keyboardHeight)
 		{
-			if (PlatformView == null || _scrollViewer == null)
+			if (PlatformView == null || _scrollViewer == null || container == null)
 				return;
 
 			try
 			{
+				// Ensure the container is still connected to the visual tree
+				if (container.Parent == null)
+					return;
+
 				// Get the position of the focused element relative to the CollectionView
 				var elementPosition = container.TransformToVisual(PlatformView).TransformPoint(new Windows.Foundation.Point(0, 0));
 				var elementBottom = elementPosition.Y + container.ActualHeight;
@@ -803,15 +814,22 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				// Calculate the visible area height (subtract keyboard height)
 				var visibleHeight = PlatformView.ActualHeight - keyboardHeight;
 
-				// Check if the element is obscured by the keyboard
+				// Only scroll if the element is actually obscured by the keyboard
 				if (elementBottom > visibleHeight)
 				{
 					// Calculate how much we need to scroll to bring the element into view
-					var scrollOffset = elementBottom - visibleHeight + 20; // Add some padding
+					// Add some padding to ensure the element is clearly visible
+					var scrollOffset = elementBottom - visibleHeight + 40; // Increased padding for better visibility
 
-					// Scroll to bring the element into view
-					var newVerticalOffset = _scrollViewer.VerticalOffset + scrollOffset;
-					_scrollViewer.ChangeView(null, newVerticalOffset, null, false);
+					// Ensure we don't scroll beyond the available content
+					var maxVerticalOffset = _scrollViewer.ScrollableHeight;
+					var newVerticalOffset = Math.Min(_scrollViewer.VerticalOffset + scrollOffset, maxVerticalOffset);
+
+					// Only scroll if we actually need to move
+					if (Math.Abs(newVerticalOffset - _scrollViewer.VerticalOffset) > 1)
+					{
+						_scrollViewer.ChangeView(null, newVerticalOffset, null, false);
+					}
 				}
 			}
 			catch (Exception ex)

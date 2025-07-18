@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Maui.Controls.Sample.Issues.IssueCollectionViewKeyboardScroll"
-             Title="CollectionView Keyboard Scroll Test">
+             x:Class="Maui.Controls.Sample.Issues.IssueCollectionViewKeyboardAutoScroll"
+             Title="CollectionView Keyboard Auto Scroll Test">
     <Grid>
         <CollectionView x:Name="TestCollectionView"
                         AutomationId="TestCollectionView"

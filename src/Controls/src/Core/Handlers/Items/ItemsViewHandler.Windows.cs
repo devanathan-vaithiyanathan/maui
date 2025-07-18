@@ -9,6 +9,7 @@ using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Controls.Platform;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
+using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -689,7 +690,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 			try
 			{
-				if (PlatformView?.TryGetInputPane(out _inputPane) == true)
+				if (TryGetInputPane(out _inputPane))
 				{
 					_inputPane.Showing += OnInputPaneShowing;
 					_inputPane.Hiding += OnInputPaneHiding;

@@ -37,6 +37,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		double _previousVerticalOffset;
 		InputPane _inputPane;
 		bool _isKeyboardHandlingEnabled = true;
+		FrameworkElement _currentFocusedEntry;
 		protected ListViewBase ListViewBase => PlatformView;
 		protected TItemsView ItemsView => VirtualView;
 		protected TItemsView Element => VirtualView;
@@ -696,6 +697,10 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					_inputPane.Showing += OnInputPaneShowing;
 					_inputPane.Hiding += OnInputPaneHiding;
 				}
+
+				// Set up focus tracking to detect when Entry controls within the CollectionView get focus
+				FocusManager.GotFocus += OnFocusManagerGotFocus;
+				FocusManager.LostFocus += OnFocusManagerLostFocus;
 			}
 			catch (Exception ex)
 			{
@@ -714,24 +719,23 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				_inputPane.Hiding -= OnInputPaneHiding;
 				_inputPane = null;
 			}
+
+			// Clean up focus tracking
+			FocusManager.GotFocus -= OnFocusManagerGotFocus;
+			FocusManager.LostFocus -= OnFocusManagerLostFocus;
+			_currentFocusedEntry = null;
 		}
 
 		void OnInputPaneShowing(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
 			try
 			{
-				// Find the currently focused element
-				var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
-				if (focusedElement == null)
-					return;
-
-				// Check if the focused element is inside our CollectionView
-				var focusedEntry = FindParentEntry(focusedElement);
-				if (focusedEntry == null)
+				// Use the tracked focused Entry instead of trying to find it at this moment
+				if (_currentFocusedEntry == null)
 					return;
 
 				// Find the container (ListViewItem) that contains this Entry
-				var container = FindParentContainer(focusedEntry);
+				var container = FindParentContainer(_currentFocusedEntry);
 				if (container == null)
 					return;
 
@@ -751,6 +755,38 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		{
 			// Optional: Could restore scroll position if needed
 			// For now, we'll let the CollectionView maintain its current scroll position
+		}
+
+		void OnFocusManagerGotFocus(object sender, FocusManagerGotFocusEventArgs e)
+		{
+			try
+			{
+				// Check if the newly focused element is a TextBox (Entry) within our CollectionView
+				if (e.NewFocusedElement is TextBox textBox && IsWithinCollectionView(textBox))
+				{
+					_currentFocusedEntry = textBox;
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error in OnFocusManagerGotFocus: {ex.Message}");
+			}
+		}
+
+		void OnFocusManagerLostFocus(object sender, FocusManagerLostFocusEventArgs e)
+		{
+			try
+			{
+				// Clear the tracked focused entry if it lost focus
+				if (e.OldFocusedElement == _currentFocusedEntry)
+				{
+					_currentFocusedEntry = null;
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Error in OnFocusManagerLostFocus: {ex.Message}");
+			}
 		}
 
 		FrameworkElement FindParentEntry(FrameworkElement element)

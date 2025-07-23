@@ -7,17 +7,18 @@ using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Internals;
 using Microsoft.Maui.Controls.Platform;
-using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Handlers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
+using Windows.UI.ViewManagement;
+using WinFoundation = Windows.Foundation;
 using WASDKApp = Microsoft.UI.Xaml.Application;
 using WASDKDataTemplate = Microsoft.UI.Xaml.DataTemplate;
 using WASDKScrollBarVisibility = Microsoft.UI.Xaml.Controls.ScrollBarVisibility;
 using WRect = Windows.Foundation.Rect;
 using WVisibility = Microsoft.UI.Xaml.Visibility;
+using Microsoft.UI.Xaml.Input;
 
 namespace Microsoft.Maui.Controls.Handlers.Items
 {
@@ -30,8 +31,10 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		WASDKScrollBarVisibility? _defaultVerticalScrollVisibility;
 		View _formsEmptyView;
 		bool _emptyViewDisplayed;
+		double _originalScrollPosition = 0;
 		double _previousHorizontalOffset;
 		double _previousVerticalOffset;
+		InputPane _inputPane;
 		protected ListViewBase ListViewBase => PlatformView;
 		protected TItemsView ItemsView => VirtualView;
 		protected TItemsView Element => VirtualView;
@@ -52,6 +55,10 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			base.ConnectHandler(platformView);
 			VirtualView.ScrollToRequested += ScrollToRequested;
 			FindScrollViewer(ListViewBase);
+			PlatformView.GotFocus += (s, e) =>
+			{
+				RegisterInputPaneEvents();
+			};
 		}
 
 		protected override void DisconnectHandler(ListViewBase platformView)
@@ -80,6 +87,33 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		public static void MapItemTemplate(ItemsViewHandler<TItemsView> handler, ItemsView itemsView)
 		{
 			handler.UpdateItemTemplate();
+		}
+
+		private void RegisterInputPaneEvents()
+		{
+			if (Microsoft.Maui.Platform.FrameworkElementExtensions.TryGetInputPane(out var inputPane))
+			{
+				_inputPane = inputPane;
+				_inputPane.Showing += (s,args) =>
+				{
+					_originalScrollPosition = _scrollViewer.VerticalOffset;
+					double keyboardHeight = args.OccludedRect.Height;
+					var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
+					var transform = focusedElement.TransformToVisual(_scrollViewer);
+					var focusedElementPosition = transform.TransformPoint(new WinFoundation.Point(0, 0));
+					var focusedElementBottom = focusedElementPosition.Y + focusedElement.ActualHeight;
+					var visibleHeight = _scrollViewer.ActualHeight - keyboardHeight;
+					if (focusedElementBottom > visibleHeight)
+						double offset = _scrollViewer.VerticalOffset + (focusedElementBottom - visibleHeight) + 20;
+						_scrollViewer.ChangeView(null, offset, null, true);
+					}
+				};
+
+				_inputPane.Hiding += (s, e) =>
+				{
+					_scrollViewer.ChangeView(null, _originalScrollPosition, null, true);
+				};
+			}
 		}
 
 		public static void MapEmptyView(ItemsViewHandler<TItemsView> handler, ItemsView itemsView)
@@ -220,7 +254,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					emptyView.EmptyViewVisibility = WVisibility.Visible;
 
 					if (PlatformView.ActualWidth >= 0 && PlatformView.ActualHeight >= 0)
-						_formsEmptyView?.Layout(new Rect(0, 0, PlatformView.ActualWidth, PlatformView.ActualHeight));
+						_formsEmptyView?.Layout(new Microsoft.Maui.Graphics.Rect(0, 0, PlatformView.ActualWidth, PlatformView.ActualHeight));
 				}
 
 				_emptyViewDisplayed = true;

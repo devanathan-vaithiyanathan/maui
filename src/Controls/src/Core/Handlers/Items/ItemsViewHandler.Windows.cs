@@ -55,10 +55,11 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			base.ConnectHandler(platformView);
 			VirtualView.ScrollToRequested += ScrollToRequested;
 			FindScrollViewer(ListViewBase);
-			PlatformView.GotFocus += (s, e) =>
-			{
-				RegisterInputPaneEvents();
-			};
+			PlatformView.GotFocus += OnPlatformViewFocus;
+		}
+		void OnPlatformViewFocus(object sender, RoutedEventArgs e)
+		{
+			RegisterInputPaneEvents();
 		}
 
 		protected override void DisconnectHandler(ListViewBase platformView)
@@ -66,6 +67,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			VirtualView.ScrollToRequested -= ScrollToRequested;
 			CleanUpCollectionViewSource(platformView);
 			_formsEmptyView?.Handler?.DisconnectHandler();
+			if (_inputPane != null)
+			{
+				_inputPane.Showing -= OnInputPaneShowing;
+				_inputPane.Hiding -= OnInputPaneHiding;
+				_inputPane = null;
+			}
 			base.DisconnectHandler(platformView);
 		}
 
@@ -94,25 +101,38 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			if (Microsoft.Maui.Platform.FrameworkElementExtensions.TryGetInputPane(out var inputPane))
 			{
 				_inputPane = inputPane;
-				_inputPane.Showing += (s,args) =>
-				{
-					_originalScrollPosition = _scrollViewer.VerticalOffset;
-					double keyboardHeight = args.OccludedRect.Height;
-					var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
-					var transform = focusedElement.TransformToVisual(_scrollViewer);
-					var focusedElementPosition = transform.TransformPoint(new WinFoundation.Point(0, 0));
-					var focusedElementBottom = focusedElementPosition.Y + focusedElement.ActualHeight;
-					var visibleHeight = _scrollViewer.ActualHeight - keyboardHeight;
-					if (focusedElementBottom > visibleHeight)
-						double offset = _scrollViewer.VerticalOffset + (focusedElementBottom - visibleHeight) + 20;
-						_scrollViewer.ChangeView(null, offset, null, true);
-					}
-				};
+				_inputPane.Showing += OnInputPaneShowing;
+				_inputPane.Hiding += OnInputPaneHiding;
+			}
+		}
 
-				_inputPane.Hiding += (s, e) =>
-				{
-					_scrollViewer.ChangeView(null, _originalScrollPosition, null, true);
-				};
+		void OnInputPaneShowing(InputPane sender, InputPaneVisibilityEventArgs args)
+		{
+			_originalScrollPosition = _scrollViewer.VerticalOffset;
+			double keyboardHeight = args.OccludedRect.Height;
+			var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
+			var transform = focusedElement.TransformToVisual(_scrollViewer);
+			var focusedElementPosition = transform.TransformPoint(new WinFoundation.Point(0, 0));
+			var focusedElementBottom = focusedElementPosition.Y + focusedElement.ActualHeight;
+			var visibleHeight = _scrollViewer.ActualHeight - keyboardHeight;
+
+
+			if (focusedElementBottom > visibleHeight)
+			{
+				double offset = _scrollViewer.VerticalOffset + (focusedElementBottom - visibleHeight) + 20;
+				ListViewBase.Padding = new UI.Xaml.Thickness(0, 0, 0, keyboardHeight);
+				ListViewBase.UpdateLayout();
+				_scrollViewer.ChangeView(null, offset, null, true);
+			}
+		}
+
+		void OnInputPaneHiding(InputPane sender, InputPaneVisibilityEventArgs args)
+		{
+			if (_scrollViewer != null)
+			{
+				ListViewBase.Padding = new UI.Xaml.Thickness(0);
+				ListViewBase.UpdateLayout();
+				_scrollViewer.ChangeView(null, _originalScrollPosition, null, true);
 			}
 		}
 

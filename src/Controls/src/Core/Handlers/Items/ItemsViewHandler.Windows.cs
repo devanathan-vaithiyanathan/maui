@@ -121,8 +121,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			if (focusedElementBottom > visibleHeight)
 			{
 				double offset = _scrollViewer.VerticalOffset + (focusedElementBottom - visibleHeight) + 20;
-				ListViewBase.Padding = new UI.Xaml.Thickness(0, 0, 0, keyboardHeight);
-				ListViewBase.UpdateLayout();
+				_scrollViewer.Padding = new UI.Xaml.Thickness(0, 0, 0, keyboardHeight);
+				_scrollViewer.UpdateLayout();
 				_scrollViewer.ChangeView(null, offset, null, true);
 			}
 		}
@@ -131,8 +131,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		{
 			if (_scrollViewer != null)
 			{
-				ListViewBase.Padding = new UI.Xaml.Thickness(0);
-				ListViewBase.UpdateLayout();
+				_scrollViewer.Padding = new UI.Xaml.Thickness(0);
+				_scrollViewer.UpdateLayout();
 				_scrollViewer.ChangeView(null, _originalScrollPosition, null, true);
 			}
 		}

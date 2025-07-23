@@ -57,6 +57,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			FindScrollViewer(ListViewBase);
 			PlatformView.GotFocus += OnPlatformViewFocus;
 		}
+
 		void OnPlatformViewFocus(object sender, RoutedEventArgs e)
 		{
 			RegisterInputPaneEvents();
@@ -96,7 +97,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			handler.UpdateItemTemplate();
 		}
 
-		private void RegisterInputPaneEvents()
+		void RegisterInputPaneEvents()
 		{
 			if (Microsoft.Maui.Platform.FrameworkElementExtensions.TryGetInputPane(out var inputPane))
 			{
@@ -214,7 +215,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			CleanUpCollectionViewSource(ListViewBase);
 		}
 
-		private void CleanUpCollectionViewSource(ListViewBase platformView)
+		void CleanUpCollectionViewSource(ListViewBase platformView)
 		{
 			if (CollectionViewSource is not null)
 			{

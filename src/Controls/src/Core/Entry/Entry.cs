@@ -169,6 +169,16 @@ namespace Microsoft.Maui.Controls
 		public event EventHandler Completed;
 
 		/// <summary>
+		/// Occurs when a key is pressed down while the entry has focus.
+		/// </summary>
+		public event EventHandler<KeyEventArgs> KeyDown;
+
+		/// <summary>
+		/// Occurs when a key is released while the entry has focus.
+		/// </summary>
+		public event EventHandler<KeyEventArgs> KeyUp;
+
+		/// <summary>
 		/// Internal method to trigger <see cref="Completed"/> and <see cref="ReturnCommand"/>.
 		/// Should not be called manually outside of .NET MAUI.
 		/// </summary>
@@ -186,6 +196,32 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <summary>
+		/// Internal method to trigger <see cref="KeyDown"/> event.
+		/// Should not be called manually outside of .NET MAUI.
+		/// </summary>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		public void SendKeyDown(string key)
+		{
+			if (IsEnabled)
+			{
+				KeyDown?.Invoke(this, new KeyEventArgs(key));
+			}
+		}
+
+		/// <summary>
+		/// Internal method to trigger <see cref="KeyUp"/> event.
+		/// Should not be called manually outside of .NET MAUI.
+		/// </summary>
+		[EditorBrowsable(EditorBrowsableState.Never)]
+		public void SendKeyUp(string key)
+		{
+			if (IsEnabled)
+			{
+				KeyUp?.Invoke(this, new KeyEventArgs(key));
+			}
+		}
+
 		/// <inheritdoc/>
 		public IPlatformElementConfiguration<T, Entry> On<T>() where T : IConfigPlatform
 		{
@@ -199,6 +235,16 @@ namespace Microsoft.Maui.Controls
 		void IEntry.Completed()
 		{
 			(this as IEntryController).SendCompleted();
+		}
+
+		void IEntry.KeyDown(string key)
+		{
+			SendKeyDown(key);
+		}
+
+		void IEntry.KeyUp(string key)
+		{
+			SendKeyUp(key);
 		}
 	}
 }

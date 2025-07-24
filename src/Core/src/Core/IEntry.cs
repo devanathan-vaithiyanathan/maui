@@ -24,5 +24,17 @@
 		/// Occurs when the user finalizes the text in an entry with the return key.
 		/// </summary>
 		void Completed();
+
+		/// <summary>
+		/// Triggers a key down event for the entry.
+		/// </summary>
+		/// <param name="key">The key that was pressed down.</param>
+		void KeyDown(string key);
+
+		/// <summary>
+		/// Triggers a key up event for the entry.
+		/// </summary>
+		/// <param name="key">The key that was released.</param>
+		void KeyUp(string key);
 	}
 }

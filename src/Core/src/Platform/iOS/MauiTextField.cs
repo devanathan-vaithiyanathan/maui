@@ -84,5 +84,20 @@ namespace Microsoft.Maui.Platform
 		public event EventHandler? TextPropertySet;
 		[UnconditionalSuppressMessage("Memory", "MEM0001", Justification = "Proven safe in test: MemoryTests.HandlerDoesNotLeak")]
 		internal event EventHandler? SelectionChanged;
+		[UnconditionalSuppressMessage("Memory", "MEM0001", Justification = "Proven safe in test: MemoryTests.HandlerDoesNotLeak")]
+		internal event EventHandler<string>? KeyDown;
+		[UnconditionalSuppressMessage("Memory", "MEM0001", Justification = "Proven safe in test: MemoryTests.HandlerDoesNotLeak")]
+		internal event EventHandler<string>? KeyUp;
+
+		public override void DeleteBackward()
+		{
+			// Trigger KeyDown event for backspace, even if text is empty
+			KeyDown?.Invoke(this, "Backspace");
+			
+			base.DeleteBackward();
+			
+			// Trigger KeyUp event for backspace
+			KeyUp?.Invoke(this, "Backspace");
+		}
 	}
 }

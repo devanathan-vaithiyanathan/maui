@@ -1,4 +1,6 @@
 #nullable enable
+Microsoft.Maui.IEntry.KeyDown(string! key) -> void
+Microsoft.Maui.IEntry.KeyUp(string! key) -> void
 *REMOVED*Microsoft.Maui.Platform.MauiPicker.ShowPopupOnFocus.get -> bool
 *REMOVED*Microsoft.Maui.Platform.MauiPicker.ShowPopupOnFocus.set -> void
 *REMOVED*override Microsoft.Maui.Platform.MauiPicker.OnFocusChanged(bool gainFocus, Android.Views.FocusSearchDirection direction, Android.Graphics.Rect? previouslyFocusedRect) -> void

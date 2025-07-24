@@ -1,6 +1,8 @@
 #nullable enable
 Microsoft.Maui.Handlers.OpenWindowRequest.Deconstruct(out Microsoft.Maui.IPersistedState? State, out Microsoft.UI.Xaml.LaunchActivatedEventArgs? LaunchArgs) -> void
 virtual Microsoft.Maui.Animations.Lerp.LerpDelegate.Invoke(object! start, object! end, double progress) -> object!
+Microsoft.Maui.IEntry.KeyDown(string! key) -> void
+Microsoft.Maui.IEntry.KeyUp(string! key) -> void
 Microsoft.Maui.Handlers.ContextFlyoutItemHandlerUpdate.ContextFlyoutItemHandlerUpdate(Microsoft.Maui.Handlers.ContextFlyoutItemHandlerUpdate! original) -> void
 Microsoft.Maui.Handlers.ContextFlyoutItemHandlerUpdate.Deconstruct(out int Index, out Microsoft.Maui.IMenuElement! MenuElement) -> void
 Microsoft.Maui.Handlers.LayoutHandlerUpdate.Deconstruct(out int Index, out Microsoft.Maui.IView! View) -> void

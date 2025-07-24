@@ -126,6 +126,8 @@ namespace Microsoft.Maui.Handlers
 				platformView.EditingDidEnd += OnEditingEnded;
 				platformView.TextPropertySet += OnTextPropertySet;
 				platformView.ShouldChangeCharacters += OnShouldChangeCharacters;
+				platformView.KeyDown += OnKeyDown;
+				platformView.KeyUp += OnKeyUp;
 			}
 
 			public void Disconnect(MauiTextField platformView)
@@ -138,6 +140,8 @@ namespace Microsoft.Maui.Handlers
 				platformView.EditingDidEnd -= OnEditingEnded;
 				platformView.TextPropertySet -= OnTextPropertySet;
 				platformView.ShouldChangeCharacters -= OnShouldChangeCharacters;
+				platformView.KeyDown -= OnKeyDown;
+				platformView.KeyUp -= OnKeyUp;
 
 				if (_set)
 					platformView.SelectionChanged -= OnSelectionChanged;
@@ -218,6 +222,16 @@ namespace Microsoft.Maui.Handlers
 					if (virtualView.SelectionLength != selectedTextLength)
 						virtualView.SelectionLength = selectedTextLength;
 				}
+			}
+
+			void OnKeyDown(object? sender, string key)
+			{
+				VirtualView?.KeyDown(key);
+			}
+
+			void OnKeyUp(object? sender, string key)
+			{
+				VirtualView?.KeyUp(key);
 			}
 		}
 	}

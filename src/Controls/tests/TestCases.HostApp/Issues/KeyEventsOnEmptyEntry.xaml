@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.Issues.KeyEventsOnEmptyEntry"
+             Title="Key Events on Empty Entry">
+    <StackLayout Padding="20">
+        <Label Text="1. Focus the Entry below" />
+        <Label Text="2. Press backspace key (Entry should be empty)" />
+        <Label Text="3. Verify KeyDown and KeyUp events are triggered" />
+        
+        <Entry x:Name="TestEntry"
+               AutomationId="TestEntry"
+               Placeholder="Empty Entry - Press backspace"
+               KeyDown="OnKeyDown"
+               KeyUp="OnKeyUp" />
+        
+        <Label Text="Event Log:" FontAttributes="Bold" Margin="0,20,0,10" />
+        
+        <Label x:Name="KeyDownLabel" 
+               AutomationId="KeyDownLabel"
+               Text="KeyDown: None" />
+        
+        <Label x:Name="KeyUpLabel"
+               AutomationId="KeyUpLabel" 
+               Text="KeyUp: None" />
+        
+        <Label x:Name="EventCountLabel"
+               AutomationId="EventCountLabel"
+               Text="Total Events: 0" />
+        
+        <Button Text="Clear Log" 
+                AutomationId="ClearButton"
+                Clicked="OnClearClicked" />
+    </StackLayout>
+</ContentPage>

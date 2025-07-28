@@ -31,10 +31,10 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		WASDKScrollBarVisibility? _defaultVerticalScrollVisibility;
 		View _formsEmptyView;
 		bool _emptyViewDisplayed;
-		double _originalScrollPosition = 0;
+		double _originalScrollPosition;
 		double _previousHorizontalOffset;
 		double _previousVerticalOffset;
-		InputPane _inputPane;
+		WeakReference<InputPane> _inputPaneRef;
 		protected ListViewBase ListViewBase => PlatformView;
 		protected TItemsView ItemsView => VirtualView;
 		protected TItemsView Element => VirtualView;
@@ -68,11 +68,11 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			VirtualView.ScrollToRequested -= ScrollToRequested;
 			CleanUpCollectionViewSource(platformView);
 			_formsEmptyView?.Handler?.DisconnectHandler();
-			if (_inputPane != null)
+			if (_inputPaneRef != null && _inputPaneRef.TryGetTarget(out var inputPane))
 			{
-				_inputPane.Showing -= OnInputPaneShowing;
-				_inputPane.Hiding -= OnInputPaneHiding;
-				_inputPane = null;
+				inputPane.Showing -= OnInputPaneShowing;
+				inputPane.Hiding -= OnInputPaneHiding;
+				_inputPaneRef = null;
 			}
 			base.DisconnectHandler(platformView);
 		}
@@ -101,17 +101,23 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		{
 			if (Microsoft.Maui.Platform.FrameworkElementExtensions.TryGetInputPane(out var inputPane))
 			{
-				_inputPane = inputPane;
-				_inputPane.Showing += OnInputPaneShowing;
-				_inputPane.Hiding += OnInputPaneHiding;
+				_inputPaneRef = new WeakReference<InputPane>(inputPane);
+				inputPane.Showing += OnInputPaneShowing;
+				inputPane.Hiding += OnInputPaneHiding;
 			}
 		}
 
 		void OnInputPaneShowing(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
+			if (_scrollViewer == null)
+				return;
+				
 			_originalScrollPosition = _scrollViewer.VerticalOffset;
 			double keyboardHeight = args.OccludedRect.Height;
 			var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
+			if (focusedElement == null)
+				return;
+				
 			var transform = focusedElement.TransformToVisual(_scrollViewer);
 			var focusedElementPosition = transform.TransformPoint(new WinFoundation.Point(0, 0));
 			var focusedElementBottom = focusedElementPosition.Y + focusedElement.ActualHeight;

@@ -74,6 +74,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				inputPane.Hiding -= OnInputPaneHiding;
 				_inputPaneRef = null;
 			}
+			PlatformView.GotFocus -= OnPlatformViewFocus;
 			base.DisconnectHandler(platformView);
 		}
 

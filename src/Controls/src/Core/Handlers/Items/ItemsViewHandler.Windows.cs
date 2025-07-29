@@ -99,24 +99,32 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		void RegisterInputPaneEvents()
 		{
-			if (Microsoft.Maui.Platform.FrameworkElementExtensions.TryGetInputPane(out var inputPane))
+			if (_inputPaneRef == null && Microsoft.Maui.Platform.FrameworkElementExtensions.TryGetInputPane(out var inputPane))
 			{
 				_inputPaneRef = new WeakReference<InputPane>(inputPane);
 				inputPane.Showing += OnInputPaneShowing;
+			}
+			else if (_inputPaneRef.TryGetTarget(out var _inputPane))
+			{
+				_inputPane.Showing += OnInputPaneShowing;
 			}
 		}
 
 		void OnInputPaneShowing(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
 			if (_scrollViewer == null)
+			{
 				return;
+			}
 
 			sender.Hiding += OnInputPaneHiding;
 			double keyboardHeight = args.OccludedRect.Height;
 			var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
 			if (focusedElement == null)
+			{
 				return;
-				
+			}
+
 			var transform = focusedElement.TransformToVisual(_scrollViewer);
 			var focusedElementPosition = transform.TransformPoint(new WinFoundation.Point(0, 0));
 			var focusedElementBottom = focusedElementPosition.Y + focusedElement.ActualHeight;
@@ -136,11 +144,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		void OnInputPaneHiding(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
 			if (_originalScrollPosition == 0)
+			{
 				return;
+			}
 
 			if (_scrollViewer != null)
 			{
-				System.Diagnostics.Debug.WriteLine("Hiding happened");
 				_scrollViewer.Padding = new UI.Xaml.Thickness(0);
 				_scrollViewer.UpdateLayout();
 				_scrollViewer.ChangeView(null, _originalScrollPosition, null, true);

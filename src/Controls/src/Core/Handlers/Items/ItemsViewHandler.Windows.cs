@@ -71,7 +71,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			if (_inputPaneRef != null && _inputPaneRef.TryGetTarget(out var inputPane))
 			{
 				inputPane.Showing -= OnInputPaneShowing;
-				inputPane.Hiding -= OnInputPaneHiding;
 				_inputPaneRef = null;
 			}
 			PlatformView.GotFocus -= OnPlatformViewFocus;
@@ -104,7 +103,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			{
 				_inputPaneRef = new WeakReference<InputPane>(inputPane);
 				inputPane.Showing += OnInputPaneShowing;
-				inputPane.Hiding += OnInputPaneHiding;
 			}
 		}
 
@@ -112,8 +110,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		{
 			if (_scrollViewer == null)
 				return;
-				
-			_originalScrollPosition = _scrollViewer.VerticalOffset;
+
+			sender.Hiding += OnInputPaneHiding;
 			double keyboardHeight = args.OccludedRect.Height;
 			var focusedElement = FocusManager.GetFocusedElement(PlatformView?.XamlRoot) as FrameworkElement;
 			if (focusedElement == null)
@@ -127,6 +125,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 			if (focusedElementBottom > visibleHeight)
 			{
+				_originalScrollPosition = _scrollViewer.VerticalOffset;
 				double offset = _scrollViewer.VerticalOffset + (focusedElementBottom - visibleHeight) + 20;
 				_scrollViewer.Padding = new UI.Xaml.Thickness(0, 0, 0, keyboardHeight);
 				_scrollViewer.UpdateLayout();
@@ -136,12 +135,18 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		void OnInputPaneHiding(InputPane sender, InputPaneVisibilityEventArgs args)
 		{
+			if (_originalScrollPosition == 0)
+				return;
+
 			if (_scrollViewer != null)
 			{
+				System.Diagnostics.Debug.WriteLine("Hiding happened");
 				_scrollViewer.Padding = new UI.Xaml.Thickness(0);
 				_scrollViewer.UpdateLayout();
 				_scrollViewer.ChangeView(null, _originalScrollPosition, null, true);
 			}
+
+			sender.Hiding -= OnInputPaneHiding;
 		}
 
 		public static void MapEmptyView(ItemsViewHandler<TItemsView> handler, ItemsView itemsView)

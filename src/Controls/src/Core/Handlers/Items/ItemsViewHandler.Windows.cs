@@ -102,9 +102,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			if (_inputPaneRef == null && Microsoft.Maui.Platform.FrameworkElementExtensions.TryGetInputPane(out var inputPane))
 			{
 				_inputPaneRef = new WeakReference<InputPane>(inputPane);
-				inputPane.Showing += OnInputPaneShowing;
 			}
-			else if (_inputPaneRef.TryGetTarget(out var _inputPane))
+
+			if (_inputPaneRef.TryGetTarget(out var _inputPane))
 			{
 				_inputPane.Showing += OnInputPaneShowing;
 			}

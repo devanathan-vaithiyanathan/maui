@@ -70,11 +70,13 @@ namespace Microsoft.Maui.Handlers
 			if (!PlatformView.IsLoaded)
 				return;
 
-			// Setting the Left/Right Items before the view has loaded causes the Swipe Control
+			// Setting the SwipeItems before the view has loaded causes the Swipe Control
 			// to crash on the first layout pass. So we wait until the control has been loaded
-			// before propagating our Left/Right Items
+			// before propagating all SwipeItems to ensure consistent timing
 			UpdateValue(nameof(ISwipeView.LeftItems));
 			UpdateValue(nameof(ISwipeView.RightItems));
+			UpdateValue(nameof(ISwipeView.TopItems));
+			UpdateValue(nameof(ISwipeView.BottomItems));
 			PlatformView.Loaded -= OnLoaded;
 		}
 
@@ -88,6 +90,9 @@ namespace Microsoft.Maui.Handlers
 
 		public static void MapTopItems(ISwipeViewHandler handler, ISwipeView view)
 		{
+			if (!handler.PlatformView.IsLoaded)
+				return;
+
 			UpdateSwipeItems(SwipeDirection.Up, handler, view, (items) => handler.PlatformView.TopItems = items, view.TopItems, handler.PlatformView.TopItems);
 		}
 
@@ -101,6 +106,9 @@ namespace Microsoft.Maui.Handlers
 
 		public static void MapBottomItems(ISwipeViewHandler handler, ISwipeView view)
 		{
+			if (!handler.PlatformView.IsLoaded)
+				return;
+
 			UpdateSwipeItems(SwipeDirection.Down, handler, view, (items) => handler.PlatformView.BottomItems = items, view.BottomItems, handler.PlatformView.BottomItems);
 		}
 

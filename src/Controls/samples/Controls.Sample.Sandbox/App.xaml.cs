@@ -2,9 +2,11 @@
 
 public partial class App : Application
 {
+	ScrollViewViewModel _viewModel;
 	public App()
 	{
 		InitializeComponent();
+		_viewModel = new ScrollViewViewModel();
 	}
 
 	protected override Window CreateWindow(IActivationState? activationState)
@@ -14,7 +16,7 @@ public partial class App : Application
 
 		if (!useShell)
 		{
-			return new Window(new NavigationPage(new MainPage()));
+			return new Window(new NavigationPage(new MainPage(_viewModel)));
 		}
 		else
 		{

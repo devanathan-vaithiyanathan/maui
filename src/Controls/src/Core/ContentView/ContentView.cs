@@ -1,6 +1,7 @@
 #nullable disable
 using System.Diagnostics;
 using Microsoft.Maui;
+using System;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Layouts;
 
@@ -12,7 +13,7 @@ namespace Microsoft.Maui.Controls
 	public partial class ContentView : TemplatedView, IContentView, ISafeAreaView2, ISafeAreaElement
 	{
 		/// <summary>Bindable property for <see cref="Content"/>.</summary>
-		public static readonly BindableProperty ContentProperty = BindableProperty.Create(nameof(Content), typeof(View), typeof(ContentView), null, propertyChanged: TemplateUtilities.OnContentChanged);
+		public static readonly BindableProperty ContentProperty = BindableProperty.Create(nameof(Content), typeof(View), typeof(ContentView), null, propertyChanged: OnContentChanged);
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/ContentView.xml" path="//Member[@MemberName='Content']/Docs/*" />
 		public View Content
@@ -59,6 +60,31 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		        static void OnContentChanged(BindableObject bindable, object oldValue, object newValue)
+        {
+            if (bindable is ContentView contentView)
+            {
+                if (oldValue is View oldView)
+                {
+                    oldView.SizeChanged -= contentView.OnContentSizeChanged;
+                }
+ 
+                // Subscribe to new content's SizeChanged event
+                if (newValue is View newView)
+                {
+                    newView.SizeChanged += contentView.OnContentSizeChanged;
+                }
+            }
+ 
+            // Call the original template utilities handler
+            TemplateUtilities.OnContentChanged(bindable, oldValue, newValue);
+        }
+ 
+        void OnContentSizeChanged(object sender, EventArgs e)
+        {
+            InvalidateMeasure();
+        }
+ 
 		internal override void SetChildInheritedBindingContext(Element child, object context)
 		{
 			SetInheritedBindingContext(child, context);

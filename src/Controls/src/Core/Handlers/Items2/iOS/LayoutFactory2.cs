@@ -401,7 +401,8 @@ internal static class LayoutFactory2
 		LayoutSnapInfo _snapInfo;
 		LayoutGroupingInfo? _groupingInfo;
 		LayoutHeaderFooterInfo? _headerFooterInfo;
-		
+		CGSize? _cachedContentSize;
+
 		public CustomUICollectionViewCompositionalLayout(LayoutSnapInfo snapInfo, LayoutGroupingInfo? groupingInfo, LayoutHeaderFooterInfo? headerFooterInfo, UICollectionViewCompositionalLayoutSectionProvider sectionProvider, UICollectionViewCompositionalLayoutConfiguration configuration) : base(sectionProvider, configuration)
 		{
 			_snapInfo = snapInfo;
@@ -471,6 +472,9 @@ internal static class LayoutFactory2
 		{
 			get
 			{
+				if (_cachedContentSize.HasValue)
+					return _cachedContentSize.Value;
+
 				if (CollectionView != null)
 				{
 					var numberOfSections = CollectionView.NumberOfSections();
@@ -478,28 +482,48 @@ internal static class LayoutFactory2
 					{
 						if (CollectionView.NumberOfItemsInSection(section) > 0)
 						{
-							return base.CollectionViewContentSize;
+							_cachedContentSize = base.CollectionViewContentSize;
+							return _cachedContentSize.Value;
 						}
 					}
 
-					// No items found, but check if we have headers or footers that should still be shown
 					bool hasGlobalHeaders = _headerFooterInfo?.HasHeader == true || _headerFooterInfo?.HasFooter == true;
 					bool hasGroupHeaders = _groupingInfo?.HasHeader == true || _groupingInfo?.HasFooter == true;
 					
 					if (hasGlobalHeaders || hasGroupHeaders)
 					{
-						// Return the base content size to allow headers/footers to be displayed
-						return base.CollectionViewContentSize;
+						_cachedContentSize = base.CollectionViewContentSize;
+						return _cachedContentSize.Value;
 					}
 
-					// No items and no headers/footers found
-					return CGSize.Empty;
+					_cachedContentSize = CGSize.Empty;
+					return _cachedContentSize.Value;
 				}
 
-				return base.CollectionViewContentSize;
+				_cachedContentSize = base.CollectionViewContentSize;
+				return _cachedContentSize.Value;
 			}
 		}
 
+		// Clear cached content size when layout changes
+		void InvalidateCache()
+		{
+			_cachedContentSize = null;
+		}
+
+		// Called when the entire layout needs to be recalculated
+		public override void InvalidateLayout()
+		{
+			InvalidateCache();
+			base.InvalidateLayout();
+		}
+
+		// Called when specific items change (e.g., insert, delete, move items)
+		public override void InvalidateLayout(UICollectionViewLayoutInvalidationContext context)
+		{
+			InvalidateCache();
+			base.InvalidateLayout(context);
+		}
 
 		CGPoint ScrollSingle(SnapPointsAlignment alignment, CGPoint proposedContentOffset, CGPoint scrollingVelocity)
 		{

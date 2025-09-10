@@ -401,7 +401,6 @@ internal static class LayoutFactory2
 		LayoutSnapInfo _snapInfo;
 		LayoutGroupingInfo? _groupingInfo;
 		LayoutHeaderFooterInfo? _headerFooterInfo;
-		CGSize? _cachedContentSize;
 
 		public CustomUICollectionViewCompositionalLayout(LayoutSnapInfo snapInfo, LayoutGroupingInfo? groupingInfo, LayoutHeaderFooterInfo? headerFooterInfo, UICollectionViewCompositionalLayoutSectionProvider sectionProvider, UICollectionViewCompositionalLayoutConfiguration configuration) : base(sectionProvider, configuration)
 		{
@@ -472,57 +471,27 @@ internal static class LayoutFactory2
 		{
 			get
 			{
-				if (_cachedContentSize.HasValue)
-					return _cachedContentSize.Value;
-
 				if (CollectionView != null)
 				{
-					var numberOfSections = CollectionView.NumberOfSections();
-					for (nint section = 0; section < numberOfSections; section++)
-					{
-						if (CollectionView.NumberOfItemsInSection(section) > 0)
-						{
-							_cachedContentSize = base.CollectionViewContentSize;
-							return _cachedContentSize.Value;
-						}
-					}
-
 					bool hasGlobalHeaders = _headerFooterInfo?.HasHeader == true || _headerFooterInfo?.HasFooter == true;
 					bool hasGroupHeaders = _groupingInfo?.HasHeader == true || _groupingInfo?.HasFooter == true;
-					
+
 					if (hasGlobalHeaders || hasGroupHeaders)
 					{
-						_cachedContentSize = base.CollectionViewContentSize;
-						return _cachedContentSize.Value;
+						return base.CollectionViewContentSize;
 					}
 
-					_cachedContentSize = CGSize.Empty;
-					return _cachedContentSize.Value;
+					if (CollectionView.NumberOfSections() > 0 &&
+				CollectionView.NumberOfItemsInSection(0) > 0)
+					{
+						return base.CollectionViewContentSize;
+					}
+
+					return CGSize.Empty;
 				}
 
-				_cachedContentSize = base.CollectionViewContentSize;
-				return _cachedContentSize.Value;
+				return base.CollectionViewContentSize;
 			}
-		}
-
-		// Clear cached content size when layout changes
-		void InvalidateCache()
-		{
-			_cachedContentSize = null;
-		}
-
-		// Called when the entire layout needs to be recalculated
-		public override void InvalidateLayout()
-		{
-			InvalidateCache();
-			base.InvalidateLayout();
-		}
-
-		// Called when specific items change (e.g., insert, delete, move items)
-		public override void InvalidateLayout(UICollectionViewLayoutInvalidationContext context)
-		{
-			InvalidateCache();
-			base.InvalidateLayout(context);
 		}
 
 		CGPoint ScrollSingle(SnapPointsAlignment alignment, CGPoint proposedContentOffset, CGPoint scrollingVelocity)

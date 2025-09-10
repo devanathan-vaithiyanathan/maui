@@ -546,6 +546,11 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			_scrollHelper?.AdjustScroll();
 		}
 
+		{
+			base.OnSizeChanged(w, h, oldw, oldh);
+			ItemsViewAdapter.NotifyDataSetChanged();
+		}
+
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);

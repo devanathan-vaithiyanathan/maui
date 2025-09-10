@@ -535,6 +535,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		protected override void OnLayout(bool changed, int l, int t, int r, int b)
 		{
 			base.OnLayout(changed, l, t, r, b);
+			ItemsViewAdapter.NotifyDataSetChanged();
 #pragma warning disable CS0618 // Obsolete
 			AViewCompat.SetClipBounds(this, new ARect(0, 0, Width, Height));
 #pragma warning restore CS0618 // Obsolete
@@ -544,12 +545,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			// (Deliberately checking the private member here rather than the property accessor; the accessor will
 			// create a new ScrollHelper if needed, and there's no reason to do that until a Scroll is requested.)
 			_scrollHelper?.AdjustScroll();
-		}
-
-		protected override void OnSizeChanged(int w, int h, int oldw, int oldh)
-		{
-			base.OnSizeChanged(w, h, oldw, oldh);
-			ItemsViewAdapter.NotifyDataSetChanged();
 		}
 
 		protected override void Dispose(bool disposing)

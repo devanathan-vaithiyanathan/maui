@@ -20,6 +20,9 @@ namespace Microsoft.Maui.Handlers
 #if __IOS__
 			[nameof(ISearchBar.IsEnabled)] = MapIsEnabled,
 #endif
+#if ANDROID
+			[nameof(IView.FlowDirection)] = MapFlowDirection,
+#endif
 			[nameof(ISearchBar.Background)] = MapBackground,
 			[nameof(ISearchBar.CharacterSpacing)] = MapCharacterSpacing,
 			[nameof(ISearchBar.Font)] = MapFont,

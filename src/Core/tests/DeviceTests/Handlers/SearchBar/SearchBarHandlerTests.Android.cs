@@ -358,5 +358,149 @@ namespace Microsoft.Maui.DeviceTests
 
 			return !inputTypes.HasFlag(InputTypes.TextFlagNoSuggestions);
 		}
+
+		Android.Views.LayoutDirection GetNativeFlowDirection(SearchBarHandler searchBarHandler)
+		{
+			var searchView = GetNativeSearchBar(searchBarHandler);
+			return searchView.LayoutDirection;
+		}
+
+		Android.Views.LayoutDirection GetNativeEditTextFlowDirection(SearchBarHandler searchBarHandler)
+		{
+			var searchView = GetNativeSearchBar(searchBarHandler);
+			var editText = searchView.GetChildrenOfType<EditText>().FirstOrDefault();
+			return editText?.LayoutDirection ?? Android.Views.LayoutDirection.Inherit;
+		}
+
+		Android.Views.TextDirection GetNativeEditTextTextDirection(SearchBarHandler searchBarHandler)
+		{
+			var searchView = GetNativeSearchBar(searchBarHandler);
+			var editText = searchView.GetChildrenOfType<EditText>().FirstOrDefault();
+#pragma warning disable CA1416 // Introduced in API 23
+			return editText?.TextDirection ?? Android.Views.TextDirection.Inherit;
+#pragma warning restore CA1416
+		}
+
+		[Fact(DisplayName = "FlowDirection Initializes Correctly")]
+		public async Task FlowDirectionInitializesCorrectly()
+		{
+			var searchBarStub = new SearchBarStub()
+			{
+				Text = "Test",
+				FlowDirection = FlowDirection.RightToLeft
+			};
+
+			var values = await GetValueAsync(searchBarStub, (handler) =>
+			{
+				return new
+				{
+					ViewValue = searchBarStub.FlowDirection,
+					PlatformViewValue = GetNativeFlowDirection(handler),
+					EditTextFlowDirection = GetNativeEditTextFlowDirection(handler)
+				};
+			});
+
+			Assert.Equal(FlowDirection.RightToLeft, values.ViewValue);
+			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.PlatformViewValue);
+			// EditText should have the resolved FlowDirection applied directly (not inherit)
+			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.EditTextFlowDirection);
+		}
+
+		[Fact(DisplayName = "FlowDirection Updates Correctly")]
+		public async Task FlowDirectionUpdatesCorrectly()
+		{
+			var searchBarStub = new SearchBarStub()
+			{
+				Text = "Test",
+				FlowDirection = FlowDirection.LeftToRight
+			};
+
+			await ValidatePropertyUpdatesValue(
+				searchBarStub,
+				nameof(IView.FlowDirection),
+				GetNativeFlowDirection,
+				FlowDirection.RightToLeft,
+				Android.Views.LayoutDirection.Rtl);
+
+			// Also verify EditText flow direction updates
+			var handler = CreateHandler(searchBarStub);
+			await InvokeOnMainThreadAsync(() =>
+			{
+				searchBarStub.FlowDirection = FlowDirection.RightToLeft;
+				var editTextDirection = GetNativeEditTextFlowDirection(handler);
+				// EditText should have the resolved FlowDirection applied directly (not inherit)
+				Assert.Equal(Android.Views.LayoutDirection.Rtl, editTextDirection);
+			});
+		}
+
+		[Fact(DisplayName = "FlowDirection Inherits From Parent Correctly")]
+		public async Task FlowDirectionInheritsFromParentCorrectly()
+		{
+			await InvokeOnMainThreadAsync(() =>
+			{
+				// Create a SearchBar with default FlowDirection (MatchParent)
+				var searchBarStub = new SearchBarStub()
+				{
+					Text = "Test",
+					FlowDirection = FlowDirection.MatchParent
+				};
+
+				// Create a parent layout with RTL FlowDirection
+				var layoutStub = new LayoutStub()
+				{
+					FlowDirection = FlowDirection.RightToLeft
+				};
+				layoutStub.Add(searchBarStub);
+
+				// Create handlers and set up the hierarchy
+				var layoutHandler = CreateHandler(layoutStub);
+				var searchBarHandler = CreateHandler(searchBarStub);
+
+				// Simulate the parent-child relationship in the platform view hierarchy
+				if (layoutHandler.PlatformView is Android.Views.ViewGroup parentView)
+				{
+					parentView.LayoutDirection = Android.Views.LayoutDirection.Rtl;
+					parentView.AddView(searchBarHandler.PlatformView);
+				}
+
+				// Verify that SearchBar resolves and applies the RTL direction from parent
+				var searchView = GetNativeSearchBar(searchBarHandler);
+				var editText = searchView.GetChildrenOfType<EditText>().FirstOrDefault();
+
+				// Both SearchView and EditText should have RTL resolved from parent chain
+				Assert.Equal(Android.Views.LayoutDirection.Rtl, searchView.LayoutDirection);
+				Assert.Equal(Android.Views.LayoutDirection.Rtl, editText?.LayoutDirection);
+			});
+		}
+
+		[Fact(DisplayName = "FlowDirection Text Direction Set Correctly")]
+		public async Task FlowDirectionTextDirectionSetCorrectly()
+		{
+			var searchBarStub = new SearchBarStub()
+			{
+				Text = "Test",
+				FlowDirection = FlowDirection.RightToLeft
+			};
+
+			var values = await GetValueAsync(searchBarStub, (handler) =>
+			{
+				return new
+				{
+					ViewValue = searchBarStub.FlowDirection,
+					PlatformViewValue = GetNativeFlowDirection(handler),
+					EditTextFlowDirection = GetNativeEditTextFlowDirection(handler),
+					EditTextTextDirection = GetNativeEditTextTextDirection(handler)
+				};
+			});
+
+			Assert.Equal(FlowDirection.RightToLeft, values.ViewValue);
+			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.PlatformViewValue);
+			Assert.Equal(Android.Views.LayoutDirection.Rtl, values.EditTextFlowDirection);
+#pragma warning disable CA1416 // Introduced in API 23
+			Assert.Equal(Android.Views.TextDirection.FirstStrongRtl, values.EditTextTextDirection);
+#pragma warning restore CA1416
+		}
+
+
 	}
 }

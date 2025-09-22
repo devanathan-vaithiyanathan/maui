@@ -33,8 +33,6 @@ namespace Microsoft.Maui.Controls.Platform
 					passwordBox.Password = newText;
 				else
 					platformControl.Text = newText;
-
-				platformControl.Select(cursorPosition, 0);
 			}
 		}
 	}

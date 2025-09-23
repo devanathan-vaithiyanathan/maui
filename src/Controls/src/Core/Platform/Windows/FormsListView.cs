@@ -88,7 +88,28 @@ namespace Microsoft.Maui.Controls.Platform
 		protected override void PrepareContainerForItemOverride(DependencyObject element, object item)
 		{
 			GroupFooterItemTemplateContext.EnsureSelectionDisabled(element, item);
+			
+			// Ensure proper state reset for recycled containers
+			if (element is ListViewItem container && container.ContentTemplateRoot is ItemContentControl itemContentControl)
+			{
+				// Force the ItemContentControl to refresh its binding context to prevent state leakage
+				// This ensures checkbox states and other UI elements properly reflect the new item data
+				itemContentControl.FormsDataContext = null;
+				itemContentControl.FormsDataContext = item;
+			}
+			
 			base.PrepareContainerForItemOverride(element, item);
+		}
+
+		protected override void ClearContainerForItemOverride(DependencyObject element, object item)
+		{
+			// Clear the binding context when the container is being recycled
+			if (element is ListViewItem container && container.ContentTemplateRoot is ItemContentControl itemContentControl)
+			{
+				itemContentControl.FormsDataContext = null;
+			}
+			
+			base.ClearContainerForItemOverride(element, item);
 		}
 
 		void UpdateEmptyViewVisibility(WVisibility visibility)

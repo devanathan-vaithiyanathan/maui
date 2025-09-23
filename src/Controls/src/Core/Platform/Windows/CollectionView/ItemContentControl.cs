@@ -197,6 +197,8 @@ namespace Microsoft.Maui.Controls.Platform
 			else
 			{
 				// We are reusing this ItemContentControl and we can reuse the Element
+				// Reset binding context first to ensure UI state is properly cleared, then set new context
+				_visualElement.BindingContext = null;
 				_visualElement.BindingContext = dataContext;
 			}
 

@@ -42,6 +42,13 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			}
 
 			itemsView.RemoveLogicalChild(View);
+			
+			// Properly dispose of the ItemContentView and its handlers to prevent memory leaks
+			_itemContentView.Recycle();
+			
+			// Clear the view reference to ensure proper cleanup
+			View = null;
+			_selectedTemplate = null;
 		}
 
 		public void Bind(object itemBindingContext, ItemsView itemsView,

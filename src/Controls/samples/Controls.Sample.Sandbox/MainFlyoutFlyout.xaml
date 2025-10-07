@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.MainFlyoutFlyout"
+             Title="Menu">
+    <StackLayout>
+        <Button x:Name="ButtonPortfolio" Text="Portfolio" Clicked="ButtonPortfolio_Clicked" />
+        <Button x:Name="ButtonArchive" Text="Archive" Clicked="ButtonArchive_Clicked" />
+    </StackLayout>
+</ContentPage>

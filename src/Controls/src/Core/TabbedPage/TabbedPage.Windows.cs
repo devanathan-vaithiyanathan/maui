@@ -389,11 +389,20 @@ namespace Microsoft.Maui.Controls
 		{
 			if (view._navigationView?.MenuItemsSource is IList<NavigationViewItemViewModel> items)
 			{
+				// First, clear the IsSelected property on all items to prevent multiple selections
+				foreach (var item in items)
+				{
+					item.IsSelected = false;
+				}
+
+				// Then set the correct item as selected
 				foreach (var item in items)
 				{
 					if (item.Data == view.CurrentPage)
 					{
+						item.IsSelected = true;
 						view._navigationView.SelectedItem = item;
+						break;
 					}
 				}
 			}

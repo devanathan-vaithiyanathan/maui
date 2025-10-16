@@ -178,11 +178,15 @@ namespace Microsoft.Maui.Platform
 
 			if (clipGeometry is null)
 			{
+				// When there's no border shape (like in RefreshView scenarios), 
+				// clear any existing clip to prevent content from being inappropriately clipped
+				var visual = ElementCompositionPreview.GetElementVisual(Content);
+				visual.Clip = null;
 				return;
 			}
 
-			var visual = ElementCompositionPreview.GetElementVisual(Content);
-			var compositor = visual.Compositor;
+			var visual2 = ElementCompositionPreview.GetElementVisual(Content);
+			var compositor = visual2.Compositor;
 
 			PathF? clipPath;
 			float strokeThickness = (float)(_borderPath?.StrokeThickness ?? 0);
@@ -207,9 +211,12 @@ namespace Microsoft.Maui.Platform
 			var geometricClip = compositor.CreateGeometricClip(pathGeometry);
 
 			// The clip needs to consider the content's offset in case it is in a different position because of a different alignment.
-			geometricClip.Offset = new Vector2(strokeThickness - Content.ActualOffset.X, strokeThickness - Content.ActualOffset.Y);
+			// Ensure the offset calculation doesn't clip content incorrectly, especially during RefreshView operations
+			var offsetX = Math.Max(0, strokeThickness - Content.ActualOffset.X);
+			var offsetY = Math.Max(0, strokeThickness - Content.ActualOffset.Y);
+			geometricClip.Offset = new Vector2(offsetX, offsetY);
 
-			visual.Clip = geometricClip;
+			visual2.Clip = geometricClip;
 		}
 	}
 }

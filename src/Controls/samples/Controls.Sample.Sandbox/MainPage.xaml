@@ -2,4 +2,36 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+
+    <RefreshView>
+        <ScrollView>
+            <VerticalStackLayout>
+                <Label Text="1. Scroll to the bottom of the page."/>
+                <RoundRectangle BackgroundColor="BlanchedAlmond"
+                                HeightRequest="500"/>
+
+                <RoundRectangle BackgroundColor="Azure"
+                                HeightRequest="500"/>
+
+                <RoundRectangle BackgroundColor="BlanchedAlmond"
+                                HeightRequest="500"/>
+
+                <RoundRectangle BackgroundColor="Azure"
+                                HeightRequest="500"/>
+
+                <RoundRectangle BackgroundColor="BlanchedAlmond"
+                                HeightRequest="500"/>
+
+                <RoundRectangle BackgroundColor="Azure"
+                                HeightRequest="500"/>
+
+                <RoundRectangle BackgroundColor="BlanchedAlmond"
+                                HeightRequest="500"/>
+
+                <RoundRectangle BackgroundColor="Azure"
+                                HeightRequest="500"/>
+                <Label Text="2. The test passes if you were able to scroll down to this message."/>
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
 </ContentPage>

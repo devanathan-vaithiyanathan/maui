@@ -152,6 +152,14 @@ namespace Microsoft.Maui.Handlers
 				_refreshCompletionDeferral.Complete();
 				_refreshCompletionDeferral.Dispose();
 				_refreshCompletionDeferral = null;
+
+				// Ensure layout is properly updated after refresh completion
+				// This helps prevent content clipping issues in scenarios like RefreshView with ScrollView
+				if (PlatformView?.Content is ContentPanel contentPanel && contentPanel.Content != null)
+				{
+					contentPanel.InvalidateMeasure();
+					contentPanel.UpdateLayout();
+				}
 			}
 		}
 

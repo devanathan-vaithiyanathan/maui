@@ -2,8 +2,9 @@
 
 public static class MauiProgram
 {
-	public static MauiApp CreateMauiApp() =>
-		MauiApp
+	public static MauiApp CreateMauiApp()
+	{
+		var app = MauiApp
 			.CreateBuilder()
 #if __ANDROID__ || __IOS__
 			.UseMauiMaps()
@@ -23,4 +24,13 @@ public static class MauiProgram
 				fonts.AddFont("SegoeUI-Bold-Italic.ttf", "Segoe UI Bold Italic");
 			})
 			.Build();
+
+		// Register routes for navigation
+		Routing.RegisterRoute(nameof(Page1), typeof(Page1));
+		Routing.RegisterRoute(nameof(Page2), typeof(Page2));
+		Routing.RegisterRoute(nameof(Page3), typeof(Page3));
+		Routing.RegisterRoute(nameof(ModalPage), typeof(ModalPage));
+
+		return app;
+	}
 }

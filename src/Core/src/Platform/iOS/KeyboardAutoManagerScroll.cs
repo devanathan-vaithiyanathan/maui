@@ -579,12 +579,67 @@ public static class KeyboardAutoManagerScroll
 			{
 				forceSetContentInsets = false;
 
-				var (scrolled, updatedInnerScrollValue) = ProcessSingleScrollView(
-					move, innerScrollValue, cursorNotInViewScroll, superScrollView,
-					superScrollViewRect, bottomBoundary, cursorRect);
+				var tempScrollView = superScrollView.FindResponder<UIScrollView>();
+				var nextScrollView = FindParentScroll(tempScrollView);
 
-				innerScrollValue = updatedInnerScrollValue;
+				// if PrefersLargeTitles is true, we may need additional logic to handle the collapsable navbar
+				var navController = View?.FindResponder<UINavigationController>();
+				var prefersLargeTitles = navController?.NavigationBar.PrefersLargeTitles ?? false;
 
+				if (prefersLargeTitles)
+				{
+					move = AdjustForLargeTitles(move, superScrollView, navController!);
+				}
+
+				var origContentOffsetY = superScrollView.ContentOffset.Y;
+				var shouldOffsetY = superScrollView.ContentOffset.Y - Math.Min(superScrollView.ContentOffset.Y, -move);
+				var requestedMove = move;
+
+				// the contentOffset.Y will change to shouldOffSetY so we can subtract the difference from the move
+				move -= (nfloat)(shouldOffsetY - superScrollView.ContentOffset.Y);
+
+				var newContentOffset = new CGPoint(superScrollView.ContentOffset.X, shouldOffsetY);
+
+				if ((!superScrollView.ContentOffset.Equals(newContentOffset) || innerScrollValue != 0) && superScrollViewRect is not null)
+				{
+					if ((nextScrollView is null && superScrollViewRect.Value.Y + cursorRect.Height + TextViewDistanceFromBottom < bottomBoundary) ||
+						cursorNotInViewScroll != 0)
+					{
+						UIView.Animate(AnimationDuration, 0, UIViewAnimationOptions.CurveEaseOut, () =>
+						{
+							newContentOffset.Y += innerScrollValue;
+							innerScrollValue = 0;
+							ScrolledView = superScrollView;
+
+							if (View?.FindResponder<UIStackView>() is not null)
+							{
+								superScrollView.SetContentOffset(newContentOffset, UIView.AnimationsEnabled);
+							}
+							else
+							{
+								superScrollView.ContentOffset = newContentOffset;
+							}
+						}, () => { });
+
+						// after this scroll finishes, there is an edge case where if we have Large Titles,
+						// the entire requeseted scroll amount may not be allowed. If so, we need to scroll again.
+						var actualScrolledAmount = superScrollView.ContentOffset.Y - origContentOffsetY;
+						var amountNotScrolled = requestedMove - actualScrolledAmount;
+
+						if (prefersLargeTitles && amountNotScrolled > 1)
+						{
+							ShouldScrollAgain = true;
+						}
+					}
+
+					else
+					{
+						// add the amount we would have moved to the next scroll value
+						innerScrollValue += newContentOffset.Y - superScrollView.ContentOffset.Y;
+					}
+				}
+
+				// if we needed to scroll for cursorNotInViewScroll first, use the same superScrollView and handle the move now
 				if (cursorNotInViewScroll != 0)
 				{
 					cursorNotInViewScroll = 0;
@@ -592,12 +647,13 @@ public static class KeyboardAutoManagerScroll
 				else
 				{
 					lastView = superScrollView;
-					var tempScrollView = superScrollView.FindResponder<UIScrollView>();
-					superScrollView = FindParentScroll(tempScrollView);
+					superScrollView = nextScrollView;
 				}
 			}
+
 			else
 			{
+				// if we did not get to scroll all the way, add the value to move
 				move += innerScrollValue;
 				break;
 			}
@@ -694,80 +750,6 @@ public static class KeyboardAutoManagerScroll
 			}
 		}
 		return 0;
-	}
-
-	static (bool scrolled, nfloat innerScrollValue) ProcessSingleScrollView(
-	   nfloat move, nfloat innerScrollValue, nfloat cursorNotInViewScroll,
-	   UIScrollView superScrollView, CGRect? superScrollViewRect, double bottomBoundary, CGRect cursorRect)
-	{
-		var navController = View?.FindResponder<UINavigationController>();
-		var prefersLargeTitles = navController?.NavigationBar.PrefersLargeTitles ?? false;
-
-		if (prefersLargeTitles)
-		{
-			move = AdjustForLargeTitles(move, superScrollView, navController!);
-		}
-
-		var origContentOffsetY = superScrollView.ContentOffset.Y;
-		var shouldOffsetY = superScrollView.ContentOffset.Y - Math.Min(superScrollView.ContentOffset.Y, -move);
-		var requestedMove = move;
-
-		move -= (nfloat)(shouldOffsetY - superScrollView.ContentOffset.Y);
-
-		var newContentOffset = new CGPoint(superScrollView.ContentOffset.X, shouldOffsetY);
-
-		if ((!superScrollView.ContentOffset.Equals(newContentOffset) || innerScrollValue != 0) && superScrollViewRect is not null)
-		{
-			var tempScrollView = superScrollView.FindResponder<UIScrollView>();
-			var nextScrollView = FindParentScroll(tempScrollView);
-
-			if ((nextScrollView is null && superScrollViewRect.Value.Y + cursorRect.Height + TextViewDistanceFromBottom < bottomBoundary) ||
-				cursorNotInViewScroll != 0)
-			{
-				AnimateScrollViewOffset(superScrollView, newContentOffset, ref innerScrollValue);
-
-				CheckAndHandleLargeTitleScroll(superScrollView, origContentOffsetY, requestedMove, prefersLargeTitles);
-				return (true, innerScrollValue);
-			}
-			else
-			{
-				innerScrollValue += newContentOffset.Y - superScrollView.ContentOffset.Y;
-			}
-		}
-
-		return (false, innerScrollValue);
-	}
-
-	static void AnimateScrollViewOffset(UIScrollView scrollView, CGPoint newContentOffset, ref nfloat innerScrollValue)
-	{
-		var capturedInnerScrollValue = innerScrollValue;
-		UIView.Animate(AnimationDuration, 0, UIViewAnimationOptions.CurveEaseOut, () =>
-		{
-			newContentOffset.Y += capturedInnerScrollValue;
-			ScrolledView = scrollView;
-
-			if (View?.FindResponder<UIStackView>() is not null)
-			{
-				scrollView.SetContentOffset(newContentOffset, UIView.AnimationsEnabled);
-			}
-			else
-			{
-				scrollView.ContentOffset = newContentOffset;
-			}
-		}, () => { });
-		innerScrollValue = 0;
-	}
-
-	static void CheckAndHandleLargeTitleScroll(UIScrollView scrollView, nfloat origContentOffsetY,
-	   nfloat requestedMove, bool prefersLargeTitles)
-	{
-		var actualScrolledAmount = scrollView.ContentOffset.Y - origContentOffsetY;
-		var amountNotScrolled = requestedMove - actualScrolledAmount;
-
-		if (prefersLargeTitles && amountNotScrolled > 1)
-		{
-			ShouldScrollAgain = true;
-		}
 	}
 
 	static void ApplyScrollViewContentInsets(bool forceSetContentInsets, UIScrollView? superScrollView)

@@ -470,29 +470,77 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				
 				if (indexPathsForVisibleItems?.Length > 0)
 				{
-					var indexPath = indexPathsForVisibleItems.OrderBy(x => x.Section).ThenBy(x => x.Item).FirstOrDefault();
-					Console.WriteLine($"[ItemsViewController2] GetSize - Using first visible item at section {indexPath?.Section}, item {indexPath?.Item}");
+					// Check ItemSizingStrategy to determine measurement approach
+					var itemSizingStrategy = (ItemsView as StructuredItemsView)?.ItemSizingStrategy ?? ItemSizingStrategy.MeasureFirstItem;
+					Console.WriteLine($"[ItemsViewController2] GetSize - ItemSizingStrategy: {itemSizingStrategy}");
 					
-					// Get the actual cell and use its measured content size, not the frame
-					var cell = CollectionView.CellForItem(indexPath);
-					if (cell is TemplatedCell2 templatedCell && templatedCell.PlatformHandler?.VirtualView is { } virtualView)
+					if (itemSizingStrategy == ItemSizingStrategy.MeasureAllItems)
 					{
-						// Use the measured size from the virtual view
-						var measuredHeight = virtualView.DesiredSize.Height;
-						if (measuredHeight > 0)
+						// MeasureAllItems: Find the tallest visible item to accommodate variable item heights
+						double maxHeight = 0;
+						Console.WriteLine($"[ItemsViewController2] GetSize - MeasureAllItems: Checking all {indexPathsForVisibleItems.Length} visible items");
+						
+						foreach (var indexPath in indexPathsForVisibleItems)
 						{
-							contentSize.Height = measuredHeight;
+							var cell = CollectionView.CellForItem(indexPath);
+							if (cell == null) continue; // Skip if cell is not available
+							
+							double cellHeight = 0;
+							
+							if (cell is TemplatedCell2 templatedCell && templatedCell.PlatformHandler?.VirtualView is { } virtualView)
+							{
+								// Use the measured size from the virtual view
+								cellHeight = virtualView.DesiredSize.Height;
+								Console.WriteLine($"[ItemsViewController2] GetSize - Item [{indexPath.Section},{indexPath.Item}] measured height: {cellHeight}");
+							}
+							else if (cell.Frame.Height > 0)
+							{
+								// Fallback to frame height for non-templated cells
+								cellHeight = cell.Frame.Height;
+								Console.WriteLine($"[ItemsViewController2] GetSize - Item [{indexPath.Section},{indexPath.Item}] frame height: {cellHeight}");
+							}
+							
+							if (cellHeight > maxHeight)
+							{
+								maxHeight = cellHeight;
+								Console.WriteLine($"[ItemsViewController2] GetSize - New max height: {maxHeight}");
+							}
+						}
+						
+						if (maxHeight > 0)
+						{
+							contentSize.Height = maxHeight;
 							_hasMeasuredWithCells = true;
-							Console.WriteLine($"[ItemsViewController2] GetSize - Using cell's measured content height: {contentSize.Height}");
+							Console.WriteLine($"[ItemsViewController2] GetSize - MeasureAllItems: Using tallest cell height with buffer: {contentSize.Height}");
 						}
 					}
-					else if (cell != null && cell.Frame.Height > 0)
+					else
 					{
-						// Fallback to frame height for non-templated cells
-						Console.WriteLine($"[ItemsViewController2] GetSize - Cell frame: {cell.Frame}");
-						contentSize.Height = cell.Frame.Height;
-						_hasMeasuredWithCells = true;
-						Console.WriteLine($"[ItemsViewController2] GetSize - Updated height to cell frame height: {contentSize.Height}");
+						// MeasureFirstItem: Use the first visible item (existing behavior)
+						var indexPath = indexPathsForVisibleItems.OrderBy(x => x.Section).ThenBy(x => x.Item).FirstOrDefault();
+						Console.WriteLine($"[ItemsViewController2] GetSize - MeasureFirstItem: Using first visible item at section {indexPath?.Section}, item {indexPath?.Item}");
+						
+						// Get the actual cell and use its measured content size, not the frame
+						var cell = CollectionView.CellForItem(indexPath);
+						if (cell is TemplatedCell2 templatedCell && templatedCell.PlatformHandler?.VirtualView is { } virtualView)
+						{
+							// Use the measured size from the virtual view
+							var measuredHeight = virtualView.DesiredSize.Height;
+							if (measuredHeight > 0)
+							{
+								contentSize.Height = measuredHeight;
+								_hasMeasuredWithCells = true;
+								Console.WriteLine($"[ItemsViewController2] GetSize - MeasureFirstItem: Using cell's measured content height: {contentSize.Height}");
+							}
+						}
+						else if (cell != null && cell.Frame.Height > 0)
+						{
+							// Fallback to frame height for non-templated cells
+							Console.WriteLine($"[ItemsViewController2] GetSize - Cell frame: {cell.Frame}");
+							contentSize.Height = cell.Frame.Height;
+							_hasMeasuredWithCells = true;
+							Console.WriteLine($"[ItemsViewController2] GetSize - MeasureFirstItem: Updated height to cell frame height: {contentSize.Height}");
+						}
 					}
 				}
 				else

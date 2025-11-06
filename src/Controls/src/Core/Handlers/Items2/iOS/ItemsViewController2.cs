@@ -290,6 +290,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			ItemsSource?.Dispose();
 			ItemsSource = CreateItemsViewSource();
 
+			// Clear stored cell heights when data source changes
+			TemplatedCell2.ClearStoredHeights();
+
 			CollectionView.ReloadData();
 			CollectionView.CollectionViewLayout.InvalidateLayout();
 
@@ -476,42 +479,23 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 					
 					if (itemSizingStrategy == ItemSizingStrategy.MeasureAllItems)
 					{
-						// MeasureAllItems: Find the tallest visible item to accommodate variable item heights
-						double maxHeight = 0;
-						Console.WriteLine($"[ItemsViewController2] GetSize - MeasureAllItems: Checking all {indexPathsForVisibleItems.Length} visible items");
+						// SIMPLE LIST APPROACH: Use stored heights from TemplatedCell2.CellHeights list
+						var visibleItemCount = indexPathsForVisibleItems.Length;
+						Console.WriteLine($"[ItemsViewController2] GetSize - MeasureAllItems: {visibleItemCount} visible items, {TemplatedCell2.CellHeights.Count} stored heights");
 						
-						foreach (var indexPath in indexPathsForVisibleItems)
+						if (TemplatedCell2.CellHeights.Count > 0)
 						{
-							var cell = CollectionView.CellForItem(indexPath);
-							if (cell == null) continue; // Skip if cell is not available
+							// Take the first N items from the list based on visible count
+							var itemsToCheck = Math.Min(visibleItemCount, TemplatedCell2.CellHeights.Count);
+							var heightsToEvaluate = TemplatedCell2.CellHeights.Take(itemsToCheck);
 							
-							double cellHeight = 0;
-							
-							if (cell is TemplatedCell2 templatedCell && templatedCell.PlatformHandler?.VirtualView is { } virtualView)
+							if (heightsToEvaluate.Any())
 							{
-								// Use the measured size from the virtual view
-								cellHeight = virtualView.DesiredSize.Height;
-								Console.WriteLine($"[ItemsViewController2] GetSize - Item [{indexPath.Section},{indexPath.Item}] measured height: {cellHeight}");
+								var maxHeight = heightsToEvaluate.Max();
+								contentSize.Height = maxHeight;
+								_hasMeasuredWithCells = true;
+								Console.WriteLine($"[ItemsViewController2] GetSize - MeasureAllItems: Using max height {maxHeight} from first {itemsToCheck} stored heights");
 							}
-							else if (cell.Frame.Height > 0)
-							{
-								// Fallback to frame height for non-templated cells
-								cellHeight = cell.Frame.Height;
-								Console.WriteLine($"[ItemsViewController2] GetSize - Item [{indexPath.Section},{indexPath.Item}] frame height: {cellHeight}");
-							}
-							
-							if (cellHeight > maxHeight)
-							{
-								maxHeight = cellHeight;
-								Console.WriteLine($"[ItemsViewController2] GetSize - New max height: {maxHeight}");
-							}
-						}
-						
-						if (maxHeight > 0)
-						{
-							contentSize.Height = maxHeight;
-							_hasMeasuredWithCells = true;
-							Console.WriteLine($"[ItemsViewController2] GetSize - MeasureAllItems: Using tallest cell height with buffer: {contentSize.Height}");
 						}
 					}
 					else

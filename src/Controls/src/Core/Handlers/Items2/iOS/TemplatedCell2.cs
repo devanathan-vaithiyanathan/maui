@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using CoreGraphics;
 using Foundation;
@@ -39,6 +40,16 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 		bool _needsArrange;
 		Size _measuredSize;
 		Size _cachedConstraints;
+
+		// Static list to store cell heights for horizontal CollectionViews
+		internal static List<double> CellHeights { get; } = new List<double>();
+
+		// Static method to clear stored heights when data source changes
+		internal static void ClearStoredHeights()
+		{
+			CellHeights.Clear();
+			Console.WriteLine("[TemplatedCell2] Cleared stored cell heights");
+		}
 
 		internal bool MeasureInvalidated => _measureInvalidated;
 
@@ -97,6 +108,13 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 					_cachedConstraints = constraints;
 					_measuredSize = measure;
 					_needsArrange = true;
+					
+					// Store cell height for horizontal layouts
+					if (ScrollDirection == UICollectionViewScrollDirection.Horizontal)
+					{
+						CellHeights.Add(measure.Height);
+						Console.WriteLine($"[TemplatedCell2] Stored cell height: {measure.Height}, total stored: {CellHeights.Count}");
+					}
 				}
 
 				var preferredSize = preferredAttributes.Size;

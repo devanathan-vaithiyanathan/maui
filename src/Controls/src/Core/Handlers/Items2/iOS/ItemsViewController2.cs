@@ -127,18 +127,22 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				DefaultCell2.Label.Text = ItemsSource[indexpathAdjusted].ToString();
 				
 				// For horizontal layouts, store DefaultCell2 height manually since it doesn't go through TemplatedCell2's measurement process
-				if (ScrollDirection == UICollectionViewScrollDirection.Horizontal)
+				// Apply the same restrictions as TemplatedCell2 to prevent unlimited height storage during scrolling
+				if (ScrollDirection == UICollectionViewScrollDirection.Horizontal && !TemplatedCell2.HasStoredInitialHeights)
 				{
-					// Force layout if needed to get accurate frame
-					DefaultCell2.SetNeedsLayout();
-					DefaultCell2.LayoutIfNeeded();
-					
 					// Get the height from the cell's frame or use a default height
 					var cellHeight = DefaultCell2.Frame.Height > 0 ? DefaultCell2.Frame.Height : 44.0; // 44 is iOS default cell height
 					
 					// Store height in TemplatedCell2's static list for consistency
 					TemplatedCell2.CellHeights.Add(cellHeight);
 					Console.WriteLine($"[ItemsViewController2] Stored DefaultCell2 height: {cellHeight}, total stored: {TemplatedCell2.CellHeights.Count}");
+					
+					// Apply the same limit as TemplatedCell2 based on visible items count
+					if (TemplatedCell2.CellHeights.Count >= TemplatedCell2.VisibleItemsCount && TemplatedCell2.VisibleItemsCount > 0)
+					{
+						TemplatedCell2.HasStoredInitialHeights = true;
+						Console.WriteLine($"[ItemsViewController2] DefaultCell2: Reached visible items limit ({TemplatedCell2.VisibleItemsCount}), stopping further storage");
+					}
 				}
 			}
 
@@ -488,6 +492,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				
 				if (indexPathsForVisibleItems?.Length > 0)
 				{
+					// Set visible items count for TemplatedCell2 to use
+					TemplatedCell2.VisibleItemsCount = indexPathsForVisibleItems.Length;
+					
 					// Check ItemSizingStrategy to determine measurement approach
 					var itemSizingStrategy = (ItemsView as StructuredItemsView)?.ItemSizingStrategy ?? ItemSizingStrategy.MeasureFirstItem;
 					Console.WriteLine($"[ItemsViewController2] GetSize - ItemSizingStrategy: {itemSizingStrategy}");

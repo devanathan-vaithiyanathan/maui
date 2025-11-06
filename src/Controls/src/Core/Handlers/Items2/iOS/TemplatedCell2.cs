@@ -43,12 +43,20 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 		// Static list to store cell heights for horizontal CollectionViews
 		internal static List<double> CellHeights { get; } = new List<double>();
+		
+		// Flag to prevent storing heights during scrolling after initial measurement
+		internal static bool HasStoredInitialHeights { get; set; } = false;
+		
+		// Visible items count passed from ItemsViewController2
+		internal static int VisibleItemsCount { get; set; } = 0;
 
 		// Static method to clear stored heights when data source changes
 		internal static void ClearStoredHeights()
 		{
 			CellHeights.Clear();
-			Console.WriteLine("[TemplatedCell2] Cleared stored cell heights");
+			HasStoredInitialHeights = false;
+			VisibleItemsCount = 0;
+			Console.WriteLine("[TemplatedCell2] Cleared stored cell heights, reset flag, and cleared visible items count");
 		}
 
 		internal bool MeasureInvalidated => _measureInvalidated;
@@ -109,11 +117,19 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 					_measuredSize = measure;
 					_needsArrange = true;
 					
-					// Store cell height for horizontal layouts
-					if (ScrollDirection == UICollectionViewScrollDirection.Horizontal)
+					// Store cell height for horizontal layouts only during initial measurement phase
+					if (ScrollDirection == UICollectionViewScrollDirection.Horizontal && !HasStoredInitialHeights)
 					{
 						CellHeights.Add(measure.Height);
 						Console.WriteLine($"[TemplatedCell2] Stored cell height: {measure.Height}, total stored: {CellHeights.Count}");
+						
+						// If we've measured enough cells for initial sizing, set the flag
+						// This prevents further height storage during scrolling
+						if (CellHeights.Count >= VisibleItemsCount && VisibleItemsCount > 0) // Use visible items count instead of hardcoded limit
+						{
+							HasStoredInitialHeights = true;
+							Console.WriteLine($"[TemplatedCell2] Reached visible items limit ({VisibleItemsCount}), stopping further storage");
+						}
 					}
 				}
 

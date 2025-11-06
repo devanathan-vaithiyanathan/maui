@@ -45,10 +45,10 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 		internal static List<double> CellHeights { get; } = new List<double>();
 		
 		// Flag to prevent storing heights during scrolling after initial measurement
-		internal static bool HasStoredInitialHeights { get; set; } = false;
+		internal static bool HasStoredInitialHeights = false;
 		
 		// Visible items count passed from ItemsViewController2
-		internal static int VisibleItemsCount { get; set; } = 0;
+		internal static int VisibleItemsCount = 0;
 
 		// Static method to clear stored heights when data source changes
 		internal static void ClearStoredHeights()

@@ -91,5 +91,44 @@ namespace Microsoft.Maui.Platform
 				return false;
 			}
 		}
+
+		public static void UpdateBackground(this WebView2 platformWebView, IWebView webView)
+		{
+			if (platformWebView == null)
+				return;
+
+			// Set the WebView2 control's background
+			var brush = webView.Background?.ToPlatform();
+			if (brush != null)
+			{
+				platformWebView.Background = brush;
+			}
+			else
+			{
+				platformWebView.ClearValue(Microsoft.UI.Xaml.Controls.Control.BackgroundProperty);
+			}
+
+			// Set CoreWebView2 background color if available
+			if (platformWebView.CoreWebView2 != null)
+			{
+				var backgroundColor = webView.Background?.ToColor();
+				if (backgroundColor != null)
+				{
+					// Convert color to WebView2 RGBA format
+					var color = backgroundColor.Value;
+					platformWebView.CoreWebView2.DefaultBackgroundColor = global::Windows.UI.Color.FromArgb(
+						(byte)(color.Alpha * 255),
+						(byte)(color.Red * 255),
+						(byte)(color.Green * 255),
+						(byte)(color.Blue * 255)
+					);
+				}
+				else
+				{
+					// Set to transparent by default
+					platformWebView.CoreWebView2.DefaultBackgroundColor = global::Windows.UI.Color.FromArgb(0, 0, 0, 0);
+				}
+			}
+		}
 	}
 }

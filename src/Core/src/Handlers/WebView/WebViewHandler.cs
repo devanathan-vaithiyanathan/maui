@@ -26,6 +26,7 @@ namespace Microsoft.Maui.Handlers
 			[nameof(IWebView.UserAgent)] = MapUserAgent,
 #if WINDOWS
 	[nameof(IView.FlowDirection)] = MapFlowDirection,
+	[nameof(IWebView.Background)] = MapBackground,
 #endif
 #if __ANDROID__
 			[nameof(WebViewClient)] = MapWebViewClient,

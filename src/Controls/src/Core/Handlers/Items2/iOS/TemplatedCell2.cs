@@ -163,7 +163,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
             
             foreach (var subview in view.Subviews)
             {
-                SetNeedsDisplayRecursive(subview);
+                SetNeedsDisplayForShapeView(subview);
             }
         }
 

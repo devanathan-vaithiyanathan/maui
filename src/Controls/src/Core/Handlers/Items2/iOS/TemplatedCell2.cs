@@ -145,27 +145,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				// which will automatically set the frame on the platform view too.
 				var frame = new Rect(Point.Zero, boundsSize);
 				virtualView.Arrange(frame);
-
-				// Redraw of shape views (BoxView, etc.) after layout
-				// This is necessary because UICollectionView cell reuse doesn't automatically
-				// trigger redraw on MauiShapeView when only the layout changes
-				SetNeedsDisplayForShapeView(PlatformView);
 			}
 		}
-
-		void SetNeedsDisplayForShapeView(UIView view)
-        {
-            // Only invalidate views that use Draw() for rendering (BoxView/Shapes)
-            if (view is Microsoft.Maui.Platform.MauiShapeView)
-            {
-                view.SetNeedsDisplay();
-            }
-            
-            foreach (var subview in view.Subviews)
-            {
-                SetNeedsDisplayForShapeView(subview);
-            }
-        }
 
 		public override void PrepareForReuse()
 		{

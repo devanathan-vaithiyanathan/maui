@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Internals;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -40,6 +41,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 			public async partial void OnAlertRequested(Page sender, AlertArguments arguments)
 			{
+				if (WaitForHandlerIfNeeded(sender, () => OnAlertRequested(sender, arguments)))
+					return;
+
 				if (!PageIsInThisWindow(sender))
 					return;
 
@@ -101,6 +105,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 			public async partial void OnPromptRequested(Page sender, PromptArguments arguments)
 			{
+				if (WaitForHandlerIfNeeded(sender, () => OnPromptRequested(sender, arguments)))
+					return;
+
 				if (!PageIsInThisWindow(sender))
 					return;
 
@@ -144,6 +151,9 @@ namespace Microsoft.Maui.Controls.Platform
 
 			public partial void OnActionSheetRequested(Page sender, ActionSheetArguments arguments)
 			{
+				if (WaitForHandlerIfNeeded(sender, () => OnActionSheetRequested(sender, arguments)))
+					return;
+
 				if (!PageIsInThisWindow(sender))
 					return;
 
@@ -224,6 +234,48 @@ namespace Microsoft.Maui.Controls.Platform
 
 			bool PageIsInThisWindow(Page page) =>
 				page?.Window == VirtualView;
+
+			bool WaitForHandlerIfNeeded(Page sender, Action action)
+			{
+				if (sender.Handler is not null && sender.Window is not null)
+				{
+					return false;
+				}
+
+				if (sender is not VisualElement visualElement)
+				{
+					return false;
+				}
+
+				if (visualElement is not IControlsVisualElement controlsElement)
+				{
+					return false;
+				}
+
+				void TryInvokeIfReady()
+				{
+					if (sender.Handler is null || sender.Window is null)
+					{
+						return;
+					}
+
+					visualElement.HandlerChanged -= OnHandlerChanged;
+					controlsElement.WindowChanged -= OnWindowChanged;
+
+					if (sender.Dispatcher is not null)
+						sender.Dispatcher.Dispatch(action);
+					else
+						action();
+				}
+
+				void OnHandlerChanged(object s, EventArgs e) => TryInvokeIfReady();
+				void OnWindowChanged(object s, EventArgs e) => TryInvokeIfReady();
+
+				visualElement.HandlerChanged += OnHandlerChanged;
+				controlsElement.WindowChanged += OnWindowChanged;
+
+				return true;
+			}
 		}
 	}
 }

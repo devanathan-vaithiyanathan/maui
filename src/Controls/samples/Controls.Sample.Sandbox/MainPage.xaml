@@ -1,5 +1,47 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
-             xmlns:local="clr-namespace:Maui.Controls.Sample">
+             xmlns:local="clr-namespace:Maui.Controls.Sample"
+             Title="RefreshView Binding Test">
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Options"
+                     Clicked="OnNavigateToControlPageClicked"
+                     AutomationId="Options"/>
+    </ContentPage.ToolbarItems>
+
+    <RefreshView x:Name="refreshView"
+                 IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}"
+                 RefreshColor="Red">
+        <ScrollView>
+            <StackLayout Spacing="20"
+                         Padding="20">
+                <Label Text="Pull down to refresh this content"
+                       FontSize="18"
+                       HorizontalOptions="Center"/>
+
+                <Label Text="{Binding IsRefreshing, StringFormat='IsRefreshing: {0}'}"
+                       FontSize="16"
+                       HorizontalOptions="Center"
+                       TextColor="Blue"/>
+
+                <BoxView Color="Green"
+                         HeightRequest="100"
+                         WidthRequest="200"
+                         HorizontalOptions="Center"
+                         AutomationId="BoxContent"/>
+
+                <!-- Add some more content to make scrolling meaningful -->
+                <Label Text="Item 1" FontSize="16" Padding="10"/>
+                <Label Text="Item 2" FontSize="16" Padding="10"/>
+                <Label Text="Item 3" FontSize="16" Padding="10"/>
+                <Label Text="Item 4" FontSize="16" Padding="10"/>
+                <Label Text="Item 5" FontSize="16" Padding="10"/>
+                <Label Text="Item 6" FontSize="16" Padding="10"/>
+                <Label Text="Item 7" FontSize="16" Padding="10"/>
+                <Label Text="Item 8" FontSize="16" Padding="10"/>
+                <Label Text="Item 9" FontSize="16" Padding="10"/>
+                <Label Text="Item 10" FontSize="16" Padding="10"/>
+            </StackLayout>
+        </ScrollView>
+    </RefreshView>
 </ContentPage>

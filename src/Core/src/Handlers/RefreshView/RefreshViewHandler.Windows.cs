@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
@@ -11,6 +13,7 @@ namespace Microsoft.Maui.Handlers
 	public partial class RefreshViewHandler : ViewHandler<IRefreshView, RefreshContainer>
 	{
 		Deferral? _refreshCompletionDeferral;
+		IDisposable? _refreshOnLoadedDisposable;
 
 		protected override RefreshContainer CreatePlatformView()
 		{
@@ -36,6 +39,7 @@ namespace Microsoft.Maui.Handlers
 		{
 			nativeView.Loaded -= OnLoaded;
 			nativeView.RefreshRequested -= OnRefresh;
+			ClearPendingRefreshOnLoaded();
 
 			CompleteRefresh();
 
@@ -65,8 +69,26 @@ namespace Microsoft.Maui.Handlers
 
 		void UpdateIsRefreshing()
 		{
-			if (PlatformView is not { } platform || !platform.IsLoaded())
+			if (PlatformView is not { } platform)
 				return;
+
+			if (!platform.IsLoaded())
+			{
+				ClearPendingRefreshOnLoaded();
+
+				if (VirtualView.IsRefreshing)
+				{
+					_refreshOnLoadedDisposable = platform.OnLoaded(() =>
+					{
+						ClearPendingRefreshOnLoaded();
+						platform.DispatcherQueue.TryEnqueue(UpdateIsRefreshing);
+					});
+				}
+
+				return;
+			}
+
+			ClearPendingRefreshOnLoaded();
 
 			if (!VirtualView.IsRefreshing)
 			{
@@ -83,14 +105,26 @@ namespace Microsoft.Maui.Handlers
 
 		void UpdateIsRefreshEnabled()
 		{
-			if (PlatformView is not { } platform || !platform.IsLoaded())
+			if (PlatformView is not { } platform)
 				return;
+
+			if (!platform.IsLoaded())
+			{
+				ClearPendingRefreshOnLoaded();
+				return;
+			}
 
 			if (!VirtualView.IsRefreshEnabled)
 			{
 				// If the virtual view is not enabled for refresh, we complete any ongoing refresh
 				CompleteRefresh();
 			}
+		}
+
+		void ClearPendingRefreshOnLoaded()
+		{
+			_refreshOnLoadedDisposable?.Dispose();
+			_refreshOnLoadedDisposable = null;
 		}
 
 		static void UpdateContent(IRefreshViewHandler handler)

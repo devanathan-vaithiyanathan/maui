@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.RefreshControlPage"
+             Title="Refresh Control">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Apply"
+                     Clicked="OnBackClicked"
+                     AutomationId="Apply"/>
+    </ContentPage.ToolbarItems>
+    
+    <VerticalStackLayout Spacing="20"
+                         Padding="20"
+                         VerticalOptions="Center">
+        
+        <Label Text="{Binding IsRefreshing, StringFormat='Current IsRefreshing: {0}'}"
+               FontSize="18"
+               HorizontalOptions="Center"
+               TextColor="Blue"/>
+
+        <Button Text="Set IsRefreshing = True"
+                BackgroundColor="Green"
+                TextColor="White"
+                Clicked="OnSetTrueClicked"/>
+
+        <Button Text="Set IsRefreshing = False"
+                BackgroundColor="Red"
+                TextColor="White"
+                Clicked="OnSetFalseClicked"/>
+    </VerticalStackLayout>
+</ContentPage>

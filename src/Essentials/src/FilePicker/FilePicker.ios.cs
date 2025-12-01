@@ -72,10 +72,12 @@ namespace Microsoft.Maui.Storage
 					new UIPresentationControllerDelegate(() => GetFileResults(null, tcs));
 			}
 #endif
-
-			var parentController = WindowStateManager.Default.GetCurrentUIViewController(true);
-			parentController.PresentViewController(documentPicker, true, null);
-
+			Foundation.NSRunLoop.Main.BeginInvokeOnMainThread(() =>
+			{
+				var parentController = WindowStateManager.Default.GetCurrentUIViewController(true);
+				parentController.PresentViewController(documentPicker, true, null);
+			});
+			
 			return await tcs.Task;
 		}
 

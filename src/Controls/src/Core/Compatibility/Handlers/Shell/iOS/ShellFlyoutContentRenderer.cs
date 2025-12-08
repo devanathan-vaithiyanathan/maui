@@ -216,8 +216,17 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				return;
 
 			var footerWidth = View.Frame.Width;
+			var yPosition = View.Frame.Height - footerHeight;
 
-			_footerView.Frame = new CoreGraphics.CGRect(0, View.Frame.Height - footerHeight, footerWidth, footerHeight);
+			// Apply bottom safe area if footer doesn't have explicit margins
+			if (_footer != null && !_footer.IsSet(Microsoft.Maui.Controls.View.MarginProperty) && 
+				!(_footer is ISafeAreaView sav && sav.IgnoreSafeArea))
+			{
+				var safeAreaInsets = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow();
+				yPosition -= safeAreaInsets.Bottom;
+			}
+
+			_footerView.Frame = new CoreGraphics.CGRect(0, yPosition, footerWidth, footerHeight);
 
 			_tableViewController.LayoutParallax();
 		}

@@ -311,12 +311,33 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		void LayoutContent(CGRect parentBounds, nfloat footerHeight)
 		{
 			double contentYOffset = 0;
+			double bottomSafeAreaOffset = 0;
+
+			// Calculate bottom safe area offset for all content scenarios
+			var safeAreaInsets = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow();
+			bool shouldApplyBottomSafeArea = false;
+
+			// Determine if we should apply bottom safe area based on content type and footer presence
+			if (FooterView is null || ShouldHonorSafeArea(FooterView as UIContainerView))
+			{
+				// Apply bottom safe area when:
+				// 1. No footer is present
+				// 2. Footer is present but doesn't have explicit margin set
+				shouldApplyBottomSafeArea = ShouldHonorSafeArea(Content) || 
+											(Content is null && HeaderView?.View is null) ||
+											(Content is null && ShouldHonorSafeArea(HeaderView?.View));
+			}
+
+			if (shouldApplyBottomSafeArea)
+			{
+				bottomSafeAreaOffset = safeAreaInsets.Bottom;
+			}
 
 			if (ShouldHonorSafeArea(HeaderView?.View) ||
 				(HeaderView is null && ShouldHonorSafeArea(Content)))
 			{
 				// We add the safe area if margin is not explicitly set. This matches the header behavior.
-				contentYOffset += (float)UIApplication.SharedApplication.GetSafeAreaInsetsForWindow().Top;
+				contentYOffset += (float)safeAreaInsets.Top;
 			}
 
 			if (HeaderView is not null)
@@ -334,7 +355,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				}
 			}
 
-			var contentFrame = new Rect(parentBounds.X, contentYOffset, parentBounds.Width, parentBounds.Height - contentYOffset - footerHeight);
+			var contentFrame = new Rect(parentBounds.X, contentYOffset, parentBounds.Width, parentBounds.Height - contentYOffset - footerHeight - bottomSafeAreaOffset);
 			if (Content is null)
 			{
 				ContentView.Frame = contentFrame.AsCGRect();
@@ -350,6 +371,16 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			return view != null
 				&& !view.IsSet(View.MarginProperty)
 				&& !(view is ISafeAreaView sav && sav.IgnoreSafeArea);
+		}
+
+		bool ShouldHonorSafeArea(UIContainerView containerView)
+		{
+			if (containerView?.View is View view)
+			{
+				return ShouldHonorSafeArea(view);
+			}
+			// If no view is present, default to honoring safe area
+			return containerView != null;
 		}
 
 		void OnStructureChanged(object sender, EventArgs e) => UpdateVerticalScrollMode();

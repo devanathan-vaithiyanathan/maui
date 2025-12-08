@@ -218,12 +218,24 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			var footerWidth = View.Frame.Width;
 			var yPosition = View.Frame.Height - footerHeight;
 
-			// Apply bottom safe area if footer doesn't have explicit margins
-			if (_footer != null && !_footer.IsSet(Microsoft.Maui.Controls.View.MarginProperty) && 
-				!(_footer is ISafeAreaView sav && sav.IgnoreSafeArea))
+			// Apply bottom safe area using modern ISafeAreaView2 API if footer doesn't have explicit margins
+			if (_footer != null && !_footer.IsSet(Microsoft.Maui.Controls.View.MarginProperty))
 			{
-				var safeAreaInsets = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow();
-				yPosition -= safeAreaInsets.Bottom;
+				bool shouldApplyBottomSafeArea = true;
+
+				// Use modern ISafeAreaView2 API when available
+				if (_footer is ISafeAreaView2 sav2)
+				{
+					var region = sav2.GetSafeAreaRegionsForEdge(3); // Bottom edge = 3
+					// SafeAreaRegions.None = edge-to-edge (don't apply safe area)
+					shouldApplyBottomSafeArea = region != SafeAreaRegions.None;
+				}
+
+				if (shouldApplyBottomSafeArea)
+				{
+					var safeAreaInsets = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow();
+					yPosition -= safeAreaInsets.Bottom;
+				}
 			}
 
 			_footerView.Frame = new CoreGraphics.CGRect(0, yPosition, footerWidth, footerHeight);

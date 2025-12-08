@@ -283,7 +283,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			if (HeaderView is not null && !double.IsNaN(ArrangedHeaderViewHeightWithMargin))
 			{
 				nfloat safeArea = 0;
-				if (ShouldHonorSafeArea(HeaderView.View))
+				if (ShouldHonorSafeAreaForEdge(HeaderView.View, 1)) // 1 = Top edge
 				{
 					// We add the safe area if margin is not explicitly set.
 					safeArea = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow().Top;
@@ -313,19 +313,19 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			double contentYOffset = 0;
 			double bottomSafeAreaOffset = 0;
 
-			// Calculate bottom safe area offset for all content scenarios
+			// Calculate safe area offsets for all content scenarios
 			var safeAreaInsets = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow();
 			bool shouldApplyBottomSafeArea = false;
 
 			// Determine if we should apply bottom safe area based on content type and footer presence
-			if (FooterView is null || ShouldHonorSafeArea(FooterView as UIContainerView))
+			if (FooterView is null || ShouldHonorSafeAreaForEdge(FooterView as UIContainerView, 3))
 			{
 				// Apply bottom safe area when:
 				// 1. No footer is present
-				// 2. Footer is present but doesn't have explicit margin set
-				shouldApplyBottomSafeArea = ShouldHonorSafeArea(Content) || 
+				// 2. Footer is present but should honor safe area for bottom edge
+				shouldApplyBottomSafeArea = ShouldHonorSafeAreaForEdge(Content, 3) || 
 											(Content is null && HeaderView?.View is null) ||
-											(Content is null && ShouldHonorSafeArea(HeaderView?.View));
+											(Content is null && ShouldHonorSafeAreaForEdge(HeaderView?.View, 3));
 			}
 
 			if (shouldApplyBottomSafeArea)
@@ -333,8 +333,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				bottomSafeAreaOffset = safeAreaInsets.Bottom;
 			}
 
-			if (ShouldHonorSafeArea(HeaderView?.View) ||
-				(HeaderView is null && ShouldHonorSafeArea(Content)))
+			if (ShouldHonorSafeAreaForEdge(HeaderView?.View, 1) ||
+				(HeaderView is null && ShouldHonorSafeAreaForEdge(Content, 1)))
 			{
 				// We add the safe area if margin is not explicitly set. This matches the header behavior.
 				contentYOffset += (float)safeAreaInsets.Top;
@@ -366,18 +366,34 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			}
 		}
 
-		bool ShouldHonorSafeArea(View view)
+		bool ShouldHonorSafeAreaForEdge(View view, int edge)
 		{
-			return view != null
-				&& !view.IsSet(View.MarginProperty)
-				&& !(view is ISafeAreaView sav && sav.IgnoreSafeArea);
+			if (view is null)
+				return false;
+
+			// If view has explicit margins set, don't apply safe area (margins take precedence)
+			if (view.IsSet(View.MarginProperty))
+				return false;
+
+			// Use ISafeAreaView2 API for per-edge safe area control
+			if (view is ISafeAreaView2 sav2)
+			{
+				var region = sav2.GetSafeAreaRegionsForEdge(edge);
+				
+				// SafeAreaRegions.None = edge-to-edge (don't honor safe area)
+				// SafeAreaRegions.All/Container/SoftInput = honor safe area
+				return region != SafeAreaRegions.None;
+			}
+
+			// Default behavior: honor safe area
+			return true;
 		}
 
-		bool ShouldHonorSafeArea(UIContainerView containerView)
+		bool ShouldHonorSafeAreaForEdge(UIContainerView containerView, int edge)
 		{
 			if (containerView?.View is View view)
 			{
-				return ShouldHonorSafeArea(view);
+				return ShouldHonorSafeAreaForEdge(view, edge);
 			}
 			// If no view is present, default to honoring safe area
 			return containerView != null;

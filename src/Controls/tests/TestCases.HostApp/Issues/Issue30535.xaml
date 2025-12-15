@@ -1,28 +1,25 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="Maui.Controls.Sample.MainPage"
-             xmlns:local="clr-namespace:Maui.Controls.Sample">
+             x:Class="Maui.Controls.Sample.Issues.Issue30535"
+             Title="Issue 30535">
+
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Options"
-                     Clicked="OnNavigateToOptionsClicked"
+                     Clicked="OnNavigateToControlPageClicked"
                      AutomationId="OptionsButton"/>
     </ContentPage.ToolbarItems>
 
     <RefreshView x:Name="refreshView"
                  IsRefreshing="{Binding IsRefreshing, Mode=TwoWay}"
                  RefreshColor="Red"
-                 AutomationId="TestRefreshView">
+                 AutomationId="RefreshView">
         <ScrollView>
-            <VerticalStackLayout Spacing="20"
-                                Padding="20">
-                <Label Text="Issue #30535: RefreshView IsRefreshing Binding on Windows"
+            <VerticalStackLayout Spacing="20" Padding="20">
+                <Label Text="Pull down to refresh this content"
                        FontSize="18"
                        HorizontalOptions="Center"
-                       FontAttributes="Bold"/>
-                
-                <Label Text="Pull down to refresh or use Options to set IsRefreshing programmatically"
-                       FontSize="14"
-                       HorizontalOptions="Center"/>
+                       AutomationId="InstructionLabel"/>
 
                 <Label Text="{Binding IsRefreshing, StringFormat='IsRefreshing: {0}'}"
                        FontSize="16"
@@ -34,7 +31,7 @@
                          HeightRequest="100"
                          WidthRequest="200"
                          HorizontalOptions="Center"
-                         AutomationId="ContentBox"/>
+                         AutomationId="BoxContent"/>
             </VerticalStackLayout>
         </ScrollView>
     </RefreshView>

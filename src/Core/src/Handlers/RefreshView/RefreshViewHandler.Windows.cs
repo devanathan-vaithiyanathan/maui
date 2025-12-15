@@ -65,8 +65,14 @@ namespace Microsoft.Maui.Handlers
 
 		void UpdateIsRefreshing()
 		{
-			if (PlatformView is not { } platform || !platform.IsLoaded())
+			if (PlatformView is not { } platform)
 				return;
+
+			if (!platform.IsLoaded())
+			{
+				// If not loaded yet, the OnLoaded handler will trigger UpdateIsRefreshing when ready
+				return;
+			}
 
 			if (!VirtualView.IsRefreshing)
 			{
@@ -76,8 +82,13 @@ namespace Microsoft.Maui.Handlers
 			else if (_refreshCompletionDeferral is null)
 			{
 				// The virtual view requested a refresh but we have not yet started a refresh,
-				// so we request a refresh on the platform view
-				platform.RequestRefresh();
+				// so we request a refresh on the platform view.
+				// Use dispatcher to ensure the UI is ready and the template is applied before requesting refresh
+				platform.DispatcherQueue.TryEnqueue(Microsoft.UI.Dispatching.DispatcherQueuePriority.Normal, () =>
+				{
+					if (VirtualView?.IsRefreshing == true && _refreshCompletionDeferral is null && platform != null)
+						platform.RequestRefresh();
+				});
 			}
 		}
 

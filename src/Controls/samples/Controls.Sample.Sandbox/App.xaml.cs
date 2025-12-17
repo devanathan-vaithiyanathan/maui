@@ -14,7 +14,8 @@ public partial class App : Application
 
 		if (!useShell)
 		{
-			return new Window(new NavigationPage(new MainPage()));
+			// Use MainWindow for TitleBar demo
+			return new MainWindow();
 		}
 		else
 		{

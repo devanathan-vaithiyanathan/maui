@@ -43,6 +43,11 @@ namespace Microsoft.Maui.Controls
 		public const string TitleBarActiveState = "TitleBarTitleActive";
 		public const string TitleBarInactiveState = "TitleBarTitleInactive";
 
+		// Platform-specific initialization methods
+		static partial void ConfigurePlatformTemplate(Grid contentGrid);
+		partial void InitializePlatform();
+		partial void CleanupPlatform(); 
+
 		/// <summary>Bindable property for <see cref="Icon"/>.</summary>
 		public static readonly BindableProperty IconProperty = BindableProperty.Create(nameof(Icon), typeof(ImageSource),
 			typeof(TitleBar), null, propertyChanged: OnIconChanged);
@@ -253,15 +258,19 @@ namespace Microsoft.Maui.Controls
 			PassthroughElements = new List<IView>();
 			PropertyChanged += TitleBar_PropertyChanged;
 
+			InitializePlatform();
+
 			if (ControlTemplate is null)
 			{
 				ControlTemplate = DefaultTemplate;
 			}
 		}
 
+
 		internal void Cleanup()
 		{
 			PropertyChanged -= TitleBar_PropertyChanged;
+			CleanupPlatform();
 			if (Window is not null)
 			{
 				Window.Activated -= Window_Activated;
@@ -347,9 +356,6 @@ namespace Microsoft.Maui.Controls
 			#region Root Grid
 			var contentGrid = new Grid()
 			{
-#if MACCATALYST
-				Margin = new Thickness(80, 0, 0, 0),
-#endif
 				HorizontalOptions = LayoutOptions.Fill,
 				ColumnDefinitions =
 				{
@@ -359,14 +365,15 @@ namespace Microsoft.Maui.Controls
 					new ColumnDefinition(GridLength.Auto), // Subtitle content
 					new ColumnDefinition(GridLength.Star), // Content
 					new ColumnDefinition(GridLength.Auto), // Trailing content
-#if !MACCATALYST
 					new ColumnDefinition(150),             // Min drag region + padding for system buttons
-#endif
 				},
 #pragma warning disable CS0618 // Type or member is obsolete
 				IgnoreSafeArea = true,
 #pragma warning restore CS0618 // Type or member is obsolete
 			};
+
+			// Configure platform-specific properties
+			ConfigurePlatformTemplate(contentGrid);
 
 			contentGrid.SetBinding(
 				BackgroundColorProperty,

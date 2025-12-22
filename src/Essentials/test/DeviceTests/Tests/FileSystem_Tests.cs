@@ -51,10 +51,16 @@ namespace Microsoft.Maui.Essentials.DeviceTests
 			string filePath = Path.Combine(FileSystem.CacheDirectory, "sample.txt");
 			await File.WriteAllTextAsync(filePath, "File Content type is text/plain");
 
-			FileResult fileResult = new FileResult(filePath);
-			Assert.Equal("text/plain", fileResult.ContentType);
-
-			File.Delete(filePath);
+			try
+			{
+				FileResult fileResult = new FileResult(filePath);
+				Assert.Equal("text/plain", fileResult.ContentType);
+			}
+			finally
+			{
+				if (File.Exists(filePath))
+					File.Delete(filePath);
+			}
 		}
 #endif
 		[Fact]
@@ -63,13 +69,19 @@ namespace Microsoft.Maui.Essentials.DeviceTests
 			string filePath = Path.Combine(FileSystem.CacheDirectory, "sample.txt");
 			await File.WriteAllTextAsync(filePath, "Sample content for testing");
 
-			var fileResult = new FileResult(filePath);
+			try
+			{
+				var fileResult = new FileResult(filePath);
 
-			using var stream = await fileResult.OpenReadAsync();
+				using var stream = await fileResult.OpenReadAsync();
 
-			Assert.NotNull(stream);
-
-			File.Delete(filePath);
+				Assert.NotNull(stream);
+			}
+			finally
+			{
+				if (File.Exists(filePath))
+					File.Delete(filePath);
+			}
 		}
 
 		[Fact]
@@ -79,27 +91,33 @@ namespace Microsoft.Maui.Essentials.DeviceTests
 			string expectedContent = "Sample content for multiple stream testing";
 			await File.WriteAllTextAsync(filePath, expectedContent);
 
-			var fileResult = new FileResult(filePath);
-
-			// First call to OpenReadAsync
-			using (var firstStream = await fileResult.OpenReadAsync())
+			try
 			{
-				Assert.NotNull(firstStream);
-				using var firstReader = new StreamReader(firstStream);
-				var firstContent = await firstReader.ReadToEndAsync();
-				Assert.Equal(expectedContent, firstContent);
-			}
+				var fileResult = new FileResult(filePath);
 
-			// Second call to OpenReadAsync - should still work
-			using (var secondStream = await fileResult.OpenReadAsync())
+				// First call to OpenReadAsync
+				using (var firstStream = await fileResult.OpenReadAsync())
+				{
+					Assert.NotNull(firstStream);
+					using var firstReader = new StreamReader(firstStream);
+					var firstContent = await firstReader.ReadToEndAsync();
+					Assert.Equal(expectedContent, firstContent);
+				}
+
+				// Second call to OpenReadAsync - should still work
+				using (var secondStream = await fileResult.OpenReadAsync())
+				{
+					Assert.NotNull(secondStream);
+					using var secondReader = new StreamReader(secondStream);
+					var secondContent = await secondReader.ReadToEndAsync();
+					Assert.Equal(expectedContent, secondContent);
+				}
+			}
+			finally
 			{
-				Assert.NotNull(secondStream);
-				using var secondReader = new StreamReader(secondStream);
-				var secondContent = await secondReader.ReadToEndAsync();
-				Assert.Equal(expectedContent, secondContent);
+				if (File.Exists(filePath))
+					File.Delete(filePath);
 			}
-
-			File.Delete(filePath);
 		}
 	}
 }

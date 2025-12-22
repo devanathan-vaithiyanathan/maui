@@ -1,9 +1,9 @@
 ﻿using Microsoft.Maui.Controls.PlatformConfiguration;
-using  Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;
+using Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific;
 
 namespace Maui.Controls.Sample.Issues;
 
-[Issue(IssueTracker.Github, 18200, "Flyout Page SetCollapseStyle doesn't have any change", PlatformAffected.UWP)]
+[Issue(IssueTracker.Github, 18200, "Flyout Page SetCollapseStyle doesn't have any change", PlatformAffected.Windows)]
 public class Issue18200 : TestFlyoutPage
 {
 	Button _button;

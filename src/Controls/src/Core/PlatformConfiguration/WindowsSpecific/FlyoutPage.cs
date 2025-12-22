@@ -19,7 +19,8 @@ namespace Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific
 		{
 			if (bindable is Microsoft.Maui.Controls.FlyoutPage flyoutPage && flyoutPage.Handler is not null)
 			{
-				flyoutPage.Handler.UpdateValue(nameof(CollapseStyleProperty));
+				// Trigger FlyoutBehavior update which now considers CollapseStyle
+				flyoutPage.Handler.UpdateValue(nameof(IFlyoutView.FlyoutBehavior));
 			}
 		}
 

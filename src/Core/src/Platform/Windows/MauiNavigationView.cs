@@ -170,7 +170,7 @@ namespace Microsoft.Maui.Platform
 		{
 		}
 
-		internal void UpdatePaneDisplayModeFromFlyoutBehavior(FlyoutBehavior flyoutBehavior)
+		internal void UpdatePaneDisplayModeFromFlyoutBehavior(FlyoutBehavior flyoutBehavior, IFlyoutView flyoutView = null)
 		{
 			if (_currentFlyoutBehavior == (int)flyoutBehavior)
 			{
@@ -182,13 +182,25 @@ namespace Microsoft.Maui.Platform
 			{
 				case FlyoutBehavior.Flyout:
 					IsPaneToggleButtonVisible = true;
+					// Consider CollapseStyle for Windows platform when FlyoutLayoutBehavior is Popover
+					var targetDisplayMode = NavigationViewPaneDisplayMode.LeftMinimal;
+					if (flyoutView is Microsoft.Maui.Controls.FlyoutPage flyoutPage && 
+						flyoutPage.FlyoutLayoutBehavior == Microsoft.Maui.Controls.FlyoutLayoutBehavior.Popover)
+					{
+						var collapseStyle = Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific.FlyoutPage.GetCollapseStyle(flyoutPage);
+						if (collapseStyle == Microsoft.Maui.Controls.PlatformConfiguration.WindowsSpecific.CollapseStyle.Partial)
+						{
+							targetDisplayMode = NavigationViewPaneDisplayMode.LeftCompact;
+						}
+					}
+					
 					// WinUI bug: Setting PaneDisplayMode to the same value and updating SelectedItem during navigation
 					// causes the selection and selected item indicator to not update correctly.
 					// Workaround: Only set PaneDisplayMode when the value actually changes.
 					// Related: https://github.com/microsoft/microsoft-ui-xaml/issues/9812
-					if (PaneDisplayMode != NavigationViewPaneDisplayMode.LeftMinimal)
+					if (PaneDisplayMode != targetDisplayMode)
 					{
-						PaneDisplayMode = NavigationViewPaneDisplayMode.LeftMinimal;
+						PaneDisplayMode = targetDisplayMode;
 					}
 					break;
 				case FlyoutBehavior.Locked:

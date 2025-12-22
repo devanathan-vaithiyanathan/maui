@@ -252,7 +252,7 @@ namespace Microsoft.Maui.Platform
 
 		public static void UpdateFlyoutBehavior(this MauiNavigationView navigationView, IFlyoutView flyoutView)
 		{
-			navigationView.UpdatePaneDisplayModeFromFlyoutBehavior(flyoutView.FlyoutBehavior);
+			navigationView.UpdatePaneDisplayModeFromFlyoutBehavior(flyoutView.FlyoutBehavior, flyoutView);
 		}
 
 		public static void UpdateFlyoutWidth(this MauiNavigationView navigationView, IFlyoutView flyoutView)

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.Issues.IssueCollectionViewKeyboardAutoScroll"
+             Title="CollectionView Keyboard Auto Scroll Test">
+    <Grid>
+        <CollectionView x:Name="TestCollectionView"
+                        AutomationId="TestCollectionView"
+                        ItemsSource="{Binding Items}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="10">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Label Grid.Row="0" 
+                               Text="{Binding Label}" 
+                               FontSize="16" 
+                               FontAttributes="Bold"/>
+                        <Entry Grid.Row="1" 
+                               Text="{Binding Value}" 
+                               Placeholder="Enter text here"
+                               AutomationId="{Binding AutomationId}"
+                               FontSize="14"
+                               HeightRequest="40"/>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

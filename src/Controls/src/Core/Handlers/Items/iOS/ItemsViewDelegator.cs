@@ -33,6 +33,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			var contentOffsetX = !visibleItems ? 0 : scrollView.ContentOffset.X + contentInset.Left;
 			var contentOffsetY = !visibleItems ? 0 : scrollView.ContentOffset.Y + contentInset.Top;
 
+			// Reset previous offsets if there are no visible items to ensure correct delta calculation when items are re-added
+			if (!visibleItems)
+			{
+				PreviousHorizontalOffset = 0;
+				PreviousVerticalOffset = 0;
+			}
 			var itemsViewScrolledEventArgs = new ItemsViewScrolledEventArgs
 			{
 				HorizontalDelta = contentOffsetX - PreviousHorizontalOffset,

@@ -85,7 +85,7 @@ namespace Microsoft.Maui.Platform
 		static void ApplyCharacterSpacingToTextBlocks(CalendarDatePicker platformDatePicker, double characterSpacing)
 		{
 			var characterSpacingEm = characterSpacing.ToEm();
-			var dateTextBlock = platformDatePicker.GetDescendantByName<TextBlock>("DateText");
+			var dateTextBlock = platformDatePicker.GetDescendantByName<TextBlock>(DateTextElementName);
 			if (dateTextBlock is not null)
 			{
 				dateTextBlock.CharacterSpacing = characterSpacingEm;
@@ -131,6 +131,9 @@ namespace Microsoft.Maui.Platform
 			"CalendarDatePickerCalendarGlyphForegroundPressed",
 			"CalendarDatePickerCalendarGlyphForegroundDisabled",
 		};
+
+		// Element name for the DateText TextBlock within CalendarDatePicker template
+		const string DateTextElementName = "DateText";
 
 		public static void UpdateBackground(this CalendarDatePicker platformDatePicker, IDatePicker datePicker)
 		{

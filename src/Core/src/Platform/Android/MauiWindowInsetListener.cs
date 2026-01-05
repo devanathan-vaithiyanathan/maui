@@ -310,7 +310,7 @@ namespace Microsoft.Maui.Platform
 		static void SetCoordinatorLayoutBottomSpace(AndroidX.CoordinatorLayout.Widget.CoordinatorLayout coordinatorLayout, int bottomSpace)
 		{
 			var contentView = coordinatorLayout.FindViewById(Resource.Id.navigationlayout_content);
-			if (contentView is not null && contentView.LayoutParameters is ViewGroup.MarginLayoutParams marginParams)
+			if (contentView is not null)
 			{
 				contentView.SetPadding(
 					contentView.PaddingLeft,

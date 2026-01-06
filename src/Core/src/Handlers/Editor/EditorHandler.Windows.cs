@@ -93,8 +93,17 @@ namespace Microsoft.Maui.Handlers
 		public static void MapKeyboard(IEditorHandler handler, IEditor editor) =>
 			handler.PlatformView?.UpdateKeyboard(editor);
 
-		void OnTextChanged(object sender, TextChangedEventArgs args) =>
+		void OnTextChanged(object sender, TextChangedEventArgs args)
+		{
 			VirtualView?.UpdateText(PlatformView.Text);
+			if (string.IsNullOrEmpty(PlatformView.Text))
+			{
+				var isEnabled = PlatformView.IsEnabled;
+				PlatformView.IsEnabled = false;
+				PlatformView.IsEnabled = isEnabled;
+			}
+				
+		}
 
 		void OnLostFocus(object? sender, RoutedEventArgs e) =>
 			VirtualView?.Completed();

@@ -5,11 +5,22 @@ namespace Maui.Controls.Sample.Issues;
 
 [Issue(IssueTracker.Github, 33298, "[WinUI]Editor cursor renders as “dot” after clearing text when parent Border.StrokeThickness is changed dynamically", PlatformAffected.UWP)]
 
-public class Issue33298 : ContentPage
+public class Issue33298 : Shell
+{
+	public Issue33298()
+	{
+		Items.Add(new ShellContent
+		{
+			Content = new Issue33298ContentPage()
+		});
+	}
+}
+
+public class Issue33298ContentPage : ContentPage
 {
 	Issue33298CustomEditorView chatEditorView;
 
-	public Issue33298()
+	public Issue33298ContentPage()
 	{
 		// Root Grid
 		var grid = new Grid

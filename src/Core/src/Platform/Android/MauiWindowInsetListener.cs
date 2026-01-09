@@ -325,37 +325,7 @@ namespace Microsoft.Maui.Platform
 			if (hasBottomNav)
 			{
 				var bottomInset = Math.Max(systemBars?.Bottom ?? 0, displayCutout?.Bottom ?? 0);
-
-				// Apply padding to navigationlayout_content instead of root view
-				// This ensures content and tabs move up together above keyboard
-				var contentView = v.FindViewById(Resource.Id.navigationlayout_content);
-				if (contentView is not null)
-				{
-					// Get existing bottom margin (for bottom tabs)
-					var bottomMargin = 0;
-					if (contentView.LayoutParameters is ViewGroup.MarginLayoutParams marginParams)
-					{
-						bottomMargin = marginParams.BottomMargin;
-					}
-
-					// Apply padding accounting for existing bottom margin
-					var paddingToApply = Math.Max(0, bottomInset - bottomMargin);
-					contentView.SetPadding(
-						contentView.PaddingLeft,
-						contentView.PaddingTop,
-						contentView.PaddingRight,
-						paddingToApply
-					);
-				}
-				else
-				{
-					// Fallback to root view if content view not found
-					v.SetPadding(0, 0, 0, bottomInset);
-				}
-			}
-			else
-			{
-				v.SetPadding(0, 0, 0, 0);
+				v.SetPadding(0, 0, 0, bottomInset);
 			}
 
 			// Create new insets with consumed values

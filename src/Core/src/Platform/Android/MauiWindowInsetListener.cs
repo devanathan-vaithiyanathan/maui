@@ -327,6 +327,10 @@ namespace Microsoft.Maui.Platform
 				var bottomInset = Math.Max(systemBars?.Bottom ?? 0, displayCutout?.Bottom ?? 0);
 				v.SetPadding(0, 0, 0, bottomInset);
 			}
+			else
+			{
+				v.SetPadding(0, 0, 0, 0);
+			}
 
 			// Create new insets with consumed values
 			var newSystemBars = Insets.Of(

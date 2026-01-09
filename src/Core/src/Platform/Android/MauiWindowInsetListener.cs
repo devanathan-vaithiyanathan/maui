@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Android.Content;
 using Android.Views;
+using AndroidX.CoordinatorLayout.Widget;
 using AndroidX.Core.Graphics;
 using AndroidX.Core.View;
 using Google.Android.Material.AppBar;
@@ -208,7 +209,7 @@ namespace Microsoft.Maui.Platform
 			var imeInsets = insets.GetInsets(WindowInsetsCompat.Type.Ime());
 			var imeHeight = imeInsets?.Bottom ?? 0;
 
-			if (ShouldModifyInsetsForAdjustResize(v.Context, imeHeight))
+			if (ShouldModifyInsetsForAdjustResize(v.Context))
 			{
 				var systemBars = insets.GetInsets(WindowInsetsCompat.Type.SystemBars());
 				var displayCutout = insets.GetInsets(WindowInsetsCompat.Type.DisplayCutout());
@@ -219,14 +220,18 @@ namespace Microsoft.Maui.Platform
 					systemBars?.Left ?? 0,
 					systemBars?.Top ?? 0,
 					systemBars?.Right ?? 0,
-					Math.Max(systemBars?.Bottom ?? 0, imeHeight)
-				);
+					0  // Consume bottom
+				) ?? Insets.None;
 
-				// Keep display cutout unchanged
-				var newDisplayCutout = displayCutout ?? Insets.None;
+				var newDisplayCutout = Insets.Of(
+					displayCutout?.Left ?? 0,
+					displayCutout?.Top ?? 0,
+					displayCutout?.Right ?? 0,
+					0  // Consume bottom
+				) ?? Insets.None;
 
-				// Rebuild insets with merged bottom inset
 				insets = new WindowInsetsCompat.Builder(insets)
+					?.SetInsets(WindowInsetsCompat.Type.Ime(), Insets.None)
 					?.SetInsets(WindowInsetsCompat.Type.SystemBars(), newSystemBars)
 					?.SetInsets(WindowInsetsCompat.Type.DisplayCutout(), newDisplayCutout)
 					?.Build() ?? insets;
@@ -247,9 +252,9 @@ namespace Microsoft.Maui.Platform
 		/// Determines if window insets should be modified to handle AdjustResize mode.
 		/// Returns true when AdjustResize is active and keyboard is showing.
 		/// </summary>
-		static bool ShouldModifyInsetsForAdjustResize(Context? context, int imeHeight)
+		static bool ShouldModifyInsetsForAdjustResize(Context? context)
 		{
-			if (context is null || imeHeight <= 0)
+			if (context is null)
 			{
 				return false;
 			}
@@ -321,36 +326,30 @@ namespace Microsoft.Maui.Platform
 			}
 
 			// Handle bottom navigation
-			var hasBottomNav = v.FindViewById(Resource.Id.navigationlayout_bottomtabs)?.MeasuredHeight > 0;
+			var bottomTabs = v.FindViewById(Resource.Id.navigationlayout_bottomtabs);
+			var hasBottomNav = bottomTabs?.MeasuredHeight > 0;
 			if (hasBottomNav)
 			{
 				var bottomInset = Math.Max(systemBars?.Bottom ?? 0, displayCutout?.Bottom ?? 0);
+				bottomTabs?.SetPadding(0, 0, 0, bottomInset);
+			}
+			else
+			{
+				bottomTabs?.SetPadding(0, 0, 0, 0);
+			}
 
-				// Apply padding to navigationlayout_content instead of root view
-				// This ensures content and tabs move up together above keyboard
-				var contentView = v.FindViewById(Resource.Id.navigationlayout_content);
-				if (contentView is not null)
+			if (v is CoordinatorLayout cl)
+			{
+				var imeHeight = insets.GetInsets(WindowInsetsCompat.Type.Ime());
+				var iskeyBoardOpen = imeHeight?.Bottom > 0;
+				if (iskeyBoardOpen && ShouldModifyInsetsForAdjustResize(v.Context))
 				{
-					// Get existing bottom margin (for bottom tabs)
-					var bottomMargin = 0;
-					if (contentView.LayoutParameters is ViewGroup.MarginLayoutParams marginParams)
-					{
-						bottomMargin = marginParams.BottomMargin;
-					}
-
-					// Apply padding accounting for existing bottom margin
-					var paddingToApply = Math.Max(0, bottomInset - bottomMargin);
-					contentView.SetPadding(
-						contentView.PaddingLeft,
-						contentView.PaddingTop,
-						contentView.PaddingRight,
-						paddingToApply
-					);
+					cl.SetPadding(0, 0, 0, imeHeight?.Bottom ?? 0);
+					return WindowInsetsCompat.Consumed;
 				}
 				else
 				{
-					// Fallback to root view if content view not found
-					v.SetPadding(0, 0, 0, bottomInset);
+					cl.SetPadding(0, 0, 0, 0);
 				}
 			}
 			else

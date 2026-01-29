@@ -65,9 +65,25 @@ namespace Microsoft.Maui.Handlers
 
 		void OnNavigationStarting(CoreWebView2 sender, CoreWebView2NavigationStartingEventArgs args)
 		{
+			// Determine navigation type
+			// If CurrentNavigationEvent is already set (by MapGoBack/MapGoForward/MapReload),
+			// use that value. Otherwise, infer from NavigationKind.
+			if (_eventState == WebNavigationEvent.NewPage)
+			{
+				_eventState = args.NavigationKind switch
+				{
+					CoreWebView2NavigationKind.BackOrForward => WebNavigationEvent.Back,
+					CoreWebView2NavigationKind.Reload => WebNavigationEvent.Refresh,
+					CoreWebView2NavigationKind.NewDocument => WebNavigationEvent.NewPage,
+					_ => WebNavigationEvent.NewPage
+				};
+			}
+
+			var navigationEvent = _eventState;
+
 			if (Uri.TryCreate(args.Uri, UriKind.Absolute, out Uri? uri) && uri is not null)
 			{
-				bool cancel = VirtualView.Navigating(CurrentNavigationEvent, uri.AbsoluteUri);
+				bool cancel = VirtualView.Navigating(navigationEvent, uri.AbsoluteUri);
 
 				args.Cancel = cancel;
 

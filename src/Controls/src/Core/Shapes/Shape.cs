@@ -302,10 +302,16 @@ namespace Microsoft.Maui.Controls.Shapes
 			//       since default GetBoundsByFlattening(0.001) returns incorrect results for curves
 			RectF pathBounds = path.GetBoundsByFlattening(1);
 
-			viewBounds.X += StrokeThickness / 2;
-			viewBounds.Y += StrokeThickness / 2;
-			viewBounds.Width -= StrokeThickness;
-			viewBounds.Height -= StrokeThickness;
+			// For Line shapes with Stretch.None, don't adjust viewBounds for stroke thickness
+			// as this causes incorrect positioning. Lines should use exact coordinates.
+			bool isLineWithNoStretch = this is Shapes.Line && Aspect == Stretch.None;
+			if (!isLineWithNoStretch)
+			{
+				viewBounds.X += StrokeThickness / 2;
+				viewBounds.Y += StrokeThickness / 2;
+				viewBounds.Width -= StrokeThickness;
+				viewBounds.Height -= StrokeThickness;
+			}
 
 			Matrix3x2 transform;
 

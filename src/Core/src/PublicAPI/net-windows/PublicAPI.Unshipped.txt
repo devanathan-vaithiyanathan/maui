@@ -1,1 +1,2 @@
-#nullable enable
+﻿#nullable enable
+Microsoft.Maui.ITitleBar.ForegroundColor.get -> Microsoft.Maui.Graphics.Color?

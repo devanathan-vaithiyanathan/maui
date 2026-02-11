@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Microsoft.Maui.Graphics;
 
 namespace Microsoft.Maui
 {
@@ -24,5 +25,11 @@ namespace Microsoft.Maui
 		/// the secondary information about the application or window
 		/// </summary>
 		string? Subtitle { get; }
+
+		/// <summary>
+		/// Gets the foreground color of the title bar. This color is used for the 
+		/// title and subtitle text.
+		/// </summary>
+		Color? ForegroundColor { get; }
 	}
 }

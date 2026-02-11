@@ -457,6 +457,7 @@ namespace Microsoft.Maui.Platform
 			if (_titleBar is null || mauiContext is null)
 			{
 				UpdateBackgroundColorForButtons();
+				UpdateSystemButtonColors();
 				if (AppTitleBarContentControl is not null)
 				{
 					AppTitleBarContentControl.Content = null;
@@ -489,6 +490,7 @@ namespace Microsoft.Maui.Platform
 				}
 
 				UpdateBackgroundColorForButtons();
+				UpdateSystemButtonColors();
 				SetTitleBarInputElements();
 			}
 		}
@@ -519,6 +521,10 @@ namespace Microsoft.Maui.Platform
 				{
 					UpdateBackgroundColorForButtons();
 				}
+				else if (e.PropertyName == "ForegroundColor")
+				{
+					UpdateSystemButtonColors();
+				}
 			}
 		}
 
@@ -537,6 +543,38 @@ namespace Microsoft.Maui.Platform
 			}
 		}
 
+		private void UpdateSystemButtonColors()
+		{
+			if (!AppWindowTitleBar.IsCustomizationSupported() || !AppWindowId.HasValue)
+				return;
+
+			var titleBar = AppWindow.GetFromWindowId(AppWindowId.Value)?.TitleBar;
+			if (titleBar is null)
+				return;
+
+			// Get the TitleBar's ForegroundColor (for text/icons)
+			var foregroundColor = _titleBar?.ForegroundColor;
+			
+			// If ForegroundColor is set, use it for the system buttons
+			// Otherwise, fall back to the application theme
+			if (foregroundColor is not null)
+			{
+				var winColor = foregroundColor.ToWindowsColor();
+				titleBar.ButtonForegroundColor = winColor;
+			}
+			else
+			{
+				// Fall back to application theme
+				titleBar.ButtonForegroundColor = UI.Xaml.Application.Current.RequestedTheme == UI.Xaml.ApplicationTheme.Dark ?
+					UI.Colors.White : UI.Colors.Black;
+				titleBar.ButtonHoverForegroundColor = null;
+				titleBar.ButtonPressedForegroundColor = null;
+			}
+
+			// Keep background transparent for system buttons
+			titleBar.ButtonBackgroundColor = UI.Colors.Transparent;
+			titleBar.ButtonInactiveBackgroundColor = UI.Colors.Transparent;
+		}	
 		private void PlatformView_LayoutUpdated(object? sender, object e)
 		{
 			UpdateTitleBarContentSize();

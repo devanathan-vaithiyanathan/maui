@@ -9,6 +9,8 @@ namespace Microsoft.Maui.Handlers
 	{
 		PointerEventHandler? _pointerPressedHandler;
 		PointerEventHandler? _pointerReleasedHandler;
+		PointerEventHandler? _pointerExitedHandler;
+		PointerEventHandler? _pointerCanceledHandler;
 		bool _isPressed;
 
 		protected override Button CreatePlatformView() => new MauiButton();
@@ -17,11 +19,15 @@ namespace Microsoft.Maui.Handlers
 		{
 			_pointerPressedHandler = new PointerEventHandler(OnPointerPressed);
 			_pointerReleasedHandler = new PointerEventHandler(OnPointerReleased);
+			_pointerExitedHandler = new PointerEventHandler(OnPointerExited);
+			_pointerCanceledHandler = new PointerEventHandler(OnPointerCanceled);
 
 			platformView.Click += OnClick;
 			platformView.Unloaded += OnUnloaded;
 			platformView.AddHandler(UIElement.PointerPressedEvent, _pointerPressedHandler, true);
 			platformView.AddHandler(UIElement.PointerReleasedEvent, _pointerReleasedHandler, true);
+			platformView.AddHandler(UIElement.PointerExitedEvent, _pointerExitedHandler, true);
+			platformView.AddHandler(UIElement.PointerCanceledEvent, _pointerCanceledHandler, true);
 
 			base.ConnectHandler(platformView);
 		}
@@ -33,9 +39,13 @@ namespace Microsoft.Maui.Handlers
 			platformView.Unloaded -= OnUnloaded;
 			platformView.RemoveHandler(UIElement.PointerPressedEvent, _pointerPressedHandler);
 			platformView.RemoveHandler(UIElement.PointerReleasedEvent, _pointerReleasedHandler);
+			platformView.RemoveHandler(UIElement.PointerExitedEvent, _pointerExitedHandler);
+			platformView.RemoveHandler(UIElement.PointerCanceledEvent, _pointerCanceledHandler);
 
 			_pointerPressedHandler = null;
 			_pointerReleasedHandler = null;
+			_pointerExitedHandler = null;
+			_pointerCanceledHandler = null;
 
 			base.DisconnectHandler(platformView);
 		}
@@ -109,6 +119,26 @@ namespace Microsoft.Maui.Handlers
 		{
 			_isPressed = false;
 			VirtualView?.Released();
+		}
+
+		void OnPointerExited(object sender, PointerRoutedEventArgs e)
+		{
+			// Clear pressed state when pointer exits the button bounds
+			if (_isPressed)
+			{
+				_isPressed = false;
+				VirtualView?.Released();
+			}
+		}
+
+		void OnPointerCanceled(object sender, PointerRoutedEventArgs e)
+		{
+			// Clear pressed state when pointer is canceled
+			if (_isPressed)
+			{
+				_isPressed = false;
+				VirtualView?.Released();
+			}
 		}
 
 		void OnUnloaded(object sender, RoutedEventArgs e)

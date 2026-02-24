@@ -100,7 +100,7 @@ namespace Microsoft.Maui.Platform
 		static bool IsBlankNavigation(string? url)
 		{
 			// Null/empty URLs are handled by the early return in OnPageFinished,
-    		// so we only need to check for the explicit "about:blank" URL
+			// so we only need to check for the explicit "about:blank" URL
 			if (string.IsNullOrWhiteSpace(url))
 				return false;
 

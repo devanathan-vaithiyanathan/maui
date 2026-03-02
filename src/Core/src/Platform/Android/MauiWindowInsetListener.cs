@@ -235,14 +235,22 @@ namespace Microsoft.Maui.Platform
 				}
 			}
 
-			// Check if AppBarLayout has meaningful content
-			bool appBarHasContent = appBarLayout?.MeasuredHeight > 0;
-			if (!appBarHasContent && appBarLayout is not null)
+			// Check if AppBarLayout has meaningful content by examining LayoutParameters.Height
+			// (avoids stale MeasuredHeight values that include padding from previous inset passes)
+			bool appBarHasContent = false;
+			if (appBarLayout is not null)
 			{
 				for (int i = 0; i < appBarLayout.ChildCount; i++)
 				{
 					var child = appBarLayout.GetChildAt(i);
-					if (child?.MeasuredHeight > 0)
+					if (child is null || child.Visibility == ViewStates.Gone)
+						continue;
+					var childLp = child.LayoutParameters;
+					// Height==0 means toolbar was explicitly hidden via UpdateIsVisible
+					if (childLp?.Height == 0)
+						continue;
+					// Height>0 means explicit height set; WRAP_CONTENT/MATCH_PARENT fall back to MeasuredHeight
+					if ((childLp?.Height ?? 0) > 0 || child.MeasuredHeight > 0)
 					{
 						appBarHasContent = true;
 						break;

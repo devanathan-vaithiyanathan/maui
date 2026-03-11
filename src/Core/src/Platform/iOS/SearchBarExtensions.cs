@@ -119,10 +119,25 @@ namespace Microsoft.Maui.Platform
 		internal static bool ShouldShowCancelButton(this ISearchBar searchBar) =>
 			!string.IsNullOrEmpty(searchBar.Text);
 
+		internal static void UpdateClearButtonVisibility(this UISearchBar uiSearchBar, bool hasText)
+		{
+			var textField = uiSearchBar.GetSearchTextField();
+			
+			// On MacCatalyst, directly access and hide/show the clear button, like Entry does
+			if (OperatingSystem.IsMacCatalyst())
+			{
+				var cancelButton = uiSearchBar.FindDescendantView<UIButton>();
+				if (cancelButton is not null)
+				{
+					cancelButton.Hidden = !hasText;
+				}
+			}
+		}
+		
 		public static void UpdateCancelButton(this UISearchBar uiSearchBar, ISearchBar searchBar)
 		{
 			uiSearchBar.ShowsCancelButton = searchBar.ShouldShowCancelButton();
-
+			uiSearchBar.UpdateClearButtonVisibility(!string.IsNullOrEmpty(searchBar.Text));
 			// We can't cache the cancel button reference because iOS drops it when it's not displayed
 			// and creates a brand new one when necessary, so we have to look for it each time
 			var cancelButton = uiSearchBar.FindDescendantView<UIButton>();

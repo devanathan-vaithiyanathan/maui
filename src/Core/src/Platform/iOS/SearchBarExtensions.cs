@@ -7,6 +7,8 @@ namespace Microsoft.Maui.Platform
 {
 	public static class SearchBarExtensions
 	{
+		static readonly NSString ClearButtonKey = new NSString("clearButton");
+
 		internal static UITextField? GetSearchTextField(this UISearchBar searchBar)
 		{
 			if (OperatingSystem.IsIOSVersionAtLeast(13))
@@ -124,9 +126,15 @@ namespace Microsoft.Maui.Platform
 			if (OperatingSystem.IsMacCatalyst())
 			{
 				var searchTextField = uiSearchBar.GetSearchTextField();
-				if (searchTextField?.ValueForKey(new NSString("clearButton")) is UIButton clearButton)
+
+				if (searchTextField?.ValueForKey(ClearButtonKey) is UIButton clearButton)
 				{
-					clearButton.Hidden = !hasText;
+					var shouldHide = !hasText;
+
+					if (clearButton.Hidden != shouldHide)
+					{
+						clearButton.Hidden = shouldHide;
+					}
 				}
 			}
 		}

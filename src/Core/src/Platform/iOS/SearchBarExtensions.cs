@@ -138,11 +138,11 @@ namespace Microsoft.Maui.Platform
 				}
 			}
 		}
-		
+
 		public static void UpdateCancelButton(this UISearchBar uiSearchBar, ISearchBar searchBar)
 		{
 			uiSearchBar.ShowsCancelButton = searchBar.ShouldShowCancelButton();
-			uiSearchBar.UpdateClearButtonVisibility(!string.IsNullOrEmpty(searchBar.Text));
+		    uiSearchBar.UpdateClearButtonVisibility(!string.IsNullOrEmpty(searchBar.Text));
 			// We can't cache the cancel button reference because iOS drops it when it's not displayed
 			// and creates a brand new one when necessary, so we have to look for it each time
 			var cancelButton = uiSearchBar.FindDescendantView<UIButton>();

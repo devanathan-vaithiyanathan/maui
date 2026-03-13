@@ -121,15 +121,12 @@ namespace Microsoft.Maui.Platform
 
 		internal static void UpdateClearButtonVisibility(this UISearchBar uiSearchBar, bool hasText)
 		{
-			var textField = uiSearchBar.GetSearchTextField();
-			
-			// On MacCatalyst, directly access and hide/show the clear button, like Entry does
 			if (OperatingSystem.IsMacCatalyst())
 			{
-				var cancelButton = uiSearchBar.FindDescendantView<UIButton>();
-				if (cancelButton is not null)
+				var searchTextField = uiSearchBar.GetSearchTextField();
+				if (searchTextField?.ValueForKey(new NSString("clearButton")) is UIButton clearButton)
 				{
-					cancelButton.Hidden = !hasText;
+					clearButton.Hidden = !hasText;
 				}
 			}
 		}

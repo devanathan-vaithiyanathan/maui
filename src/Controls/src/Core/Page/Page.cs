@@ -323,6 +323,13 @@ namespace Microsoft.Maui.Controls
 			var args = new ActionSheetArguments(title, cancel, destruction, buttons);
 
 			args.FlowDirection = flowDirection;
+
+			if (Window is null)
+			{
+				args.SetResult(cancel);
+				return args.Result.Task;
+			}
+
 			if (IsPlatformEnabled)
 				Window.AlertManager.RequestActionSheet(this, args);
 			else
@@ -384,6 +391,12 @@ namespace Microsoft.Maui.Controls
 			var args = new AlertArguments(title, message, accept, cancel);
 			args.FlowDirection = flowDirection;
 
+			if (Window is null)
+			{
+				args.SetResult(false);
+				return args.Result.Task;
+			}
+
 			if (IsPlatformEnabled)
 				Window.AlertManager.RequestAlert(this, args);
 			else
@@ -407,6 +420,12 @@ namespace Microsoft.Maui.Controls
 		public Task<string> DisplayPromptAsync(string title, string message, string accept = "OK", string cancel = "Cancel", string placeholder = null, int maxLength = -1, Keyboard keyboard = default(Keyboard), string initialValue = "")
 		{
 			var args = new PromptArguments(title, message, accept, cancel, placeholder, maxLength, keyboard, initialValue);
+
+			if (Window is null)
+			{
+				args.SetResult(null);
+				return args.Result.Task;
+			}
 
 			if (IsPlatformEnabled)
 				Window.AlertManager.RequestPrompt(this, args);

@@ -6,4 +6,9 @@ public partial class MainPage : ContentPage
 	{
 		InitializeComponent();
 	}
+
+	void OnCounterClicked(object sender, EventArgs e)
+	{
+		ShellPage.Instance!.Detail = new NavigationPage(new SecondPage());
+	}
 }

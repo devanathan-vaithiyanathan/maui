@@ -554,17 +554,24 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 			if (e.PropertyName == ShellContent.ContentProperty.PropertyName && sender is ShellContent shellContent)
 			{
-				UpdateRendererForShellContent(shellContent);
+				// NOTE: PropertyChanged fires BEFORE the BindableProperty's propertyChanged callback
+				// (OnContentChanged), so ContentCache hasn't been updated yet. We must read the
+				// new page from the BindableProperty value directly, not from ContentCache.
+				var newPage = shellContent.Content as Page;
+				UpdateRendererForShellContent(shellContent, newPage);
 			}
 		}
 
-		void UpdateRendererForShellContent(ShellContent shellContent)
+		void UpdateRendererForShellContent(ShellContent shellContent, Page newPage)
 		{
+			if (newPage == null)
+				return;
+
 			if (!_renderers.TryGetValue(shellContent, out var oldRenderer))
 				return;
 
-			var page = ((IShellContentController)shellContent).Page;
-			if (page == null)
+			// If the existing renderer is already showing the new page, nothing to do.
+			if (oldRenderer.VirtualView == newPage)
 				return;
 
 			bool isCurrentContent = shellContent == _currentContent;
@@ -578,7 +585,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			_renderers.Remove(shellContent);
 
 			// Create a new renderer for the updated page
-			var renderer = SetPageRenderer(page, shellContent);
+			var renderer = SetPageRenderer(newPage, shellContent);
 			AddChildViewController(renderer.ViewController);
 
 			if (isCurrentContent)
@@ -588,7 +595,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				UpdateAdditionalSafeAreaInsets(renderer);
 
 				if (_tracker != null)
-					_tracker.Page = page;
+					_tracker.Page = newPage;
 			}
 		}
 

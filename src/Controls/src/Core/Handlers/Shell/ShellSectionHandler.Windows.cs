@@ -26,6 +26,7 @@ namespace Microsoft.Maui.Controls.Handlers
 
 		StackNavigationManager? _navigationManager;
 		WeakReference? _lastShell;
+		ShellContent? _currentShellContent;
 
 		public ShellSectionHandler() : base(Mapper, CommandMapper)
 		{
@@ -45,7 +46,29 @@ namespace Microsoft.Maui.Controls.Handlers
 
 		public static void MapCurrentItem(ShellSectionHandler handler, ShellSection item)
 		{
+			// Update subscription when the current ShellContent tab changes
+			if (handler._currentShellContent != null)
+			{
+				handler._currentShellContent.PropertyChanged -= handler.OnCurrentShellContentPropertyChanged;
+			}
+
+			handler._currentShellContent = item.CurrentItem;
+
+			if (handler._currentShellContent != null)
+			{
+				handler._currentShellContent.PropertyChanged += handler.OnCurrentShellContentPropertyChanged;
+			}
+
 			handler.SyncNavigationStack(false, null);
+		}
+
+		void OnCurrentShellContentPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == ShellContent.ContentProperty.PropertyName)
+			{
+				// The page inside the active ShellContent changed — re-navigate to show the new page.
+				SyncNavigationStack(false, null);
+			}
 		}
 
 		ShellSection? _shellSection;
@@ -62,6 +85,12 @@ namespace Microsoft.Maui.Controls.Handlers
 					shell.RemoveAppearanceObserver(this);
 				}
 				_lastShell = null;
+
+				if (_currentShellContent != null)
+				{
+					_currentShellContent.PropertyChanged -= OnCurrentShellContentPropertyChanged;
+					_currentShellContent = null;
+				}
 			}
 
 			// If we've already connected to the navigation manager
@@ -93,6 +122,10 @@ namespace Microsoft.Maui.Controls.Handlers
 					_lastShell = new WeakReference(shell);
 					shell.AddAppearanceObserver(this, _shellSection);
 				}
+
+				_currentShellContent = _shellSection.CurrentItem;
+				if (_currentShellContent != null)
+					_currentShellContent.PropertyChanged += OnCurrentShellContentPropertyChanged;
 			}
 		}
 
@@ -159,6 +192,12 @@ namespace Microsoft.Maui.Controls.Handlers
 
 		protected override void DisconnectHandler(WFrame platformView)
 		{
+			if (_currentShellContent != null)
+			{
+				_currentShellContent.PropertyChanged -= OnCurrentShellContentPropertyChanged;
+				_currentShellContent = null;
+			}
+
 			_navigationManager?.Disconnect(VirtualView, platformView);
 			base.DisconnectHandler(platformView);
 		}

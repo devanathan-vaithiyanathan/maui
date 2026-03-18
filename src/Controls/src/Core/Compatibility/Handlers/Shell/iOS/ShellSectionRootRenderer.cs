@@ -101,6 +101,9 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			ShellSection.PropertyChanged += OnShellSectionPropertyChanged;
 			ShellSectionController.ItemsCollectionChanged += OnShellSectionItemsChanged;
 
+			foreach (var item in ShellSectionController.GetItems())
+				item.PropertyChanged += OnShellContentPropertyChanged;
+
 			_blurView = new UIView();
 			UIVisualEffect blurEffect = UIBlurEffect.FromStyle(UIBlurEffectStyle.ExtraLight);
 			_blurView = new UIVisualEffectView(blurEffect);
@@ -153,6 +156,11 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 			if (_shellContext?.Shell != null)
 				_shellContext.Shell.PropertyChanged -= HandleShellPropertyChanged;
+
+			var shellContents = ShellSectionController?.GetItems();
+			if (shellContents != null)
+				foreach (var item in shellContents)
+					item.PropertyChanged -= OnShellContentPropertyChanged;
 
 			if (_renderers != null)
 			{
@@ -500,6 +508,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			{
 				foreach (ShellContent oldItem in e.OldItems)
 				{
+					oldItem.PropertyChanged -= OnShellContentPropertyChanged;
+
 					// if current item is removed will be handled by the currentitem property changed event
 					// That way the render is swapped out cleanly once the new current item is set
 					if (_currentContent == oldItem)
@@ -524,6 +534,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			{
 				foreach (ShellContent newItem in e.NewItems)
 				{
+					newItem.PropertyChanged += OnShellContentPropertyChanged;
+
 					if (_renderers.ContainsKey(newItem))
 						continue;
 
@@ -532,6 +544,51 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 					AddChildViewController(renderer.ViewController);
 				}
+			}
+		}
+
+		void OnShellContentPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+		{
+			if (_isDisposed)
+				return;
+
+			if (e.PropertyName == ShellContent.ContentProperty.PropertyName && sender is ShellContent shellContent)
+			{
+				UpdateRendererForShellContent(shellContent);
+			}
+		}
+
+		void UpdateRendererForShellContent(ShellContent shellContent)
+		{
+			if (!_renderers.TryGetValue(shellContent, out var oldRenderer))
+				return;
+
+			var page = ((IShellContentController)shellContent).Page;
+			if (page == null)
+				return;
+
+			bool isCurrentContent = shellContent == _currentContent;
+
+			// Remove the old renderer
+			if (isCurrentContent)
+				oldRenderer.ViewController?.ViewIfLoaded?.RemoveFromSuperview();
+
+			oldRenderer.ViewController?.RemoveFromParentViewController();
+			oldRenderer.DisconnectHandler();
+			_renderers.Remove(shellContent);
+
+			// Create a new renderer for the updated page
+			var renderer = SetPageRenderer(page, shellContent);
+			AddChildViewController(renderer.ViewController);
+
+			if (isCurrentContent)
+			{
+				_containerArea.AddSubview(renderer.ViewController.View);
+				renderer.ViewController.View.Frame = _containerArea.Bounds;
+				UpdateAdditionalSafeAreaInsets(renderer);
+
+				if (_tracker != null)
+					_tracker.Page = page;
 			}
 		}
 

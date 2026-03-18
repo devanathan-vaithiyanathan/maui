@@ -26,7 +26,6 @@ namespace Microsoft.Maui.Controls.Handlers
 
 		StackNavigationManager? _navigationManager;
 		WeakReference? _lastShell;
-		ShellContent? _currentShellContent;
 
 		public ShellSectionHandler() : base(Mapper, CommandMapper)
 		{
@@ -37,6 +36,7 @@ namespace Microsoft.Maui.Controls.Handlers
 			_navigationManager = CreateNavigationManager();
 			return new WFrame();
 		}
+
 		public static void MapTitle(ShellSectionHandler handler, ShellSection item)
 		{
 			var shellItem = item.Parent as ShellItem;
@@ -46,29 +46,7 @@ namespace Microsoft.Maui.Controls.Handlers
 
 		public static void MapCurrentItem(ShellSectionHandler handler, ShellSection item)
 		{
-			// Update subscription when the current ShellContent tab changes
-			if (handler._currentShellContent != null)
-			{
-				handler._currentShellContent.PropertyChanged -= handler.OnCurrentShellContentPropertyChanged;
-			}
-
-			handler._currentShellContent = item.CurrentItem;
-
-			if (handler._currentShellContent != null)
-			{
-				handler._currentShellContent.PropertyChanged += handler.OnCurrentShellContentPropertyChanged;
-			}
-
 			handler.SyncNavigationStack(false, null);
-		}
-
-		void OnCurrentShellContentPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-		{
-			if (e.PropertyName == ShellContent.ContentProperty.PropertyName)
-			{
-				// The page inside the active ShellContent changed — re-navigate to show the new page.
-				SyncNavigationStack(false, null);
-			}
 		}
 
 		ShellSection? _shellSection;
@@ -76,8 +54,8 @@ namespace Microsoft.Maui.Controls.Handlers
 		{
 			if (_shellSection != null)
 			{
+				((IShellSectionController)_shellSection).RemoveDisplayedPageObserver(this);
 				((IShellSectionController)_shellSection).NavigationRequested -= OnNavigationRequested;
-
 				((IShellSectionController)_shellSection).ItemsCollectionChanged -= OnItemsCollectionChanged;
 
 				if (_lastShell?.Target is IShellController shell)
@@ -85,12 +63,6 @@ namespace Microsoft.Maui.Controls.Handlers
 					shell.RemoveAppearanceObserver(this);
 				}
 				_lastShell = null;
-
-				if (_currentShellContent != null)
-				{
-					_currentShellContent.PropertyChanged -= OnCurrentShellContentPropertyChanged;
-					_currentShellContent = null;
-				}
 			}
 
 			// If we've already connected to the navigation manager
@@ -113,7 +85,6 @@ namespace Microsoft.Maui.Controls.Handlers
 			if (_shellSection != null)
 			{
 				((IShellSectionController)_shellSection).NavigationRequested += OnNavigationRequested;
-
 				((IShellSectionController)_shellSection).ItemsCollectionChanged += OnItemsCollectionChanged;
 
 				var shell = _shellSection.FindParentOfType<Shell>() as IShellController;
@@ -123,10 +94,33 @@ namespace Microsoft.Maui.Controls.Handlers
 					shell.AddAppearanceObserver(this, _shellSection);
 				}
 
-				_currentShellContent = _shellSection.CurrentItem;
-				if (_currentShellContent != null)
-					_currentShellContent.PropertyChanged += OnCurrentShellContentPropertyChanged;
+				// AddDisplayedPageObserver immediately invokes the callback with the current page,
+				// but at that point PendingNavigationTask is already set from MapCurrentItem
+				// (which runs via base.SetVirtualView above), so it is safely skipped.
+				((IShellSectionController)_shellSection).AddDisplayedPageObserver(this, OnDisplayedPageChanged);
 			}
+		}
+
+		// Called when ShellSection.DisplayedPage changes — covers both content changes and
+		// navigation pushes. We only act on content changes (stack depth == 1, no pending nav).
+		void OnDisplayedPageChanged(Page? page)
+		{
+			if (page is null || VirtualView is null)
+				return;
+
+			// Push/pop navigation is handled by OnNavigationRequested; skip those cases.
+			if (VirtualView.Stack.Count > 1)
+				return;
+
+			// Tab switches are handled by MapCurrentItem which sets PendingNavigationTask first
+			// (because the property mapper fires before the propertyChanged callback that calls
+			// UpdateDisplayedPage). Skip when another navigation is already in flight.
+			if (VirtualView.PendingNavigationTask != null)
+				return;
+
+			// ContentCache has been updated by OnContentChanged at this point, so
+			// SyncNavigationStack will correctly pick up the new page via GetOrCreateContent().
+			SyncNavigationStack(false, null);
 		}
 
 		void OnNavigationRequested(object? sender, NavigationRequestedEventArgs e)
@@ -192,11 +186,8 @@ namespace Microsoft.Maui.Controls.Handlers
 
 		protected override void DisconnectHandler(WFrame platformView)
 		{
-			if (_currentShellContent != null)
-			{
-				_currentShellContent.PropertyChanged -= OnCurrentShellContentPropertyChanged;
-				_currentShellContent = null;
-			}
+			if (_shellSection != null)
+				((IShellSectionController)_shellSection).RemoveDisplayedPageObserver(this);
 
 			_navigationManager?.Disconnect(VirtualView, platformView);
 			base.DisconnectHandler(platformView);

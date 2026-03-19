@@ -561,19 +561,6 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 					// Content is a Page — available immediately, no deferral needed.
 					UpdateRendererForShellContent(shellContent, newPage);
 				}
-				else if (shellContent.Content is DataTemplate)
-				{
-					// Content is a DataTemplate — ContentCache is populated by OnContentChanged,
-					// which runs after PropertyChanged completes. Defer to the next run-loop
-					// iteration so GetOrCreateContent() sees the updated ContentCache.
-					BeginInvokeOnMainThread(() =>
-					{
-						if (_isDisposed)
-							return;
-						var page = ((IShellContentController)shellContent).GetOrCreateContent();
-						UpdateRendererForShellContent(shellContent, page);
-					});
-				}
 			}
 		}
 

@@ -8,7 +8,7 @@ public class Issue99999 : _IssuesUITest
 {
 	const string FlyoutItem = "FlyoutItem";
 	const string ResetButton = "Reset";
-	public override string Issue => "[iOS] Shell Flyout SafeArea Rendering";
+	public override string Issue => "Shell Flyout SafeArea Rendering";
 
 	protected override bool ResetAfterEachTest => true;
 

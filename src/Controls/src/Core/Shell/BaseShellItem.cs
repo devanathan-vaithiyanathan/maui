@@ -254,12 +254,33 @@ namespace Microsoft.Maui.Controls
 			if (property == Shell.NavBarIsVisibleProperty)
 			{
 				var shell = me.FindParentOfType<Shell>();
-				if (shell is not null && shell.IsSet(property) && !me.IsSet(property))
+				if (shell is not null && shell.IsSet(property))
 				{
 					// Get the value from the Shell directly
 					me.SetValue(property, shell.GetValue(property));
 					return;
 				}
+			}
+
+			// For Shell.NavBarIsVisibleProperty, find the shell and either copy its value
+			// down (set case) or clear the stale propagated copy (clear case).
+			if (property == Shell.NavBarIsVisibleProperty)
+			{
+				var shell = me.FindParentOfType<Shell>();
+				if (shell is not null && shell.IsSet(property))
+				{
+					// Shell has the value set — stamp it onto me so platform renderers
+					// that call Shell.GetNavBarIsVisible(page) directly can see it.
+					me.SetValue(property, shell.GetValue(property));
+				}
+				else if (me.IsSet(property))
+				{
+					// Shell no longer has the value — clear the stale propagated copy.
+					// ClearValue fires OnNavBarIsVisibleChanged on me, which triggers
+					// PropagatePropertyChanged again and cleans up further down the tree.
+					me.ClearValue(property);
+				}
+				return;
 			}
 
 			Propagate(property, me.Parent, me, false);

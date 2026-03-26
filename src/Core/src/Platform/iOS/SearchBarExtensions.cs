@@ -7,8 +7,6 @@ namespace Microsoft.Maui.Platform
 {
 	public static class SearchBarExtensions
 	{
-		static readonly NSString ClearButtonKey = new NSString("clearButton");
-
 		internal static UITextField? GetSearchTextField(this UISearchBar searchBar)
 		{
 			if (OperatingSystem.IsIOSVersionAtLeast(13))
@@ -121,13 +119,13 @@ namespace Microsoft.Maui.Platform
 		internal static bool ShouldShowCancelButton(this ISearchBar searchBar) =>
 			!string.IsNullOrEmpty(searchBar.Text);
 
-		internal static void UpdateClearButtonVisibility(this UISearchBar uiSearchBar, bool hasText)
+		internal static void UpdateClearButtonVisibility(this UISearchBar uiSearchBar, bool hasText, UIButton? clearButton = null)
 		{
 			if (OperatingSystem.IsMacCatalyst())
 			{
-				var searchTextField = uiSearchBar.GetSearchTextField();
+				clearButton ??= uiSearchBar.GetSearchTextField()?.ValueForKey(new NSString("clearButton")) as UIButton;
 
-				if (searchTextField?.ValueForKey(ClearButtonKey) is UIButton clearButton)
+				if (clearButton != null)
 				{
 					var shouldHide = !hasText;
 
@@ -143,7 +141,6 @@ namespace Microsoft.Maui.Platform
 		{
 			uiSearchBar.ShowsCancelButton = searchBar.ShouldShowCancelButton();
 
-			uiSearchBar.UpdateClearButtonVisibility(!string.IsNullOrEmpty(searchBar.Text));
 			// We can't cache the cancel button reference because iOS drops it when it's not displayed
 			// and creates a brand new one when necessary, so we have to look for it each time
 			var cancelButton = uiSearchBar.FindDescendantView<UIButton>();

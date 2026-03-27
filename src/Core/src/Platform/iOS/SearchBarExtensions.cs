@@ -123,8 +123,6 @@ namespace Microsoft.Maui.Platform
 		{
 			if (OperatingSystem.IsMacCatalyst())
 			{
-				clearButton ??= uiSearchBar.GetSearchTextField()?.ValueForKey(new NSString("clearButton")) as UIButton;
-
 				if (clearButton != null)
 				{
 					var shouldHide = !hasText;

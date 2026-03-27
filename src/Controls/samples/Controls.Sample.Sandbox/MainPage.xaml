@@ -1,5 +1,45 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<!-- Issue #17916: Shadow on Label disappears permanently after opacity is tweened to zero (Windows) -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+    <VerticalStackLayout Padding="20" Spacing="16">
+        <Label Text="Issue #17916: Label Shadow lost after opacity tween"
+               FontAttributes="Bold"
+               FontSize="16"/>
+        <Label Text="Tap 'Fade Out' then 'Fade In'. On Windows, shadows should reappear but don't."
+               FontSize="13"
+               TextColor="Gray"/>
+
+        <!-- Labels with shadows that will be tweened -->
+        <Label x:Name="ShadowLabel1" Text="HELLO MAUI (tween)" FontAttributes="Bold" FontSize="40">
+            <Label.Shadow>
+                <Shadow Offset="0,5" Radius="7" Brush="Black" Opacity="1"/>
+            </Label.Shadow>
+        </Label>
+        <Label x:Name="ShadowLabel2" Text="HELLO MAUI (tween)" FontAttributes="Bold" FontSize="40">
+            <Label.Shadow>
+                <Shadow Offset="0,5" Radius="7" Brush="Black" Opacity="1"/>
+            </Label.Shadow>
+        </Label>
+        <Label x:Name="ShadowLabel3" Text="HELLO MAUI (tween)" FontAttributes="Bold" FontSize="40">
+            <Label.Shadow>
+                <Shadow Offset="0,5" Radius="7" Brush="Black" Opacity="1"/>
+            </Label.Shadow>
+        </Label>
+
+        <Label Text="─────────────────────────────" TextColor="LightGray"/>
+        <Label Text="Reference: hard-set opacity (shadow should always remain)" FontSize="13" TextColor="Gray"/>
+        <Label x:Name="HardSetLabel" Text="HELLO MAUI (hard-set)" FontAttributes="Bold" FontSize="40">
+            <Label.Shadow>
+                <Shadow Offset="0,5" Radius="7" Brush="DarkBlue" Opacity="1"/>
+            </Label.Shadow>
+        </Label>
+
+        <HorizontalStackLayout Spacing="12">
+            <Button x:Name="FadeOutButton" Text="Fade Out (tween)" Clicked="OnFadeOutClicked"/>
+            <Button x:Name="FadeInButton" Text="Fade In (tween)" Clicked="OnFadeInClicked" IsEnabled="False"/>
+        </HorizontalStackLayout>
+        <Label x:Name="StatusLabel" Text="Ready" FontSize="13" TextColor="Gray"/>
+    </VerticalStackLayout>
 </ContentPage>

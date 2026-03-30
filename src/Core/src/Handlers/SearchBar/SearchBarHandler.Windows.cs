@@ -1,5 +1,6 @@
 #nullable enable
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.Maui.Controls;
 
 namespace Microsoft.Maui.Handlers
 {
@@ -24,6 +25,10 @@ namespace Microsoft.Maui.Handlers
 			// To address this, I have specifically handled the focus and unfocus events for AutoSuggestBox here. 
 			platformView.GotFocus += OnGotFocus;
 			platformView.LostFocus += OnLostFocus;
+
+			// Subscribe to theme changes to update QueryIcon
+			if (Microsoft.Maui.Controls.Application.Current is not null)
+				Microsoft.Maui.Controls.Application.Current.RequestedThemeChanged += OnAppThemeChanged;
 		}
 
 		protected override void DisconnectHandler(AutoSuggestBox platformView)
@@ -33,6 +38,10 @@ namespace Microsoft.Maui.Handlers
 			platformView.TextChanged -= OnTextChanged;
 			platformView.GotFocus -= OnGotFocus;
 			platformView.LostFocus -= OnLostFocus;
+
+			// Unsubscribe from theme changes
+			if (Microsoft.Maui.Controls.Application.Current is not null)
+				Microsoft.Maui.Controls.Application.Current.RequestedThemeChanged -= OnAppThemeChanged;
 		}
 
 		public static void MapBackground(ISearchBarHandler handler, ISearchBar searchBar)
@@ -177,6 +186,20 @@ namespace Microsoft.Maui.Handlers
 		void OnLostFocus(object sender, UI.Xaml.RoutedEventArgs e)
 		{
 			UpdateIsFocused(false);
+		}
+
+		void OnAppThemeChanged(object? sender, AppThemeChangedEventArgs e)
+		{
+			UpdateQueryIcon();
+		}
+
+		void UpdateQueryIcon()
+		{
+			if (PlatformView is not null)
+			{
+				// Update the QueryIcon to ensure it reflects the current theme
+				PlatformView.QueryIcon = new SymbolIcon(Symbol.Find);
+			}
 		}
 	}
 }

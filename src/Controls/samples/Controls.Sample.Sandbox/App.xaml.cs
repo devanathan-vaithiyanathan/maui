@@ -1,4 +1,6 @@
-﻿namespace Maui.Controls.Sample;
+﻿using Maui.Controls.Sample.Pages;
+
+namespace Maui.Controls.Sample;
 
 public partial class App : Application
 {
@@ -10,15 +12,17 @@ public partial class App : Application
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
 		// To test shell scenarios, change this to true
-		bool useShell = false;
+		// bool useShell = false;
 
-		if (!useShell)
-		{
-			return new Window(new NavigationPage(new MainPage()));
-		}
-		else
-		{
-			return new Window(new SandboxShell());
-		}
+		// if (!useShell)
+		// {
+		// 	return new Window(new NavigationPage(new MainPage()));
+		// }
+		// else
+		// {
+		// 	return new Window(new SandboxShell());
+		// }
+
+		return new Window(new MasterPage() { Detail = new NavigationPage(new DetailPage1())});
 	}
 }

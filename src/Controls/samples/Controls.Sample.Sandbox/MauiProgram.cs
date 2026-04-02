@@ -1,9 +1,13 @@
-﻿namespace Maui.Controls.Sample;
+﻿#if USE_MEMORY_TOOLKIT
+using MemoryToolkit.Maui;
+#endif
+namespace Maui.Controls.Sample;
 
 public static class MauiProgram
 {
-	public static MauiApp CreateMauiApp() =>
-		MauiApp
+	public static MauiApp CreateMauiApp()
+	{
+		var builder = MauiApp
 			.CreateBuilder()
 #if __ANDROID__ || __IOS__
 			.UseMauiMaps()
@@ -21,6 +25,19 @@ public static class MauiProgram
 				fonts.AddFont("SegoeUI-Bold.ttf", "Segoe UI Bold");
 				fonts.AddFont("SegoeUI-Italic.ttf", "Segoe UI Italic");
 				fonts.AddFont("SegoeUI-Bold-Italic.ttf", "Segoe UI Bold Italic");
-			})
-			.Build();
+			});
+
+#if DEBUG && USE_MEMORY_TOOLKIT
+		// Console.WriteLine("SANDBOX: UseLeakDetection registered");
+		// builder.UseLeakDetection(collectionTarget =>
+		// {
+		// 	// This callback will run any time a leak is detected.
+		// 	Console.WriteLine($"SANDBOX: 💦 LEAK DETECTED — {collectionTarget.Name} is a zombie!");
+		// 	var mainPage = Application.Current?.Windows[0].Page;
+		// 	mainPage.DisplayAlertAsync("💦Leak Detected💦", $"❗🧟❗{collectionTarget.Name} is a zombie!", "OK");
+		// });
+#endif
+
+		return builder.Build();
+	}
 }

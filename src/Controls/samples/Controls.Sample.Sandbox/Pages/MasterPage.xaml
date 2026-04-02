@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<FlyoutPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="MasterPage"
+             x:Class="Maui.Controls.Sample.Pages.MasterPage">
+    <FlyoutPage.Flyout>
+        <ContentPage Title="Panel">
+            <Grid RowDefinitions="*,*">
+                <Label Grid.Row="0" Text="This is the MasterPage"/>
+            </Grid>
+        </ContentPage>
+    </FlyoutPage.Flyout>
+    <FlyoutPage.Detail>
+        <NavigationPage>
+            <x:Arguments>
+                <ContentPage />
+            </x:Arguments>
+        </NavigationPage>
+    </FlyoutPage.Detail>
+</FlyoutPage>

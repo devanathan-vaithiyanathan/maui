@@ -49,7 +49,12 @@
   <ItemGroup Condition=" '$(UseMaui)' == 'true' ">
     <PackageReference Include="Microsoft.Maui.Controls.Foldable" Version="$(MauiVersion)" />
     <PackageReference Include="Microsoft.Maui.Controls.Maps" Version="$(MauiVersion)" />
+    <PackageReference Include="AdamE.MemoryToolkit.Maui" Version="1.0.0" />
   </ItemGroup>
+
+  <PropertyGroup Condition=" '$(UseMaui)' == 'true' ">
+    <DefineConstants>$(DefineConstants);USE_MEMORY_TOOLKIT</DefineConstants>
+  </PropertyGroup>
 
   <ItemGroup>
     <MauiImage Include="Resources\Images\*" />

@@ -119,10 +119,12 @@ namespace Microsoft.Maui.Platform
 		internal static bool ShouldShowCancelButton(this ISearchBar searchBar) =>
 			!string.IsNullOrEmpty(searchBar.Text);
 
-		internal static void UpdateClearButtonVisibility(this UISearchBar uiSearchBar, bool hasText, UIButton? clearButton = null)
+		internal static void UpdateClearButtonVisibility(this UISearchBar uiSearchBar, bool hasText)
 		{
 			if (OperatingSystem.IsMacCatalyst())
 			{
+				var clearButton = uiSearchBar.GetClearButton();
+
 				if (clearButton != null)
 				{
 					var shouldHide = !hasText;

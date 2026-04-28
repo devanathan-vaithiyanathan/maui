@@ -153,7 +153,12 @@ namespace Microsoft.Maui.Platform
 			if (!ValidateSafeArea())
 			{
 				((IPlatformMeasureInvalidationController)this).InvalidateMeasure();
-				this.InvalidateAncestorsMeasures();
+
+				//Only if scroll view is actually handling safe area
+				if (_appliesSafeAreaAdjustments)
+				{
+					this.InvalidateAncestorsMeasures();
+				}
 			}
 		}
 

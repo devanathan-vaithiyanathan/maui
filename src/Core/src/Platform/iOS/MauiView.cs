@@ -157,6 +157,7 @@ namespace Microsoft.Maui.Platform
 		// Keyboard tracking
 		CGRect _keyboardFrame = CGRect.Empty;
 		bool _isKeyboardShowing;
+		bool _pendingUnsubscribeFromKeyboardNotifications;
 		WeakReference<NSObject>? _keyboardWillShowObserver;
 		WeakReference<NSObject>? _keyboardWillHideObserver;
 
@@ -297,6 +298,8 @@ namespace Microsoft.Maui.Platform
 
 		void SubscribeToKeyboardNotifications()
 		{
+			_pendingUnsubscribeFromKeyboardNotifications = false;
+
 			if (_keyboardWillShowObserver != null || _keyboardWillHideObserver != null)
 			{
 				// Already subscribed, no need to re-subscribe
@@ -314,8 +317,18 @@ namespace Microsoft.Maui.Platform
 			_keyboardWillHideObserver = new WeakReference<NSObject>(hideObserver);
 		}
 
-		void UnsubscribeFromKeyboardNotifications()
+		void UnsubscribeFromKeyboardNotifications(bool force = false)
 		{
+			if (!force && _isKeyboardShowing)
+			{
+				// Keep tracking until we observe keyboard hide to avoid dropping valid
+				// state during Container -> SoftInput transitions while keyboard is open.
+				_pendingUnsubscribeFromKeyboardNotifications = true;
+				return;
+			}
+
+			_pendingUnsubscribeFromKeyboardNotifications = false;
+
 			if (_keyboardWillShowObserver?.TryGetTarget(out var showObserver) == true)
 			{
 				NSNotificationCenter.DefaultCenter.RemoveObserver(showObserver);
@@ -328,8 +341,7 @@ namespace Microsoft.Maui.Platform
 				_keyboardWillHideObserver = null;
 			}
 
-			// Clear stale keyboard state so that re-subscribing later doesn't
-			// pick up a phantom keyboard frame from a previous session (#34846).
+			// Clear stale keyboard state on actual unsubscription.
 			if (_isKeyboardShowing)
 			{
 				ClearKeyboardState();
@@ -364,7 +376,15 @@ namespace Microsoft.Maui.Platform
 			}
 		}
 
-		void OnKeyboardWillHide(NSNotification notification) => ClearKeyboardState();
+		void OnKeyboardWillHide(NSNotification notification)
+		{
+			ClearKeyboardState();
+
+			if (_pendingUnsubscribeFromKeyboardNotifications && !ShouldSubscribeToKeyboardNotifications())
+			{
+				UnsubscribeFromKeyboardNotifications(force: true);
+			}
+		}
 
 		void ClearKeyboardState()
 		{

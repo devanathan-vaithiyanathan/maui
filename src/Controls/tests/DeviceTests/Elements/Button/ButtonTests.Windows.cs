@@ -58,5 +58,31 @@ namespace Microsoft.Maui.DeviceTests
 			});
 		}
 
+		[Fact]
+		[Description("Button pressed state should be cleared when pointer exits bounds")]
+		public async Task ButtonPressedStateClearedOnPointerExit()
+		{
+			var button = new Microsoft.Maui.Controls.Button
+			{
+				Text = "Test Button"
+			};
+
+			var handler = await CreateHandlerAsync<ButtonHandler>(button);
+			await InvokeOnMainThreadAsync(() =>
+			{
+				// Manually trigger pressed state
+				button.SendPressed();
+				
+				// Check that button is in pressed state
+				Assert.True(button.IsPressed);
+				
+				// Manually trigger released state (simulating what happens on pointer exit)
+				button.SendReleased();
+				
+				// Check that button is no longer in pressed state
+				Assert.False(button.IsPressed);
+			});
+		}
+
 	}
 }

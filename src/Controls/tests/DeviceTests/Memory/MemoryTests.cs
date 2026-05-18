@@ -532,6 +532,71 @@ public class MemoryTests : ControlsHandlerTestBase
 		await AssertionExtensions.WaitForGC(references.ToArray());
 	}
 
+	[Theory("Shape Points Replacement Does Not Leak")]
+	[InlineData(typeof(Polygon))]
+	[InlineData(typeof(Polyline))]
+	public async Task ShapePointsReplacementDoesNotLeak([DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] Type type)
+	{
+		SetupBuilder();
+
+		var references = new List<WeakReference>();
+		var rootedPoints = new List<PointCollection>();
+		var navPage = new NavigationPage(new ContentPage { Title = "Page 1" });
+
+		await CreateHandlerAndAddToWindow(new Window(navPage), async () =>
+		{
+			var shape = (Shape)Activator.CreateInstance(type);
+			shape.WidthRequest = 100;
+			shape.HeightRequest = 100;
+			shape.Stroke = Colors.Black;
+			shape.StrokeThickness = 4;
+
+			var initialPoints = new PointCollection
+			{
+				new Point(0, 0),
+				new Point(50, 100),
+				new Point(100, 0),
+			};
+
+			if (shape is Polygon polygon)
+				polygon.Points = initialPoints;
+			else if (shape is Polyline polyline)
+				polyline.Points = initialPoints;
+			else
+				throw new InvalidOperationException($"Unexpected shape type {type}.");
+
+			await navPage.Navigation.PushAsync(new ContentPage
+			{
+				Content = shape
+			});
+
+			await OnLoadedAsync(shape);
+
+			rootedPoints.Add(initialPoints);
+
+			var replacementPoints = new PointCollection
+			{
+				new Point(0, 0),
+				new Point(25, 50),
+				new Point(100, 0),
+			};
+
+			if (shape is Polygon polygon2)
+				polygon2.Points = replacementPoints;
+			else if (shape is Polyline polyline2)
+				polyline2.Points = replacementPoints;
+
+			references.Add(new(shape));
+			references.Add(new(shape.Handler));
+			references.Add(new(shape.Handler.PlatformView));
+
+			await navPage.Navigation.PopAsync();
+		});
+
+		GC.KeepAlive(rootedPoints);
+		await AssertionExtensions.WaitForGC([.. references]);
+	}
+
 	[Fact("BindableLayout Does Not Leak")]
 	public async Task BindableLayoutDoesNotLeak()
 	{

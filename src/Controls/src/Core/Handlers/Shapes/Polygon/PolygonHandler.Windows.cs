@@ -11,7 +11,9 @@ namespace Microsoft.Maui.Controls.Handlers
 		protected override void ConnectHandler(W2DGraphicsView nativeView)
 		{
 			if (VirtualView is Polygon polygon)
+			{
 				UpdatePoints(polygon.Points);
+			}
 
 			base.ConnectHandler(nativeView);
 		}

@@ -41,7 +41,9 @@ namespace Microsoft.Maui.Controls.Handlers
 		void OnPointsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
 		{
 			if (VirtualView is Polyline polyline)
+			{
 				MapPoints(this, polyline);
+			}
 		}
 	}
 }

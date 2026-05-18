@@ -9,7 +9,9 @@ namespace Microsoft.Maui.Controls.Handlers
 		protected override void ConnectHandler(MauiShapeView nativeView)
 		{
 			if (VirtualView is Polyline polyline)
+			{
 				UpdatePoints(polyline.Points);
+			}
 
 			base.ConnectHandler(nativeView);
 		}

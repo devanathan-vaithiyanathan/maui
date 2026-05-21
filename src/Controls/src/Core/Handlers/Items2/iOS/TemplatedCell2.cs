@@ -95,6 +95,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				//view.MeasureInvalidated -= MeasureInvalidated;
 				view.BindingContext = null;
 				(view.Parent as ItemsView)?.RemoveLogicalChild(view);
+				view.DisconnectHandlers();
 			}
 		}
 
@@ -243,8 +244,10 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			{
 				oldElement.BindingContext = null;
 				itemsView.RemoveLogicalChild(oldElement);
+				oldElement.DisconnectHandlers();
 				PlatformHandler = null;
 				PlatformView?.RemoveFromSuperview();
+				PlatformView = null;
 			}
 
 			if (PlatformHandler is null && virtualView is not null)

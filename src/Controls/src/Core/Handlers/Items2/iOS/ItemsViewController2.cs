@@ -88,6 +88,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 			if (disposing)
 			{
+				TearDownEmptyView();
+
 				ItemsSource?.Dispose();
 
 				((IUIViewLifeCycleEvents)CollectionView).MovedToWindow -= MovedToWindow;
@@ -599,6 +601,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 			// RemoveLogicalChild will trigger a disposal of the native view and its content
 			ItemsView.RemoveLogicalChild(_emptyViewFormsElement);
+
+			_emptyViewFormsElement?.DisconnectHandlers();
 
 			_emptyUIView = null;
 			_emptyViewFormsElement = null;

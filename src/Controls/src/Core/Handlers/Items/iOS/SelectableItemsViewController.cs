@@ -119,7 +119,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		void FormsSelectItem(NSIndexPath indexPath)
 		{
 			var mode = ItemsView.SelectionMode;
-			var isEnabled = ItemsView.IsExplicitlyEnabled;
 
 			switch (mode)
 			{
@@ -158,7 +157,6 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			}
 
 			var mode = ItemsView.SelectionMode;
-			var isEnabled = ItemsView.IsExplicitlyEnabled;
 
 			switch (mode)
 			{

@@ -305,10 +305,14 @@ namespace Microsoft.Maui.Controls
 		void OnItemsSourceChanged(IList oldValue, IList newValue)
 		{
 			if (ReferenceEquals(oldValue, _subscribedItemsSourceCollection))
+			{
 				UnsubscribeFromItemsSourceCollection();
+			}
 
-			if (Handler != null)
+			if (Handler is not null)
+			{
 				SubscribeToItemsSourceCollection(newValue as INotifyCollectionChanged);
+			}
 
 			if (newValue != null)
 			{
@@ -341,17 +345,21 @@ namespace Microsoft.Maui.Controls
 		protected override void OnHandlerChanged()
 		{
 			if (Handler is null)
+			{
 				UnsubscribeFromItemsSourceCollection();
+			}
 
 			base.OnHandlerChanged();
 
-			if (Handler != null)
+			if (Handler is not null)
 			{
 				SubscribeToItemsSourceCollection(ItemsSource as INotifyCollectionChanged);
 
 				// Keep display items in sync if this Picker is detached and later reattached.
-				if (ItemsSource != null)
+				if (ItemsSource is not null)
+				{
 					ResetItems();
+				}
 			}
 
 			// Process any pending actions when handler becomes available
@@ -376,7 +384,9 @@ namespace Microsoft.Maui.Controls
 		void SubscribeToItemsSourceCollection(INotifyCollectionChanged collection)
 		{
 			if (collection is null || ReferenceEquals(collection, _subscribedItemsSourceCollection))
+			{
 				return;
+			}
 
 			UnsubscribeFromItemsSourceCollection();
 			_subscribedItemsSourceCollection = collection;
@@ -386,7 +396,9 @@ namespace Microsoft.Maui.Controls
 		void UnsubscribeFromItemsSourceCollection()
 		{
 			if (_subscribedItemsSourceCollection is null)
+			{
 				return;
+			}
 
 			_subscribedItemsSourceCollection.CollectionChanged -= CollectionChanged;
 			_subscribedItemsSourceCollection = null;

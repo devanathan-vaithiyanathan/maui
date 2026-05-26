@@ -304,15 +304,11 @@ namespace Microsoft.Maui.Controls
 
 		void OnItemsSourceChanged(IList oldValue, IList newValue)
 		{
-			var oldObservable = oldValue as INotifyCollectionChanged;
-			if (oldObservable != null)
-				oldObservable.CollectionChanged -= CollectionChanged;
+			if (ReferenceEquals(oldValue, _subscribedItemsSourceCollection))
+				UnsubscribeFromItemsSourceCollection();
 
-			var newObservable = newValue as INotifyCollectionChanged;
-			if (newObservable != null)
-			{
-				newObservable.CollectionChanged += CollectionChanged;
-			}
+			if (Handler != null)
+				SubscribeToItemsSourceCollection(newValue as INotifyCollectionChanged);
 
 			if (newValue != null)
 			{
@@ -328,6 +324,7 @@ namespace Microsoft.Maui.Controls
 		}
 
 		readonly Queue<Action> _pendingIsOpenActions = new Queue<Action>();
+		INotifyCollectionChanged _subscribedItemsSourceCollection;
 
 		void OnIsOpenPropertyChanged(bool oldValue, bool newValue)
 		{
@@ -343,16 +340,19 @@ namespace Microsoft.Maui.Controls
 
 		protected override void OnHandlerChanged()
 		{
-			// If Handler is being detached, unsubscribe from ItemsSource collection changes
 			if (Handler is null)
-			{
-				if (ItemsSource is INotifyCollectionChanged notifyCollection)
-				{
-					notifyCollection.CollectionChanged -= CollectionChanged;
-				}
-			}
+				UnsubscribeFromItemsSourceCollection();
 
 			base.OnHandlerChanged();
+
+			if (Handler != null)
+			{
+				SubscribeToItemsSourceCollection(ItemsSource as INotifyCollectionChanged);
+
+				// Keep display items in sync if this Picker is detached and later reattached.
+				if (ItemsSource != null)
+					ResetItems();
+			}
 
 			// Process any pending actions when handler becomes available
 			while (_pendingIsOpenActions.Count > 0 && Handler != null)
@@ -371,6 +371,25 @@ namespace Microsoft.Maui.Controls
 				picker.Opened?.Invoke(picker, PickerOpenedEventArgs.Empty);
 			else
 				picker.Closed?.Invoke(picker, PickerClosedEventArgs.Empty);
+		}
+
+		void SubscribeToItemsSourceCollection(INotifyCollectionChanged collection)
+		{
+			if (collection is null || ReferenceEquals(collection, _subscribedItemsSourceCollection))
+				return;
+
+			UnsubscribeFromItemsSourceCollection();
+			_subscribedItemsSourceCollection = collection;
+			_subscribedItemsSourceCollection.CollectionChanged += CollectionChanged;
+		}
+
+		void UnsubscribeFromItemsSourceCollection()
+		{
+			if (_subscribedItemsSourceCollection is null)
+				return;
+
+			_subscribedItemsSourceCollection.CollectionChanged -= CollectionChanged;
+			_subscribedItemsSourceCollection = null;
 		}
 
 		void CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

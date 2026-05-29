@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="Maui.Controls.Sample.LeakReproLauncherPage"
+			 Title="Leak Repro Launcher">
+	<VerticalStackLayout Padding="16"
+						 Spacing="12">
+		<Button Text="Go to leak repro page"
+				Clicked="OnGoToReproPageClicked" />
+		<Button Text="Run 30 navigation cycles"
+				Clicked="OnRunCyclesClicked" />
+		<Button Text="Refresh leak summary"
+				Clicked="OnRefreshLeakSummaryClicked" />
+		<Label x:Name="LeakSummaryLabel"
+			   FontSize="12"
+			   LineBreakMode="WordWrap" />
+		<ScrollView HeightRequest="220">
+			<Label x:Name="LeakDetailsLabel"
+				   FontSize="11"
+				   LineBreakMode="WordWrap" />
+		</ScrollView>
+	</VerticalStackLayout>
+</ContentPage>

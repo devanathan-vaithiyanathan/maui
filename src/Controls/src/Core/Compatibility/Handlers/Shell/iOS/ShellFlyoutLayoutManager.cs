@@ -268,17 +268,19 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				return;
 			}
 
+			var safeAreaInsets = parent.SafeAreaInsets;
+
 			nfloat footerHeight = 0;
 			if (FooterView is not null)
 			{
 				footerHeight = FooterView.Frame.Height;
 			}
 
-			LayoutHeader(parent.Frame);
-			LayoutContent(parent.Bounds, footerHeight);
+			LayoutHeader(parent.Frame, safeAreaInsets);
+			LayoutContent(parent.Bounds, footerHeight, safeAreaInsets);
 		}
 
-		void LayoutHeader(CGRect parentFrame)
+		void LayoutHeader(CGRect parentFrame, UIEdgeInsets safeAreaInsets)
 		{
 			if (HeaderView is not null && !double.IsNaN(ArrangedHeaderViewHeightWithMargin))
 			{
@@ -286,7 +288,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				if (ShouldHonorSafeArea(HeaderView.View))
 				{
 					// We add the safe area if margin is not explicitly set.
-					safeArea = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow().Top;
+					safeArea = safeAreaInsets.Top;
 				}
 
 				// For header's Y offset, we should only consider the safe area but not its margin, since it will be handled by MAUI's layout system.
@@ -308,19 +310,20 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			}
 		}
 
-		void LayoutContent(CGRect parentBounds, nfloat footerHeight)
+		void LayoutContent(CGRect parentBounds, nfloat footerHeight, UIEdgeInsets safeAreaInsets)
 		{
-			var safeAreaInsets = UIApplication.SharedApplication.GetSafeAreaInsetsForWindow();
-
 			// Honor ISafeAreaView.IgnoreSafeArea and explicit margins (same as LayoutHeader)
-			nfloat safeAreaTop = 0;
-			if (ShouldHonorSafeArea(HeaderView?.View) || (HeaderView is null && ShouldHonorSafeArea(Content)))
-			{
-				safeAreaTop = safeAreaInsets.Top;
-			}
-			nfloat safeAreaBottom = safeAreaInsets.Bottom;
+			var shouldHonorSafeArea = ShouldHonorSafeArea(HeaderView?.View)
+				|| (HeaderView is null && ShouldHonorSafeArea(Content));
 
+			nfloat safeAreaTop = shouldHonorSafeArea ? safeAreaInsets.Top : 0;
+			nfloat safeAreaBottom = shouldHonorSafeArea ? safeAreaInsets.Bottom : 0;
+			nfloat safeAreaLeft = shouldHonorSafeArea ? safeAreaInsets.Left : 0;
+			nfloat safeAreaRight = shouldHonorSafeArea ? safeAreaInsets.Right : 0;
+
+			var contentX = parentBounds.X + safeAreaLeft;
 			var contentY = parentBounds.Y + safeAreaTop;
+			var contentWidth = parentBounds.Width - safeAreaLeft - safeAreaRight;
 			var contentHeight = parentBounds.Height - safeAreaTop - safeAreaBottom - footerHeight;
 
 			if (HeaderView is not null)
@@ -343,7 +346,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				}
 			}
 
-			var contentFrame = new Rect(parentBounds.X, contentY, parentBounds.Width, contentHeight);
+			var contentFrame = new Rect(contentX, contentY, contentWidth, contentHeight);
 			if (Content is null)
 			{
 				ContentView.Frame = contentFrame.AsCGRect();

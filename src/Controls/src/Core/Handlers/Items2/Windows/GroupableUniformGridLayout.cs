@@ -440,6 +440,11 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			_bandCacheValid = false;
 			_bandCacheItemCount = -1;
 			_cachedTotalPrimaryExtent = 0;
+			//Reset estimates so shrinking items recalculate correctly
+			_estimatedVerticalRegularExtent = DefaultEstimatedRegularExtent;
+			_estimatedHorizontalRegularExtent = DefaultEstimatedRegularExtent;
+			_estimatedHeaderVerticalExtent = DefaultEstimatedHeaderExtent;
+			_estimatedHeaderHorizontalExtent = DefaultEstimatedHeaderExtent;
 		}
 
 		protected override void OnItemsChangedCore(VirtualizingLayoutContext context, object source, NotifyCollectionChangedEventArgs args)

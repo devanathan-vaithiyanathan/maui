@@ -106,6 +106,7 @@ namespace Microsoft.Maui.Essentials.DeviceTests
 
 #if WINDOWS
 		[Theory]
+		[InlineData(".webp", "image/webp")]
 		[InlineData(".jpg", "image/jpeg")]
 		[InlineData(".JPG", "image/jpeg")]
 		[InlineData(".Jpg", "image/jpeg")]

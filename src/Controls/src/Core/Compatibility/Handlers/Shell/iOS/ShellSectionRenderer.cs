@@ -395,6 +395,9 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		{
 			if (e.Is(VisualElement.FlowDirectionProperty))
 				UpdateFlowDirection();
+			else if (e.PropertyName == Shell.NavBarIsVisibleProperty.PropertyName ||
+				e.PropertyName == Shell.NavBarVisibilityAnimationEnabledProperty.PropertyName)
+				UpdateNavigationBarHidden();
 		}
 
 		protected virtual void HandlePropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -795,7 +798,9 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		void UpdateNavigationBarHidden()
 		{
-			SetNavigationBarHidden(!Shell.GetNavBarIsVisible(_displayedPage), Shell.GetNavBarVisibilityAnimationEnabled(_displayedPage));
+			SetNavigationBarHidden(
+				!_context.Shell.GetEffectiveNavBarIsVisible(_displayedPage),
+				_context.Shell.GetEffectiveNavBarVisibilityAnimationEnabled(_displayedPage));
 		}
 
 		void UpdateNavigationBarHasShadow()
@@ -875,11 +880,11 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 					if (element is ShellSection)
 						navBarVisible = _self._renderer.ShowNavBar;
 					else
-						navBarVisible = Shell.GetNavBarIsVisible(element);
+						navBarVisible = _self._context.Shell.GetEffectiveNavBarIsVisible(element);
 
 					// Update navigation bar visibility during the transition
 					// This ensures the correct nav bar state is applied as part of the navigation animation
-					bool animateVisibilityChange = animated && Shell.GetNavBarVisibilityAnimationEnabled(element);
+					bool animateVisibilityChange = animated && _self._context.Shell.GetEffectiveNavBarVisibilityAnimationEnabled(element);
 					navigationController.SetNavigationBarHidden(!navBarVisible, animateVisibilityChange);
 				}
 

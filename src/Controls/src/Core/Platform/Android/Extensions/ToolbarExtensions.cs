@@ -54,6 +54,7 @@ namespace Microsoft.Maui.Controls.Platform
 			}
 
 			nativeToolbar.LayoutParameters = lp;
+			nativeToolbar.RequestLayout();
 			AndroidX.Core.View.ViewCompat.RequestApplyInsets(nativeToolbar);
 		}
 

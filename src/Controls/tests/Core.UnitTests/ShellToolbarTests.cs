@@ -210,6 +210,53 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 		}
 
 		[Fact]
+		public void ClearingShellNavBarValueDoesNotClearExplicitPageValue()
+		{
+			var page = new ContentPage() { Title = "Test" };
+			var testShell = new TestShell(page);
+			var toolBar = testShell.Toolbar;
+
+			Shell.SetNavBarIsVisible(page, false);
+			Shell.SetNavBarIsVisible(testShell, false);
+			Assert.False(toolBar.IsVisible);
+
+			testShell.ClearValue(Shell.NavBarIsVisibleProperty);
+			Assert.False(toolBar.IsVisible);
+
+			page.ClearValue(Shell.NavBarIsVisibleProperty);
+			Assert.True(toolBar.IsVisible);
+		}
+
+		[Fact]
+		public void ExplicitPageNavBarValueOverridesShellValue()
+		{
+			var page = new ContentPage() { Title = "Test" };
+			var testShell = new TestShell(page);
+			var toolBar = testShell.Toolbar;
+
+			Shell.SetNavBarIsVisible(testShell, true);
+			Assert.True(toolBar.IsVisible);
+
+			Shell.SetNavBarIsVisible(page, false);
+			Assert.False(toolBar.IsVisible);
+
+			page.ClearValue(Shell.NavBarIsVisibleProperty);
+			Assert.True(toolBar.IsVisible);
+		}
+
+		[Fact]
+		public void EffectiveNavBarVisibilityFallsBackToShellValue()
+		{
+			var page = new ContentPage() { Title = "Test" };
+			var testShell = new TestShell(page);
+
+			Shell.SetNavBarIsVisible(testShell, false);
+
+			Assert.False(Shell.GetEffectiveNavBarIsVisible(page));
+			Assert.False(Shell.GetEffectiveNavBarIsVisible(page.Parent));
+		}
+
+		[Fact]
 		public void BackButtonBehaviorSet()
 		{
 			var page = new ContentPage();

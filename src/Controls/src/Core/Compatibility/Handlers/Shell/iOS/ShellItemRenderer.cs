@@ -604,7 +604,9 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		{
 			if (SelectedViewController is UINavigationController navigationController && _displayedPage is not null)
 			{
-				navigationController.SetNavigationBarHidden(!Shell.GetNavBarIsVisible(_displayedPage), Shell.GetNavBarVisibilityAnimationEnabled(_displayedPage));
+				navigationController.SetNavigationBarHidden(
+					!_context.Shell.GetEffectiveNavBarIsVisible(_displayedPage),
+					_context.Shell.GetEffectiveNavBarVisibilityAnimationEnabled(_displayedPage));
 			}
 		}
 

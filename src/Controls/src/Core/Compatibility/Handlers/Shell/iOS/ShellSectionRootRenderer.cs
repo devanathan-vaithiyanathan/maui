@@ -16,7 +16,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 	{
 		#region IShellSectionRootRenderer
 
-		bool IShellSectionRootRenderer.ShowNavBar => Shell.GetNavBarIsVisible(((IShellContentController)ShellSection.CurrentItem).GetOrCreateContent());
+		bool IShellSectionRootRenderer.ShowNavBar => _shellContext.Shell.GetEffectiveNavBarIsVisible(((IShellContentController)ShellSection.CurrentItem).GetOrCreateContent());
 
 		UIViewController IShellSectionRootRenderer.ViewController => this;
 

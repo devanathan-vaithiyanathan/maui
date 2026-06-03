@@ -37,6 +37,9 @@ namespace Microsoft.Maui.Controls
 					Shell.TitleViewProperty))
 				{
 					ApplyChanges();
+
+					if (p.Is(Shell.NavBarIsVisibleProperty))
+						Handler?.UpdateValue(nameof(Toolbar.IsVisible));
 				}
 				else if (p.Is(Shell.TitleProperty))
 					UpdateTitle();
@@ -57,12 +60,12 @@ namespace Microsoft.Maui.Controls
 
 			if (_currentPage != currentPage)
 			{
-				if (_currentPage != null)
+				if (_currentPage is not null)
 					_currentPage.PropertyChanged -= OnCurrentPagePropertyChanged;
 
 				_currentPage = currentPage;
 
-				if (_currentPage != null)
+				if (_currentPage is not null)
 					_currentPage.PropertyChanged += OnCurrentPagePropertyChanged;
 			}
 
@@ -85,7 +88,7 @@ namespace Microsoft.Maui.Controls
 			UpdateBackbuttonBehavior();
 			bool backButtonVisible = true;
 
-			if (_backButtonBehavior != null)
+			if (_backButtonBehavior is not null)
 			{
 				backButtonVisible = _backButtonBehavior.IsVisible;
 			}
@@ -136,12 +139,12 @@ namespace Microsoft.Maui.Controls
 			if (bbb == _backButtonBehavior)
 				return;
 
-			if (_backButtonBehavior != null)
+			if (_backButtonBehavior is not null)
 				_backButtonBehavior.PropertyChanged -= OnBackButtonCommandPropertyChanged;
 
 			_backButtonBehavior = bbb;
 
-			if (_backButtonBehavior != null)
+			if (_backButtonBehavior is not null)
 				_backButtonBehavior.PropertyChanged += OnBackButtonCommandPropertyChanged;
 		}
 

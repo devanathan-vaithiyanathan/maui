@@ -378,7 +378,7 @@ namespace Microsoft.Maui.Controls.Compatibility.Platform.iOS
 
 			if (IsPartOfShell && !isSafeAreaSet)
 			{
-				if (Shell.GetNavBarIsVisible(Element) || _tabThickness != default(Thickness))
+				if (Shell.GetEffectiveNavBarIsVisible(Element) || _tabThickness != default(Thickness))
 					usingSafeArea = true;
 			}
 

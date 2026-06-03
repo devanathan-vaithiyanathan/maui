@@ -141,7 +141,15 @@ namespace Microsoft.Maui.Controls
 			if (!AllowDrop)
 				return;
 
-			DropCommand?.Execute(DropCommandParameter);
+			var dropCommandParameter = DropCommandParameter;
+			if (DropCommand?.CanExecute(dropCommandParameter) == true)
+			{
+				DropCommand.Execute(dropCommandParameter);
+				// A command-based drop handler has no access to DropEventArgs,
+				// so mark this as handled to avoid applying default text/image propagation.
+				args.Handled = true;
+			}
+
 			Drop?.Invoke(Parent ?? this, args);
 
 			if (!args.Handled)

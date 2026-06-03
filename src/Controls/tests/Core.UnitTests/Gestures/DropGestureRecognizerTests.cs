@@ -60,6 +60,22 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.Equal(commandExecuted, parameter);
 		}
 
+		[Fact]
+		public async Task DropCommandPreventsDefaultTargetTextUpdate()
+		{
+			var dropRec = new DropGestureRecognizer() { AllowDrop = true };
+			var label = new Label { Text = "Original" };
+			label.GestureRecognizers.Add(dropRec);
+
+			bool commandExecuted = false;
+			dropRec.DropCommand = new Command(() => commandExecuted = true);
+
+			await dropRec.SendDrop(new DropEventArgs(new DataPackageView(new DataPackage() { Text = "Dragged text" })));
+
+			Assert.True(commandExecuted);
+			Assert.Equal("Original", label.Text);
+		}
+
 		[Theory]
 		[InlineData(typeof(Entry), "EntryTest")]
 		[InlineData(typeof(Label), "LabelTest")]

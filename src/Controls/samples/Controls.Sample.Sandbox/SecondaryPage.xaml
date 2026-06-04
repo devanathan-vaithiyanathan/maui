@@ -1,0 +1,29 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.SecondaryPage"
+             Title="Secondary Page">
+    <ScrollView>
+        <VerticalStackLayout Padding="30,0" Spacing="16">
+            <Label Text="Secondary ShellContent"
+                   FontSize="22"
+                   FontAttributes="Bold" />
+
+            <Label Text="This page changes only page-level Shell.NavBarIsVisible." />
+
+            <Label x:Name="PageStatusLabel"
+                   Text="Page status" />
+
+            <Button Text="Page level -> true"
+                    Clicked="OnPageTrueClicked"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="Page level -> false"
+                    Clicked="OnPageFalseClicked"
+                    HorizontalOptions="Fill" />
+
+            <Button Text="Page level -> clear"
+                    Clicked="OnPageClearClicked"
+                    HorizontalOptions="Fill" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

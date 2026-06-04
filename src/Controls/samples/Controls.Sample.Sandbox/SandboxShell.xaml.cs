@@ -7,51 +7,16 @@ public partial class SandboxShell : Shell
 	public SandboxShell()
 	{
 		InitializeComponent();
-		_toggleButton = new Button
-		{
-			Text = Shell.GetNavBarIsVisible(this) ? "Hide NavBar" : "Show NavBar",
-			HeightRequest = 50,
-			WidthRequest = 150,
-			AutomationId = "NavBarToggleButton",
-			HorizontalOptions = LayoutOptions.Center,
-			VerticalOptions = LayoutOptions.Center
-		};
-
-		_toggleButton.Clicked += OnNavBarToggleButtonClicked;
-
-		var issuePage = new ContentPage
-		{
-			Title = "Home",
-			Content = new StackLayout
-			{
-				VerticalOptions = LayoutOptions.Center,
-				Children =
-				{
-					new Label
-					{
-						Text = "Toggle NavBar visibility",
-						HorizontalOptions = LayoutOptions.Center
-					},
-					_toggleButton
-				}
-			}
-		};
-
-		Shell.SetNavBarIsVisible(issuePage, false);
-
-		Items.Add(new ShellContent
-		{
-			Title = "Issue17550",
-			Content = issuePage
-		});
+		SetShellNavBarVisible(true);
 	}
 
-	void OnNavBarToggleButtonClicked(object? sender, EventArgs e)
+	public void SetShellNavBarVisible(bool isVisible)
 	{
-		bool isCurrentlyVisible = Shell.GetNavBarIsVisible(this);
-		bool newVisibility = !isCurrentlyVisible;
-		Shell.SetNavBarIsVisible(this, newVisibility);
+		Shell.SetNavBarIsVisible(this, isVisible);
+	}
 
-		_toggleButton.Text = newVisibility ? "Hide NavBar" : "Show NavBar";
+	public void ClearShellNavBarValue()
+	{
+		ClearValue(Shell.NavBarIsVisibleProperty);
 	}
 }

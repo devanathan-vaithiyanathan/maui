@@ -5,4 +5,14 @@
     xmlns:local="clr-namespace:Maui.Controls.Sample"
     Shell.NavBarIsVisible="True"
     x:Name="shell">
+    <TabBar>
+        <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate local:MainPage}"
+        Route="MainPage"/>
+        <ShellContent
+        Title="Secondary"
+        ContentTemplate="{DataTemplate local:SecondaryPage}"
+        Route="SecondaryPage"/>
+    </TabBar>
 </Shell>

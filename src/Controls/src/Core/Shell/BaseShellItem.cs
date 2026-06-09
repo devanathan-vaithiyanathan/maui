@@ -278,8 +278,8 @@ namespace Microsoft.Maui.Controls
 				var shell = me.FindParentOfType<Shell>();
 				if (shell is not null && shell.IsSet(property))
 				{
-					// Get the value from the Shell directly
-					me.SetValue(property, shell.GetValue(property));
+					// Propagate shell-level value with low specificity so explicit page values still win.
+					me.SetValue(property, shell.GetValue(property), new SetterSpecificity(SetterSpecificity.StyleImplicit, 0, 0, 0));
 					return;
 				}
 			}

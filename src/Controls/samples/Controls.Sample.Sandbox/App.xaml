@@ -8,6 +8,8 @@
             <ResourceDictionary.MergedDictionaries>
 
             </ResourceDictionary.MergedDictionaries>
+            <shapes:PathGeometry x:Key="SharedPathGeometry" xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls" />
+            <shapes:ScaleTransform x:Key="SharedScaleTransform" xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls" ScaleX="1" ScaleY="1" CenterX="12" CenterY="12" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -93,15 +93,21 @@ namespace Microsoft.Maui.UnitTests
 
 	class DispatcherProviderStub : IDispatcherProvider, IDisposable
 	{
-		ThreadLocal<IDispatcher?> s_dispatcherInstance = new(() =>
+		readonly ThreadLocal<IDispatcher?> s_dispatcherInstance = new(() =>
 			DispatcherProviderStubOptions.SkipDispatcherCreation
 				? null
 				: new DispatcherStub(
 					DispatcherProviderStubOptions.IsInvokeRequired,
 					DispatcherProviderStubOptions.InvokeOnMainThread));
 
-		public void Dispose() =>
-			s_dispatcherInstance.Dispose();
+		public void Dispose()
+		{
+			// Do not dispose the ThreadLocal instance.
+			// DispatcherProvider.Current is process-global and can be captured by other tests
+			// while this provider is temporarily active. Disposing here can make those tests
+			// fail with ObjectDisposedException when they resolve a dispatcher later.
+			_dispatcherInstance.Value = null;
+		}
 
 		public IDispatcher? GetForCurrentThread()
 		{

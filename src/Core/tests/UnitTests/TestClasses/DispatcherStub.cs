@@ -106,7 +106,7 @@ namespace Microsoft.Maui.UnitTests
 			// DispatcherProvider.Current is process-global and can be captured by other tests
 			// while this provider is temporarily active. Disposing here can make those tests
 			// fail with ObjectDisposedException when they resolve a dispatcher later.
-			_dispatcherInstance.Value = null;
+			s_dispatcherInstance.Value = null;
 		}
 
 		public IDispatcher? GetForCurrentThread()

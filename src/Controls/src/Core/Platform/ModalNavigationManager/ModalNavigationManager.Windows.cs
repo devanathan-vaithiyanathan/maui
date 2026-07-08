@@ -190,10 +190,10 @@ namespace Microsoft.Maui.Controls.Platform
 
 					if (navRoot.RootView is WindowRootView wrv && wrv.AppTitleBarContainer is not null)
 					{
-						wrv.SetTitleBarVisibility(showTitleBar ? UI.Xaml.Visibility.Visible : UI.Xaml.Visibility.Collapsed);
+						wrv.SetTitleBarVisibility(UI.Xaml.Visibility.Visible);
 					}
 
-					navRoot?.SetTitleBarVisibility(showTitleBar);
+					navRoot?.SetTitleBarVisibility(!IsWindowFullScreen());
 
 					// Restore the titlebar
 					if (previousPage is not null &&
@@ -281,7 +281,12 @@ namespace Microsoft.Maui.Controls.Platform
 
 			var topModal = _platformModalPages[_platformModalPages.Count - 1];
 			var rootManager = topModal.FindMauiContext()?.GetNavigationRootManager();
-			rootManager?.SetTitleBarVisibility(sender.Presenter?.Kind != AppWindowPresenterKind.FullScreen);
+
+			// AppWindow.Changed is not guaranteed to fire on the UI thread, so marshal the
+			// WinUI FrameworkElement mutation (min height, margins, visibility) onto the
+			// dispatcher — the same pattern used by MauiWinUIWindow.ViewSettingsColorValuesChanged.
+			bool showTitleBar = sender.Presenter?.Kind != AppWindowPresenterKind.FullScreen;
+			sender.DispatcherQueue?.TryEnqueue(() => rootManager?.SetTitleBarVisibility(showTitleBar));
 		}
 	}
 }

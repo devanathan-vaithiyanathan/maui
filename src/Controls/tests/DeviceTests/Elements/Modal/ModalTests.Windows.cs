@@ -361,18 +361,13 @@ namespace Microsoft.Maui.DeviceTests
 						// Switch to full-screen while the modal is already visible.
 						// This exercises the AppWindow.Changed subscription path added by the fix.
 						appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
-
-						// Allow the AppWindow.Changed event to propagate.
-						await Task.Delay(100);
+						await SetPresenterAndWaitAsync(appWindow, AppWindowPresenterKind.FullScreen);
 
 						// The presenter change must clear the title bar reservation on the modal.
 						Assert.Equal(0d, modalWindowRootView.WindowTitleBarContentControlMinHeight);
 
 						// Restore windowed mode while the modal is still open.
-						appWindow.SetPresenter(AppWindowPresenterKind.Default);
-
-						// Allow the AppWindow.Changed event to propagate.
-						await Task.Delay(100);
+						await SetPresenterAndWaitAsync(appWindow, AppWindowPresenterKind.Default);
 
 						// The reservation must be restored when returning to windowed mode.
 						Assert.True(
@@ -461,6 +456,89 @@ namespace Microsoft.Maui.DeviceTests
 					// Modal A should now be removed from the visual tree
 					Assert.DoesNotContain(modalARootView, container.CachedChildren);
 				});
+		}
+
+		// Regression test for the pop-then-exit-full-screen sequence:
+		// push modal (windowed) → enter full-screen while modal is visible →
+		// pop the last modal while still in full-screen → exit full-screen →
+		// assert the root page's title-bar visuals are fully restored.
+		[Fact]
+		public async Task RootPageTitleBarRestoredAfterPopModalInFullScreenThenExitFullScreen()
+		{
+			SetupBuilder();
+
+			var navPage = new NavigationPage(new ContentPage());
+			var window = new Window(navPage);
+
+			await CreateHandlerAndAddToWindow<IWindowHandler>(window,
+				async (handler) =>
+				{
+					var platformWindow = handler.PlatformView;
+					var appWindow = platformWindow.GetAppWindow();
+
+					var rootWindowRootView = navPage
+						.FindMauiContext()
+						.GetNavigationRootManager()
+						.RootView as WindowRootView;
+
+					Assert.NotNull(rootWindowRootView);
+
+					// Push a modal while the window is still in windowed mode.
+					var modalPage = new ContentPage { BackgroundColor = Colors.Red };
+					await navPage.CurrentPage.Navigation.PushModalAsync(modalPage);
+					await OnLoadedAsync(modalPage);
+
+					try
+					{
+						// Enter full-screen while the modal is visible.
+						await SetPresenterAndWaitAsync(appWindow, AppWindowPresenterKind.FullScreen);
+
+						// Pop the last modal while still in full-screen.
+						await navPage.CurrentPage.Navigation.PopModalAsync();
+						await OnUnloadedAsync(modalPage);
+
+						// Exit full-screen now that no modal is present.
+						await SetPresenterAndWaitAsync(appWindow, AppWindowPresenterKind.Default);
+
+						// The root page's AppTitleBarContainer must be visible after returning to
+						// windowed mode. Before the fix, popping the modal in full-screen collapsed
+						// this container with no code path to restore it.
+						Assert.Equal(
+							UI.Xaml.Visibility.Visible,
+							rootWindowRootView.AppTitleBarContainer?.Visibility);
+
+						// The back/flyout button holder must also be visible.
+						Assert.Equal(
+							UI.Xaml.Visibility.Visible,
+							rootWindowRootView.NavigationViewControl?.ButtonHolderGrid?.Visibility);
+					}
+					finally
+					{
+						appWindow.SetPresenter(AppWindowPresenterKind.Default);
+					}
+				});
+		}
+
+		// Waits for the next AppWindow.Changed event where DidPresenterChange is true,
+		// with a 5-second guard against CI hangs. Using a TaskCompletionSource instead of
+		// Task.Delay avoids flakiness from fixed wall-clock delays under CI load.
+		static Task SetPresenterAndWaitAsync(AppWindow appWindow, AppWindowPresenterKind kind)
+		{
+			var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+			appWindow.Changed += OnChanged;
+			appWindow.SetPresenter(kind);
+
+			return tcs.Task.WaitAsync(TimeSpan.FromSeconds(5));
+
+			void OnChanged(AppWindow s, AppWindowChangedEventArgs a)
+			{
+				if (a.DidPresenterChange)
+				{
+					s.Changed -= OnChanged;
+					tcs.TrySetResult(true);
+				}
+			}
 		}
 	}
 }

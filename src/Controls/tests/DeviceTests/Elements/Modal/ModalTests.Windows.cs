@@ -360,7 +360,6 @@ namespace Microsoft.Maui.DeviceTests
 					{
 						// Switch to full-screen while the modal is already visible.
 						// This exercises the AppWindow.Changed subscription path added by the fix.
-						appWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
 						await SetPresenterAndWaitAsync(appWindow, AppWindowPresenterKind.FullScreen);
 
 						// The presenter change must clear the title bar reservation on the modal.

@@ -1183,9 +1183,19 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				if (result != null)
 				{
 					var newResult = result.ImageWithRenderingMode(UIImageRenderingMode.AlwaysTemplate);
+#if NET11_0_OR_GREATER
+					// iOS 26+: SetImageForSearchBarIcon was removed. Only the Search icon
+					// has a public replacement via SearchTextField.LeftView.
+					if (icon == UISearchBarIcon.Search &&
+						searchBar.SearchTextField.LeftView is UIImageView searchIconView)
+					{
+						searchIconView.Image = newResult;
+					}
+#else
 					searchBar.SetImageForSearchBarIcon(newResult, icon, UIControlState.Normal);
 					searchBar.SetImageForSearchBarIcon(newResult, icon, UIControlState.Highlighted);
 					searchBar.SetImageForSearchBarIcon(newResult, icon, UIControlState.Selected);
+#endif
 				}
 			});
 		}

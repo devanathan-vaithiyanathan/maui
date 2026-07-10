@@ -18,6 +18,9 @@
   <!-- NOTE: By default the UseMaterial3 flag value is false. If you change the UseMaterial3 flag, you MUST delete the artifacts folder 
        and rebuild the entire codebase using: dotnet build ./Microsoft.Maui.BuildTasks.slnf -->
     <UseMaterial3>false</UseMaterial3>
+        <ValidateXcodeVersion>false</ValidateXcodeVersion>
+<!-- Workaround for SDK version mismatch - link only SDK frameworks to avoid requiring newer Xcode -->
+<MtouchLink Condition="$(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))">SdkOnly</MtouchLink>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,7 +31,7 @@
     <_FastDeploymentDiagnosticLogging>True</_FastDeploymentDiagnosticLogging>
     <WindowsPackageType>None</WindowsPackageType>
     <!-- TODO: remove these obsolete nowarns and fix it in code -->
-    <NoWarn>$(NoWarn);CS0618;CS0672;XC0618;IL2026;IL2091;IL2067;IL2072;IL2087;IL3050</NoWarn>
+    <NoWarn>$(NoWarn);CS0618;CS0672;XC0618;IL2026;IL2091;IL2067;IL2072;IL2087;IL3050;XA4301</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(_UseNativeAot)' == 'true' ">

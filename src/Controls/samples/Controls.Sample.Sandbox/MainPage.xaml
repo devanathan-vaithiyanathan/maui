@@ -2,4 +2,57 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+    <!--
+        Reproduction for: https://github.com/FinnKr/MauiCustomFontFormattedStringIssues
+        Issue: TapGestureRecognizer on Span inside FormattedString fires on the wrong span
+               (or not at all) when a custom FontFamily is applied via Style.
+        Steps to reproduce:
+          1. Observe two green "clickable" spans labelled "Click me here" and "Click me".
+          2. Tap on "Click me here" – expect "First span tapped" alert.
+          3. Tap on "Click me" – expect "Second span tapped" alert.
+        Bug: With custom font (MyCustomFont / LobsterTwo), the tap hit-area is offset,
+             so the wrong handler fires or tapping the visible text triggers nothing.
+    -->
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30,0"
+            Spacing="25">
+
+            <Label Text="Custom Font + FormattedString Tap Issue" FontSize="18" FontAttributes="Bold" Margin="0,20,0,0" />
+            <Label Text="Tap on the green spans below. Each should show an alert with its own message." FontSize="14" />
+
+            <Label x:Name="SpanLabel" LineBreakMode="WordWrap">
+                <Label.FormattedText>
+                    <FormattedString>
+                        <Span Text="Placeholder Placeholder Placeholder. Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder Placeholder. Placeholder Placeholder Placeholder Placeholder Placeholder "
+                              Style="{StaticResource CustomBody}" />
+                        <Span Text="Click me here"
+                              Style="{StaticResource CustomBodyLink}"
+                              BackgroundColor="Green">
+                            <Span.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnFirstSpanTapped" />
+                            </Span.GestureRecognizers>
+                        </Span>
+                        <Span Text=". Placeholder Placeholder Placeholder Placeholder Placeholder "
+                              Style="{StaticResource CustomBody}" />
+                        <Span Text="Click me"
+                              Style="{StaticResource CustomBodyLink}"
+                              BackgroundColor="Green">
+                            <Span.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnSecondSpanTapped" />
+                            </Span.GestureRecognizers>
+                        </Span>
+                        <Span Text="."
+                              Style="{StaticResource CustomBody}" />
+                    </FormattedString>
+                </Label.FormattedText>
+            </Label>
+
+            <Label x:Name="StatusLabel"
+                   Text="Tap a green span above..."
+                   FontSize="14"
+                   TextColor="Gray" />
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

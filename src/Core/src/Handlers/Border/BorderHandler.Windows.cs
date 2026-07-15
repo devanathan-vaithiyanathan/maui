@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
 
 namespace Microsoft.Maui.Handlers
 {
@@ -42,9 +43,14 @@ namespace Microsoft.Maui.Handlers
 							existingContentPanel.Content = null;
 						}
 					}
-					else if (fwElement.Parent is MauiPanel existingPanel)
+					else
 					{
-						existingPanel.CachedChildren.Remove(fwElement);
+#pragma warning disable RS0030 // Do not use banned APIs; Panel.Children is banned for performance reasons. MauiPanel might not be used everywhere though.
+						var parentChildren = fwElement.Parent is MauiPanel mauiPanel
+							? mauiPanel.CachedChildren
+							: (fwElement.Parent as Panel)?.Children;
+#pragma warning restore RS0030 // Do not use banned APIs
+						parentChildren?.Remove(fwElement);
 					}
 				}
 

@@ -258,6 +258,9 @@ namespace Microsoft.Maui.Controls.Platform
 				alertDialog.Window.SetSoftInputMode(SoftInput.StateVisible);
 				alertDialog.Show();
 				editText.RequestFocus();
+
+				if (arguments.PreselectInitialValue && !string.IsNullOrEmpty(arguments.InitialValue))
+					editText.SelectAll();
 			}
 
 			bool WaitForHandlerIfNeeded(IView sender, System.Action action)

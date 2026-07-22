@@ -96,6 +96,17 @@ namespace Microsoft.Maui.Controls.Platform
 				{
 					uiTextField.Placeholder = arguments.Placeholder;
 					uiTextField.Text = arguments.InitialValue;
+					if (arguments.PreselectInitialValue && !string.IsNullOrEmpty(arguments.InitialValue))
+					{
+						// SelectedTextRange can only be set while the field is first responder.
+						// Defer the selection to EditingDidBegin, matching the same pattern
+						// used by the Entry handler (EntryHandler.iOS.cs OnEditingBegan).
+						uiTextField.EditingDidBegin += (s, e) =>
+						{
+							if (s is UITextField tf)
+								tf.SelectedTextRange = tf.GetTextRange(tf.BeginningOfDocument, tf.EndOfDocument);
+						};
+					}
 					if (arguments.MaxLength > -1 && (OperatingSystem.IsIOSVersionAtLeast(26) || OperatingSystem.IsMacCatalystVersionAtLeast(26)))
 					{
 						uiTextField.ShouldChangeCharactersInRanges = (textField, ranges, replacementString) =>

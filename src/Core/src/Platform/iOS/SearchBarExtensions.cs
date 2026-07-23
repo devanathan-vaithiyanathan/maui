@@ -141,7 +141,14 @@ namespace Microsoft.Maui.Platform
 
 		public static void UpdateCancelButton(this UISearchBar uiSearchBar, ISearchBar searchBar)
 		{
-			uiSearchBar.ShowsCancelButton = searchBar.ShouldShowCancelButton();
+			// On iOS 26+, UISearchBar shows a native clear button (circular X) inside the text
+			// field. Setting ShowsCancelButton=true would add a second large X cancel button,
+			// resulting in two simultaneous cancel/clear buttons. Suppress it on iOS 26+.
+			// MacCatalyst does not have this issue.
+			if (!OperatingSystem.IsIOSVersionAtLeast(26) || OperatingSystem.IsMacCatalyst())
+			{
+				uiSearchBar.ShowsCancelButton = searchBar.ShouldShowCancelButton();
+			}
 
 			// We can't cache the cancel button reference because iOS drops it when it's not displayed
 			// and creates a brand new one when necessary, so we have to look for it each time.

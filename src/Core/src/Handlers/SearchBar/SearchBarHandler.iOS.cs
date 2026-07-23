@@ -185,6 +185,14 @@ namespace Microsoft.Maui.Handlers
 
 		void UpdateCancelButtonVisibility()
 		{
+			// On iOS 26+, ShowsCancelButton is suppressed to avoid duplicate X buttons,
+			// so skip this sync check entirely on that platform.
+			// MacCatalyst does not suppress ShowsCancelButton.
+			if (OperatingSystem.IsIOSVersionAtLeast(26) && !OperatingSystem.IsMacCatalyst())
+			{
+				return;
+			}
+
 			if (PlatformView.ShowsCancelButton != VirtualView.ShouldShowCancelButton())
 				UpdateValue(nameof(ISearchBar.CancelButtonColor));
 		}

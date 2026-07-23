@@ -212,6 +212,13 @@ namespace Microsoft.Maui.DeviceTests
 		[Fact]
 		public async Task ShouldShowCancelButtonToggles()
 		{
+			// On iOS 26+, ShowsCancelButton is suppressed to avoid a duplicate X button
+			// alongside the native clear button inside the text field.
+			if (OperatingSystem.IsIOSVersionAtLeast(26))
+			{
+				return;
+			}
+
 			var searchBarStub = new SearchBarStub();
 
 			await InvokeOnMainThreadAsync(() =>

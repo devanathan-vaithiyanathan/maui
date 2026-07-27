@@ -5,3 +5,9 @@ override Microsoft.Maui.Controls.GraphicsView.OnBindingContextChanged() -> void
 override Microsoft.Maui.Controls.TitleBar.OnBindingContextChanged() -> void
 ~override Microsoft.Maui.Controls.SwipeItems.OnPropertyChanged(string propertyName = null) -> void
 Microsoft.Maui.Controls.Label.~Label() -> void
+Microsoft.Maui.Controls.Switch.Toggling -> System.EventHandler<Microsoft.Maui.Controls.SwitchTogglingEventArgs>!
+Microsoft.Maui.Controls.SwitchTogglingEventArgs
+Microsoft.Maui.Controls.SwitchTogglingEventArgs.SwitchTogglingEventArgs(bool value) -> void
+Microsoft.Maui.Controls.SwitchTogglingEventArgs.Cancel.get -> bool
+Microsoft.Maui.Controls.SwitchTogglingEventArgs.Cancel.set -> void
+Microsoft.Maui.Controls.SwitchTogglingEventArgs.Value.get -> bool

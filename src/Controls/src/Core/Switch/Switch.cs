@@ -119,6 +119,16 @@ namespace Microsoft.Maui.Controls
 		}
 
 		/// <summary>
+		/// Occurs before the <see cref="IsToggled"/> property changes, allowing the operation to be canceled.
+		/// </summary>
+		/// <remarks>
+		/// Subscribe to this event to intercept and optionally cancel a toggle operation initiated by user interaction.
+		/// Setting <see cref="SwitchTogglingEventArgs.Cancel"/> to <see langword="true"/> will revert the
+		/// platform view to its previous state and prevent the <see cref="Toggled"/> event from firing.
+		/// </remarks>
+		public event EventHandler<SwitchTogglingEventArgs> Toggling;
+
+		/// <summary>
 		/// Occurs when the <see cref="IsToggled"/> property changes.
 		/// </summary>
 		public event EventHandler<ToggledEventArgs> Toggled;
@@ -156,7 +166,23 @@ namespace Microsoft.Maui.Controls
 		bool ISwitch.IsOn
 		{
 			get => IsToggled;
-			set => SetValue(IsToggledProperty, value, SetterSpecificity.FromHandler);
+			set
+			{
+				if (IsToggled == value)
+					return;
+
+				var args = new SwitchTogglingEventArgs(value);
+				Toggling?.Invoke(this, args);
+
+				if (args.Cancel)
+				{
+					// Revert the platform view back to the current (unchanged) state
+					Handler?.UpdateValue(nameof(ISwitch.IsOn));
+					return;
+				}
+
+				SetValue(IsToggledProperty, value, SetterSpecificity.FromHandler);
+			}
 		}
 
 		private protected override string GetDebuggerDisplay()

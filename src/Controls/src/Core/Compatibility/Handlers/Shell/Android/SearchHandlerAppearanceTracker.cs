@@ -55,7 +55,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			{
 				UpdateTextColor();
 			}
-			else if (e.Is(SearchHandler.TextTransformProperty))
+			else if (e.IsOneOf(SearchHandler.QueryProperty, SearchHandler.TextTransformProperty))
 			{
 				UpdateTextTransform();
 			}
@@ -147,6 +147,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		void UpdateTextTransform()
 		{
 			_editText.Text = _searchHandler.UpdateFormsText(_editText.Text, _searchHandler.TextTransform);
+			_editText.SetSelection(_editText.Text?.Length ?? 0);
 		}
 
 		void UpdateBackgroundColor()

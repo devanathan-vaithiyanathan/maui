@@ -88,7 +88,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			{
 				UpdateTextColor(_uiSearchBar.FindDescendantView<UITextField>());
 			}
-			else if (e.Is(SearchHandler.TextTransformProperty))
+			else if (e.IsOneOf(SearchHandler.QueryProperty, SearchHandler.TextTransformProperty))
 			{
 				UpdateTextTransform(_uiSearchBar.FindDescendantView<UITextField>());
 			}

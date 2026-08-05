@@ -1,5 +1,122 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
-             xmlns:local="clr-namespace:Maui.Controls.Sample">
+             xmlns:local="clr-namespace:Maui.Controls.Sample"
+             Title="Source issue reproductions">
+    <Grid RowDefinitions="Auto,*">
+        <Label Padding="16,12"
+               FontAttributes="Bold"
+               FontSize="22"
+               Text="MAUI source issue reproductions"/>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16"
+                                 Spacing="12">
+                <Border Padding="12"
+                        Stroke="#B8BEC8"
+                        StrokeShape="RoundRectangle 6">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontAttributes="Bold"
+                               Text="1. iOS MaxLength paste"/>
+                        <Label Text="Place the cursor after B, then paste 123456. Expected: AB1CD. Bug: existing text is replaced by 12345."/>
+                        <Entry x:Name="MaxLengthEntry"
+                               AutomationId="MaxLengthEntry"
+                               MaxLength="5"
+                               Text="ABCD"
+                               TextChanged="OnMaxLengthTextChanged"/>
+                        <Button AutomationId="ResetMaxLengthButton"
+                                Clicked="OnResetMaxLengthClicked"
+                                Text="Reset and focus"/>
+                        <Label x:Name="MaxLengthStatus"
+                               Text="Ready"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Padding="12"
+                        Stroke="#B8BEC8"
+                        StrokeShape="RoundRectangle 6">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontAttributes="Bold"
+                               Text="2. iOS IndicatorView reconnect"/>
+                        <Button AutomationId="IndicatorReconnectButton"
+                                Clicked="OnIndicatorReconnectClicked"
+                                Text="Run reconnect probe"/>
+                        <Label x:Name="IndicatorStatus"
+                               Text="Ready"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Padding="12"
+                        Stroke="#B8BEC8"
+                        StrokeShape="RoundRectangle 6">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontAttributes="Bold"
+                               Text="3. Android permission bookkeeping"/>
+                        <Button AutomationId="PermissionLeakButton"
+                                Clicked="OnPermissionLeakClicked"
+                                Text="Request off main thread"/>
+                        <Label x:Name="PermissionStatus"
+                               Text="Ready"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Padding="12"
+                        Stroke="#B8BEC8"
+                        StrokeShape="RoundRectangle 6">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontAttributes="Bold"
+                               Text="4. iOS Shell stale footer callback"/>
+                        <Button AutomationId="OpenFooterReproductionButton"
+                                Clicked="OnOpenFooterReproductionClicked"
+                                Text="Open reproduction"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Padding="12"
+                        Stroke="#B8BEC8"
+                        StrokeShape="RoundRectangle 6">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontAttributes="Bold"
+                               Text="5. Android Contacts cursor cleanup"/>
+                        <Button AutomationId="ContactsStressButton"
+                                Clicked="OnContactsStressClicked"
+                                Text="Run 500 early enumerations"/>
+                        <Label x:Name="ContactsStatus"
+                               Text="Ready"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Padding="12"
+                        Stroke="#B8BEC8"
+                        StrokeShape="RoundRectangle 6">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontAttributes="Bold"
+                               Text="6. Apple security-scoped file cleanup"/>
+                        <Button AutomationId="PickFileButton"
+                                Clicked="OnPickFileClicked"
+                                Text="Pick a file"/>
+                        <Button AutomationId="FileFailureButton"
+                                Clicked="OnForceFileFailuresClicked"
+                                Text="Force 100 failed opens"/>
+                        <Label x:Name="FileStatus"
+                               Text="No file selected"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Padding="12"
+                        Stroke="#B8BEC8"
+                        StrokeShape="RoundRectangle 6">
+                    <VerticalStackLayout Spacing="8">
+                        <Label FontAttributes="Bold"
+                               Text="7. iOS TimePicker literal format"/>
+                        <Label Text="Open the picker. The HH token requests a 24-hour picker, but the literal word 'hours' can force a 12-hour locale."/>
+                        <TimePicker AutomationId="LiteralTimePicker"
+                                    Format="HH:mm 'hours'"
+                                    Time="13:45:00"/>
+                        <Label Text="Expected picker: 13:45. Bug signal: 1:45 PM."/>
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

@@ -1,0 +1,30 @@
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.ShellFooterReproductionPage"
+             Title="Shell footer callback">
+    <ScrollView>
+        <VerticalStackLayout Padding="20"
+                             Spacing="16">
+            <Label FontAttributes="Bold"
+                   FontSize="22"
+                   Text="iOS Shell stale footer callback"/>
+
+            <Label Text="1. Open the Shell flyout once, then close it."/>
+            <Label Text="2. Tap Replace footer A with B."/>
+            <Label Text="3. Tap Invalidate removed footer A."/>
+            <Label Text="Without the fix, invalidating the removed footer invokes the renderer and measures footer B. With the fix, no stale callback occurs."/>
+
+            <Button AutomationId="PrepareFooterButton"
+                    Clicked="OnPrepareFooterClicked"
+                    Text="Replace footer A with B"/>
+            <Button AutomationId="InvalidateOldFooterButton"
+                    Clicked="OnInvalidateOldFooterClicked"
+                    Text="Invalidate removed footer A"/>
+
+            <Label x:Name="FooterStatus"
+                   AutomationId="FooterStatus"
+                   FontAttributes="Bold"
+                   Text="Ready"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

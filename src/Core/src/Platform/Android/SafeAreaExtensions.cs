@@ -64,6 +64,8 @@ internal static class SafeAreaExtensions
 
 			var globalWindowInsetsListener = MauiWindowInsetListener.FindListenerForView(view);
 			bool hasTrackedViews = globalWindowInsetsListener?.HasTrackedView == true;
+			var isAdjustPan = context.GetActivity()?.Window?.Attributes is WindowManagerLayoutParams attributes &&
+				(attributes.SoftInputMode & SoftInput.MaskAdjust) == SoftInput.AdjustPan;
 
 			// If this view has no safe area padding to apply, pass insets through to children
 			// instead of consuming them. This allows child views with SafeAreaEdges set
@@ -83,19 +85,11 @@ internal static class SafeAreaExtensions
 			}
 
 
-			if (isKeyboardShowing &&
-				context.GetActivity()?.Window is Window window &&
-				window?.Attributes is WindowManagerLayoutParams attr)
+			if (isKeyboardShowing && isAdjustPan)
 			{
 				// When AdjustPan is set, the window pans instead of resizing
 				// so we should not modify any padding - just consume the insets and return
-				// Use MaskAdjust to properly distinguish AdjustPan from AdjustNothing
-				var softInputMode = attr.SoftInputMode;
-				var adjustMode = softInputMode & SoftInput.MaskAdjust;
-				if (adjustMode == SoftInput.AdjustPan)
-				{
-					return WindowInsetsCompat.Consumed;
-				}
+				return WindowInsetsCompat.Consumed;
 			}
 
 			// Check intersection with view bounds to determine which edges actually need padding
@@ -119,6 +113,14 @@ internal static class SafeAreaExtensions
 				var viewTop = viewLocation[1];
 				var viewRight = viewLeft + viewWidth;
 				var viewBottom = viewTop + viewHeight;
+
+				// IME insets can reach zero before Android restores an AdjustPan window to
+				// its settled position. Preserve the existing padding until that happens;
+				// calculating overlap from these transient bounds would clear the bottom inset.
+				if (isAdjustPan && viewTop < 0)
+				{
+					return WindowInsetsCompat.Consumed;
+				}
 
 				// Get actual screen dimensions (including system UI)
 				// This must be done BEFORE margin adjustment so we can detect

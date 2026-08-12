@@ -178,6 +178,10 @@ namespace Microsoft.Maui.Controls
 				Title = String.Empty;
 				return;
 			}
+			else
+			{
+				_shell.SetValueFromRenderer(Shell.TitleProperty, null);  // only when TitleView does not exist
+			}
 
 			Title = title;
 		}

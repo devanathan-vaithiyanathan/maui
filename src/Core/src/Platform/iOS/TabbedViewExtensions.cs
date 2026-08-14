@@ -36,6 +36,7 @@ namespace Microsoft.Maui.Platform
 			Color? selectedTabColor,
 			Color? unselectedTabColor,
 			Color? barBackgroundColor,
+			bool applyBackgroundColorToNativeView,
 			Color? selectedBarTextColor,
 			Color? unSelectedBarTextColor)
 		{
@@ -50,9 +51,9 @@ namespace Microsoft.Maui.Platform
 			if (effectiveBarColor != null)
 			{
 				_tabBarAppearance.BackgroundColor = effectiveBarColor;
-				if (OperatingSystem.IsIOSVersionAtLeast(26))
+				if (OperatingSystem.IsIOSVersionAtLeast(26) || OperatingSystem.IsMacCatalystVersionAtLeast(26))
 				{
-					tabBar.BackgroundColor = effectiveBarColor;
+					tabBar.BackgroundColor = applyBackgroundColorToNativeView ? effectiveBarColor : UIColor.Clear;
 				}
 			}
 

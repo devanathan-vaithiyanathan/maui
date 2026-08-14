@@ -12,6 +12,50 @@ namespace Microsoft.Maui.DeviceTests
 	[Category(TestCategory.Shell)]
 	public partial class ShellTests
 	{
+#if IOS
+		[Fact(DisplayName = "Shell TabBar Background Color Preserves Liquid Glass")]
+		public async Task ShellTabBarBackgroundColorPreservesLiquidGlass()
+		{
+			if (!OperatingSystem.IsIOSVersionAtLeast(26))
+				return;
+
+			var expectedColor = Colors.LightYellow;
+			await RunShellTabBarTests(
+				shell =>
+				{
+					Shell.SetBackgroundColor(shell, Colors.Red);
+					Shell.SetTabBarBackgroundColor(shell, expectedColor);
+				},
+				shell =>
+				{
+					var tabBar = GetTabBar(shell.CurrentSection);
+
+					Assert.Equal(expectedColor, tabBar.StandardAppearance.BackgroundColor.ToColor());
+					Assert.Equal(0, tabBar.BackgroundColor.CGColor.Alpha);
+					return Task.CompletedTask;
+				});
+		}
+
+		[Fact(DisplayName = "Shell Background Color Applies To TabBar")]
+		public async Task ShellBackgroundColorAppliesToTabBar()
+		{
+			if (!OperatingSystem.IsIOSVersionAtLeast(26))
+				return;
+
+			var expectedColor = Colors.LightYellow;
+			await RunShellTabBarTests(
+				shell => Shell.SetBackgroundColor(shell, expectedColor),
+				shell =>
+				{
+					var tabBar = GetTabBar(shell.CurrentSection);
+
+					Assert.Equal(expectedColor, tabBar.StandardAppearance.BackgroundColor.ToColor());
+					Assert.Equal(expectedColor, tabBar.BackgroundColor.ToColor());
+					return Task.CompletedTask;
+				});
+		}
+#endif
+
 		UITabBar GetTabBar(ShellSection item)
 		{
 			var shellItem = item.Parent as ShellItem;

@@ -85,6 +85,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 					foregroundColor ?? titleColor,
 					unselectedColor,
 					backgroundColor,
+					appearance.TabBarBackgroundColor is null,
 					titleColor ?? foregroundColor,
 					unselectedColor);
 

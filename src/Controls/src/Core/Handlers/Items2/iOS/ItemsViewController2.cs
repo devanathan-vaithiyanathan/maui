@@ -443,8 +443,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 		protected virtual CGRect DetermineEmptyViewFrame()
 		{
-			return new CGRect(CollectionView.Frame.X, CollectionView.Frame.Y,
-				CollectionView.Frame.Width, CollectionView.Frame.Height);
+			return CollectionView.Bounds;
 		}
 
 		void InvalidateMeasureIfContentSizeChanged()

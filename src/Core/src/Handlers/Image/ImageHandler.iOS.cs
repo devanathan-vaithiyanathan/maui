@@ -22,6 +22,8 @@ namespace Microsoft.Maui.Handlers
 
 		public static void MapBackground(IImageHandler handler, IImage image)
 		{
+			handler.UpdateValue(nameof(IViewHandler.ContainerView));
+
 			var platformView = handler.ToPlatform();
 
 			if (image.Background is ImageSourcePaint imagePaint)

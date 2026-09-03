@@ -113,6 +113,54 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.Equal(1, count);
 		}
 
+		[Fact]
+		public void BindingContextChangingRunsBeforeContextAndBindingsChange()
+		{
+			var oldContext = new MockViewModel { Text = "old" };
+			var newContext = new MockViewModel { Text = "new" };
+			var mock = new BindingContextChangingMockBindable { BindingContext = oldContext };
+			mock.SetBinding(MockBindable.TextProperty, nameof(MockViewModel.Text));
+
+			mock.BindingContext = newContext;
+
+			Assert.Same(oldContext, mock.OldValue);
+			Assert.Same(newContext, mock.NewValue);
+			Assert.Same(oldContext, mock.ContextObservedWhileChanging);
+			Assert.Equal("old", mock.TextObservedWhileChanging);
+			Assert.Same(newContext, mock.BindingContext);
+			Assert.Equal("new", mock.Text);
+		}
+
+		[Fact]
+		public void InheritedBindingContextChangingRunsBeforeContextChanges()
+		{
+			var oldContext = new object();
+			var newContext = new object();
+			var mock = new BindingContextChangingMockBindable();
+			BindableObject.SetInheritedBindingContext(mock, oldContext);
+			mock.ResetBindingContextChangingObservations();
+
+			BindableObject.SetInheritedBindingContext(mock, newContext);
+
+			Assert.Equal(1, mock.BindingContextChangingCount);
+			Assert.Same(oldContext, mock.OldValue);
+			Assert.Same(newContext, mock.NewValue);
+			Assert.Same(oldContext, mock.ContextObservedWhileChanging);
+		}
+
+		[Fact]
+		public void BindingContextChangingDoesNotRunForSameReference()
+		{
+			var context = new object();
+			var mock = new BindingContextChangingMockBindable { BindingContext = context };
+			mock.ResetBindingContextChangingObservations();
+
+			mock.BindingContext = context;
+			BindableObject.SetInheritedBindingContext(mock, context);
+
+			Assert.Equal(0, mock.BindingContextChangingCount);
+		}
+
 		class MockVMEquals
 		{
 			public string Key { get; set; }
@@ -1729,6 +1777,34 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 
 			var exception = Record.Exception(() => mock.BindingContext = new object());
 			Assert.Null(exception);
+		}
+	}
+
+	internal class BindingContextChangingMockBindable : MockBindable
+	{
+		public int BindingContextChangingCount { get; private set; }
+		public object OldValue { get; private set; }
+		public object NewValue { get; private set; }
+		public object ContextObservedWhileChanging { get; private set; }
+		public string TextObservedWhileChanging { get; private set; }
+
+		public void ResetBindingContextChangingObservations()
+		{
+			BindingContextChangingCount = 0;
+			OldValue = null;
+			NewValue = null;
+			ContextObservedWhileChanging = null;
+			TextObservedWhileChanging = null;
+		}
+
+		protected override void OnBindingContextChanging(BindingContextChangingEventArgs args)
+		{
+			BindingContextChangingCount++;
+			OldValue = args.OldValue;
+			NewValue = args.NewValue;
+			ContextObservedWhileChanging = BindingContext;
+			TextObservedWhileChanging = Text;
+			base.OnBindingContextChanging(args);
 		}
 	}
 

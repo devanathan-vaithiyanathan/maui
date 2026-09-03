@@ -47,7 +47,7 @@ namespace Microsoft.Maui.Controls
 		/// <summary>Bindable property for <see cref="BindingContext"/>.</summary>
 		public static readonly BindableProperty BindingContextProperty =
 			BindableProperty.Create(nameof(BindingContext), typeof(object), typeof(BindableObject), default(object),
-									BindingMode.OneWay, null, BindingContextPropertyChanged, null, null, BindingContextPropertyBindingChanging);
+									BindingMode.OneWay, null, BindingContextPropertyChanged, BindingContextPropertyChanging, null, BindingContextPropertyBindingChanging);
 
 		/// <summary>
 		/// Gets or sets an object that contains the properties that will be targeted by the bound properties that belong to this <see cref="BindableObject" />.
@@ -387,6 +387,7 @@ namespace Microsoft.Maui.Controls
 			}
 			else
 			{
+				bindable.OnBindingContextChanging(new(bindable.BindingContext, value));
 				bindable._inheritedContext = new WeakReference(value);
 				bindable.ApplyBindings(fromBindingContextChanged: true);
 				bindable.OnBindingContextChanged();
@@ -408,6 +409,14 @@ namespace Microsoft.Maui.Controls
 			{
 				ApplyBindings(fromBindingContextChanged: false);
 			}
+		}
+
+		/// <summary>
+		/// Called immediately before the <see cref="BindingContext"/> changes.
+		/// </summary>
+		/// <param name="args">The old and new binding context values.</param>
+		protected virtual void OnBindingContextChanging(BindingContextChangingEventArgs args)
+		{
 		}
 
 		/// <summary>
@@ -763,6 +772,11 @@ namespace Microsoft.Maui.Controls
 				context = oldBinding.Context;
 			if (context != null && newBinding != null)
 				newBinding.Context = context;
+		}
+
+		static void BindingContextPropertyChanging(BindableObject bindable, object oldvalue, object newvalue)
+		{
+			bindable.OnBindingContextChanging(new(bindable.BindingContext, newvalue));
 		}
 
 		static void BindingContextPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)

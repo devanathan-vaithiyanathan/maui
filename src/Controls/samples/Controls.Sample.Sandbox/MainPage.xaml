@@ -1,3 +1,36 @@
-﻿<ContentPage x:Class="Maui.Controls.Sample.MainPage"
-             xmlns:local="clr-namespace:Maui.Controls.Sample">
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.MainPage"
+             xmlns:local="clr-namespace:Maui.Controls.Sample"
+             Title="Issue 38017">
+       <Grid Padding="24"
+             RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+             RowSpacing="16">
+              <Label Text="MultiBinding target retention"
+                     FontSize="24"
+                     FontAttributes="Bold"/>
+              <Label Grid.Row="1"
+                     Text="Creates 30 transient labels per scenario, removes them from the visual tree, and forces garbage collection."/>
+              <Button Grid.Row="2"
+                      AutomationId="RunReproductionButton"
+                      Text="Run reproduction"
+                      Clicked="OnRunReproductionClicked"/>
+              <VerticalStackLayout Grid.Row="3"
+                                   Spacing="8">
+                     <Label x:Name="ControlResultLabel"
+                            AutomationId="ControlResultLabel"
+                            Text="Control: not run"/>
+                     <Label x:Name="LeakyResultLabel"
+                            AutomationId="LeakyResultLabel"
+                            Text="Applied binding: not run"/>
+                     <Label x:Name="MitigationResultLabel"
+                            AutomationId="MitigationResultLabel"
+                            Text="RemoveBinding: not run"/>
+              </VerticalStackLayout>
+              <Label Grid.Row="4"
+                     x:Name="ReproductionSummaryLabel"
+                     AutomationId="ReproductionSummaryLabel"
+                     FontAttributes="Bold"
+                     Text="Expected with issue: 0 / 30 / 0 payloads remain alive."/>
+       </Grid>
 </ContentPage>

@@ -2,8 +2,6 @@ using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
-    }
-}
 public class Issue38188 : _IssuesUITest
 {
     public Issue38188(TestDevice device) : base(device)

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.Maui.DeviceTests.Stubs;
+using Microsoft.Maui.Platform;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using Xunit;
@@ -9,6 +10,28 @@ namespace Microsoft.Maui.DeviceTests
 {
 	public partial class SearchBarHandlerTests
 	{
+		[Fact(DisplayName = "Shadow Updates From Null (Issue 38188)")]
+		public async Task ShadowUpdatesFromNull()
+		{
+			var searchBar = new SearchBarStub();
+
+			await AttachAndRun(searchBar, async handler =>
+			{
+				await AssertEventually(() => handler.PlatformView.IsLoaded());
+
+				searchBar.Shadow = new ShadowStub
+				{
+					Paint = new SolidPaintStub(Colors.Violet),
+					Radius = 10,
+					Offset = Point.Zero,
+					Opacity = 1
+				};
+				handler.UpdateValue(nameof(IView.Shadow));
+
+				await AssertEventually(() => handler.ContainerView is WrapperView { HasShadow: true });
+			});
+		}
+
 		// Regression tests for https://github.com/dotnet/maui/issues/30779
 		// SearchBar.CursorPosition and SelectionLength were not updated when the user typed
 

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Maui.Controls.Sample.SearchBarOptionsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Maui.Controls.Sample"
+    x:DataType="local:SearchBarViewModel"
+    Title="OptionsPage">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem
+            AutomationId="Apply"
+            Clicked="ApplyButton_Clicked"
+            Text="Apply"/>
+    </ContentPage.ToolbarItems>
+
+    <Grid
+        Padding="24"
+        ColumnDefinitions="Auto,*"
+        ColumnSpacing="16">
+        <Label
+            Text="Shadow:"
+            VerticalOptions="Center"/>
+        <RadioButton
+            Grid.Column="1"
+            AutomationId="ShadowTrueButton"
+            CheckedChanged="OnShadowRadioButtonCheckedChanged"
+            Content="True"
+            GroupName="Shadow"/>
+    </Grid>
+
+</ContentPage>

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Maui.DeviceTests.Stubs;
+using Microsoft.Maui.Platform;
 using Xunit;
+using static Microsoft.Maui.DeviceTests.AssertHelpers;
 
 namespace Microsoft.Maui.DeviceTests
 {
@@ -12,14 +14,21 @@ namespace Microsoft.Maui.DeviceTests
 		{
 			var graphicsView = new GraphicsViewStub();
 
-			await AttachAndRun(graphicsView, (handler) =>
+			await AttachAndRun(graphicsView, async handler =>
 			{
+				await AssertEventually(() => handler.PlatformView.IsLoaded());
 				Assert.False(handler.HasContainer);
 
-				graphicsView.Shadow = new ShadowStub();
+				graphicsView.Shadow = new ShadowStub
+				{
+					Paint = new SolidPaintStub(Colors.Violet),
+					Radius = 10,
+					Offset = Point.Zero,
+					Opacity = 1
+				};
 				handler.UpdateValue(nameof(IView.Shadow));
 
-				Assert.True(handler.HasContainer);
+				await AssertEventually(() => handler.ContainerView is WrapperView { HasShadow: true });
 
 				graphicsView.Shadow = null;
 				handler.UpdateValue(nameof(IView.Shadow));

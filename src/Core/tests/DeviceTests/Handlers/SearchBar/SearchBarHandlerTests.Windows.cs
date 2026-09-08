@@ -18,6 +18,7 @@ namespace Microsoft.Maui.DeviceTests
 			await AttachAndRun(searchBar, async handler =>
 			{
 				await AssertEventually(() => handler.PlatformView.IsLoaded());
+				Assert.False(handler.HasContainer);
 
 				searchBar.Shadow = new ShadowStub
 				{

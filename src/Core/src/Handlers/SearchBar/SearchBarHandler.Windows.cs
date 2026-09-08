@@ -9,8 +9,6 @@ namespace Microsoft.Maui.Handlers
 
 		TextBox? _queryTextBox;
 
-		public override bool NeedsContainer => true;
-
 		protected override AutoSuggestBox CreatePlatformView() => new AutoSuggestBox
 		{
 			AutoMaximizeSuggestionArea = false,

@@ -59,6 +59,7 @@ namespace Microsoft.Maui.Platform
 					_child.SizeChanged -= OnChildSizeChanged;
 					_child.UnregisterPropertyChangedCallback(VisibilityProperty, _visibilityDependencyPropertyCallbackToken);
 					CachedChildren.Remove(_child);
+					_child = null;
 				}
 
 				if (value is null)

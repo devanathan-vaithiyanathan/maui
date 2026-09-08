@@ -30,6 +30,11 @@ namespace Microsoft.Maui.DeviceTests
 				handler.UpdateValue(nameof(IView.Shadow));
 
 				await AssertEventually(() => handler.ContainerView is WrapperView { HasShadow: true });
+
+				searchBar.Shadow = null;
+				handler.UpdateValue(nameof(IView.Shadow));
+
+				Assert.False(handler.HasContainer);
 			});
 		}
 

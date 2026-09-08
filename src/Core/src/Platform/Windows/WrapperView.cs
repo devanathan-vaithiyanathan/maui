@@ -29,7 +29,6 @@ namespace Microsoft.Maui.Platform
 		Rectangle? _shadowHost;
 		WSize _shadowHostSize;
 		Path? _borderPath;
-		bool _createShadowOnLoaded;
 
 		FrameworkElement? _child;
 
@@ -79,7 +78,6 @@ namespace Microsoft.Maui.Platform
 
 		public void Dispose()
 		{
-			StopWaitingForLoad();
 			DisposeClip();
 			DisposeShadow();
 			DisposeBorder();
@@ -133,6 +131,11 @@ namespace Microsoft.Maui.Platform
 
 		void DisposeClip()
 		{
+			if (Child is null)
+			{
+				return;
+			}
+
 			var visual = ElementCompositionPreview.GetElementVisual(Child);
 			visual.Clip = null;
 		}
@@ -177,14 +180,6 @@ namespace Microsoft.Maui.Platform
 				{
 					UpdateShadowAsync().FireAndForget(IPlatformApplication.Current?.Services?.CreateLogger(nameof(WrapperView)));
 				}
-				else if (!this.IsLoaded())
-				{
-					if (!_createShadowOnLoaded)
-					{
-						_createShadowOnLoaded = true;
-						Loaded += OnLoadedForShadow;
-					}
-				}
 				else
 				{
 					CreateShadowAsync().FireAndForget(IPlatformApplication.Current?.Services?.CreateLogger(nameof(WrapperView)));
@@ -192,30 +187,8 @@ namespace Microsoft.Maui.Platform
 			}
 			else
 			{
-				StopWaitingForLoad();
 				DisposeShadow();
 			}
-		}
-
-		void OnLoadedForShadow(object sender, RoutedEventArgs e)
-		{
-			StopWaitingForLoad();
-
-			if (Shadow?.Paint is { } && !HasShadow)
-			{
-				CreateShadowAsync().FireAndForget(IPlatformApplication.Current?.Services?.CreateLogger(nameof(WrapperView)));
-			}
-		}
-
-		void StopWaitingForLoad()
-		{
-			if (!_createShadowOnLoaded)
-			{
-				return;
-			}
-
-			_createShadowOnLoaded = false;
-			Loaded -= OnLoadedForShadow;
 		}
 
 		void OnChildSizeChanged(object sender, SizeChangedEventArgs e)

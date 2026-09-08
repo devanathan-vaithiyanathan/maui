@@ -8,6 +8,8 @@ namespace Microsoft.Maui.Handlers
 {
 	public abstract partial class ViewHandler<TVirtualView, TPlatformView> : IPlatformViewHandler
 	{
+		IDisposable? _containerUpdateOnLoaded;
+
 		public override void PlatformArrange(Rect rect) =>
 			this.PlatformArrangeHandler(rect);
 
@@ -18,6 +20,27 @@ namespace Microsoft.Maui.Handlers
 		{
 			if (PlatformView is null || ContainerView is not null)
 			{
+				return;
+			}
+
+			if (!PlatformView.IsLoaded() && PlatformView.Parent is not null)
+			{
+				_containerUpdateOnLoaded?.Dispose();
+				_containerUpdateOnLoaded = PlatformView.OnLoaded(() =>
+				{
+					_containerUpdateOnLoaded = null;
+
+					if (!HasContainer)
+					{
+						return;
+					}
+
+					SetupContainer();
+					UpdateValue(nameof(IView.Clip));
+					UpdateValue(nameof(IView.Shadow));
+					UpdateValue(nameof(IView.Visibility));
+					UpdateValue(nameof(IView.Opacity));
+				});
 				return;
 			}
 
@@ -49,6 +72,9 @@ namespace Microsoft.Maui.Handlers
 
 		protected override void RemoveContainer()
 		{
+			_containerUpdateOnLoaded?.Dispose();
+			_containerUpdateOnLoaded = null;
+
 			if (PlatformView is null || ContainerView is null || PlatformView.Parent != ContainerView)
 			{
 				CleanupContainerView(ContainerView);

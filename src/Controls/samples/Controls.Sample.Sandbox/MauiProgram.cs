@@ -1,4 +1,8 @@
-﻿namespace Maui.Controls.Sample;
+﻿#if MAUI_DEVFLOW
+using Microsoft.Maui.DevFlow.Agent;
+#endif
+
+namespace Maui.Controls.Sample;
 
 public static class MauiProgram
 {
@@ -9,6 +13,9 @@ public static class MauiProgram
 			.UseMauiMaps()
 #endif
 			.UseMauiApp<App>()
+#if MAUI_DEVFLOW
+			.AddMauiDevFlowAgent()
+#endif
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("Dokdo-Regular.ttf", "Dokdo");

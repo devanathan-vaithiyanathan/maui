@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Maui.Controls.Sample"
+    x:Class="Maui.Controls.Sample.IndicationPage"
+    x:DataType="local:IndicationPage"
+    Title="Box Colors">
+    <Grid Padding="24"
+            RowDefinitions="Auto,*,Auto"
+            RowSpacing="16">
+        <Label
+            HorizontalTextAlignment="Center"
+            Text="Expected: the cyan item is selected when this page opens."/>
+
+        <CollectionView
+            x:Name="ColorsCollectionView"
+            AutomationId="ColorsCollectionView"
+            Grid.Row="1"
+            HorizontalOptions="Center"
+            ItemsSource="{Binding BoxColors}"
+            SelectedItem="{Binding SelectedBoxColor}"
+            SelectionMode="Single"
+            VerticalOptions="Center">
+            <CollectionView.ItemsLayout>
+                <LinearItemsLayout ItemSpacing="5"
+                        Orientation="Vertical"/>
+            </CollectionView.ItemsLayout>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Border
+                        Padding="4"
+                        Stroke="Transparent"
+                        StrokeShape="RoundRectangle 4"
+                        StrokeThickness="3">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup Name="CommonStates">
+                                <VisualState Name="Normal"/>
+                                <VisualState Name="Selected">
+                                    <VisualState.Setters>
+                                        <Setter Property="Stroke"
+                                                Value="Black"/>
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <BoxView
+                            Color="{Binding .}"
+                            HeightRequest="40"
+                            WidthRequest="40"/>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Label
+            AutomationId="SelectedColorLabel"
+            Grid.Row="2"
+            HorizontalTextAlignment="Center"
+            Text="{Binding SelectedBoxColor, StringFormat='SelectedItem: {0}'}"/>
+    </Grid>
+</ContentPage>

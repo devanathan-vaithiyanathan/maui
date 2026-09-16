@@ -6,5 +6,7 @@ public partial class SandboxShell : Shell
 	{
 		InitializeComponent();
 		Routing.RegisterRoute(nameof(IndicationPage), typeof(IndicationPage));
+		Routing.RegisterRoute(nameof(SampleTwoPage), typeof(SampleTwoPage));
+		Routing.RegisterRoute(nameof(SampleThreePage), typeof(SampleThreePage));
 	}
 }

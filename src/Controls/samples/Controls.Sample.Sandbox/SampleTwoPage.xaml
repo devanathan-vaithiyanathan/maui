@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:Maui.Controls.Sample"
+    x:Class="Maui.Controls.Sample.SampleTwoPage"
+    x:DataType="local:MainPageViewModel"
+    Title="Layout Button Repro">
+    <Grid RowDefinitions="*,Auto,Auto,Auto"
+          RowSpacing="8">
+        <CollectionView Grid.Row="0"
+                        IsGrouped="True"
+                        ItemsSource="{Binding GroupedItems}">
+            <CollectionView.GroupHeaderTemplate>
+                <DataTemplate x:DataType="local:ItemGroup">
+                    <Border Margin="4"
+                            BackgroundColor="Gray"
+                            StrokeShape="RoundRectangle 4,4,4,4"
+                            WidthRequest="200"
+                            HorizontalOptions="Center">
+                        <Label Text="{Binding GroupId, StringFormat='Group {0}'}"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Center"/>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.GroupHeaderTemplate>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="local:Item">
+                    <Border Margin="4"
+                            BackgroundColor="LightGray"
+                            StrokeShape="RoundRectangle 8,8,8,8"
+                            HeightRequest="{Binding HeightRequest}"
+                            HorizontalOptions="Fill">
+                        <Grid RowDefinitions="Auto,Auto,Auto">
+                            <Label Grid.Row="0"
+                                   Text="{Binding ItemId, StringFormat='Item {0}'}"/>
+                            <Button Grid.Row="1"
+                                    Command="{Binding ToggleHeightCommand}"
+                                    Text="Button"/>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <Button Grid.Row="1"
+                Command="{Binding AddGroupsCommand}"
+                Text="Add Groups"
+                HorizontalOptions="Center"/>
+
+        <Button Grid.Row="2"
+                Command="{Binding RemoveGroupCommand}"
+                Text="Remove Group"
+                HorizontalOptions="Center"/>
+
+        <Button Grid.Row="3"
+                Command="{Binding NavigateCommand}"
+                Text="Navigate"
+                HorizontalOptions="Center"/>
+    </Grid>
+</ContentPage>

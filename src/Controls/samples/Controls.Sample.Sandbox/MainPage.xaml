@@ -3,6 +3,7 @@
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample"
              Title="SelectedItem Reproduction">
+
     <Grid Padding="24">
         <VerticalStackLayout
             HorizontalOptions="Center"
@@ -17,5 +18,19 @@
                 Clicked="OnNavigateClicked"
                 Text="Navigate to CollectionView"/>
         </VerticalStackLayout>
+    </Grid>
+    <Button
+        AutomationId="Sample1Button"
+        Clicked="OnSample1Clicked"
+        Text="1"/>
+    <Button
+        AutomationId="Sample2Button"
+        Clicked="OnSample2Clicked"
+        Text="2"/>
+    <Button
+        AutomationId="Sample3Button"
+        Clicked="OnSample3Clicked"
+        Text="3"/>
+    </VerticalStackLayout>
     </Grid>
 </ContentPage>

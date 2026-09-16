@@ -242,7 +242,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 					// Wrap in PerformWithoutAnimation to prevent ReconfigureItems from animating
 					// the scroll position adjustment that would otherwise occur during the layout pass.
 					// Use ReconfigureItems without full cell recreation.
-					collectionView.ReconfigureItems(indexPathsArray);
+					UIView.PerformWithoutAnimation(() =>
+					{
+						// Use ReconfigureItems (iOS 15+) which is designed for size changes
+						// without full cell recreation - more efficient than ReloadItems
+						collectionView.ReconfigureItems(indexPathsArray);
+					});
 				}
 
 				var layoutInvalidationContext = new UICollectionViewLayoutInvalidationContext();

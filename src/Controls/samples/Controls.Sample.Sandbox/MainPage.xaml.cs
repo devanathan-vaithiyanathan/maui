@@ -7,8 +7,18 @@ public partial class MainPage : ContentPage
 		InitializeComponent();
 	}
 
-	async void OnNavigateClicked(object? sender, EventArgs e)
+	async void OnSample1Clicked(object? sender, EventArgs e)
 	{
 		await Shell.Current.GoToAsync(nameof(IndicationPage));
+	}
+
+	async void OnSample2Clicked(object? sender, EventArgs e)
+	{
+		await Shell.Current.GoToAsync(nameof(SampleTwoPage));
+	}
+
+	async void OnSample3Clicked(object? sender, EventArgs e)
+	{
+		await Shell.Current.GoToAsync(nameof(SampleThreePage));
 	}
 }

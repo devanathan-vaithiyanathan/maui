@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:Maui.Controls.Sample.ViewModels"
+             xmlns:inputCtrl="clr-namespace:Maui.Controls.Sample.Controls.Input"
+             x:Class="Maui.Controls.Sample.SampleThreePage"
+             x:DataType="vm:HomePageViewModel"
+             BackgroundColor="#F5F5F5"
+             Title="Homepage">
+
+    <ContentPage.Resources>
+        <DataTemplate x:Key="GroupHeaderTemplate"
+                      x:DataType="vm:HomePageCardGroup">
+            <Grid Padding="8,12,8,4">
+                <Border BackgroundColor="White"
+                        Stroke="#E0E0E0"
+                        StrokeThickness="1">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnGroupHeaderTapped"/>
+                    </Border.GestureRecognizers>
+                    <Border.Shadow>
+                        <Shadow Brush="Black"
+                                Offset="0,2"
+                                Opacity=".15"
+                                Radius="4"/>
+                    </Border.Shadow>
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
+
+                    <Grid ColumnSpacing="8"
+                          Padding="12,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border BackgroundColor="{Binding HexColor, Mode=OneTime}"
+                                IsVisible="{Binding UseColors, Mode=OneTime}"
+                                Stroke="White"
+                                WidthRequest="26">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="5"/>
+                            </Border.StrokeShape>
+                        </Border>
+
+                        <Label Grid.Column="1"
+                               HorizontalTextAlignment="Start"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="Black"
+                               Text="{Binding Name, Mode=OneTime}"
+                               VerticalTextAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </DataTemplate>
+
+        <!-- Card styles -->
+        <Style x:Key="HomePageCardGrid"
+                TargetType="Grid">
+            <Setter Property="HeightRequest"
+                    Value="170"/>
+            <Setter Property="Padding"
+                    Value="8,6"/>
+            <Setter Property="VisualStateManager.VisualStateGroups">
+                <VisualStateGroupList>
+                    <VisualStateGroup x:Name="CommonStates">
+                        <VisualState x:Name="Normal"/>
+                        <VisualState x:Name="Selected">
+                            <VisualState.Setters>
+                                <Setter Property="BackgroundColor"
+                                        Value="White"/>
+                            </VisualState.Setters>
+                        </VisualState>
+                    </VisualStateGroup>
+                </VisualStateGroupList>
+            </Setter>
+        </Style>
+    </ContentPage.Resources>
+
+    <inputCtrl:ExtendedRefreshView Command="{Binding RefreshDataCommand}"
+                                   IsRefreshing="{Binding IsBusy}"
+                                   RefreshColor="#333333"
+                                   Margin="16,0">
+        <inputCtrl:ExtendedRefreshView.Threshold>
+            <OnIdiom x:TypeArguments="x:Double"
+                     Default="600"
+                     Phone="1200"/>
+        </inputCtrl:ExtendedRefreshView.Threshold>
+
+        <CollectionView x:Name="HomePageCollectionView"
+                        GroupHeaderTemplate="{StaticResource GroupHeaderTemplate}"
+                        IsGrouped="True"
+                        ItemsSource="{Binding Items, Mode=OneWay}"
+                        ItemsUpdatingScrollMode="KeepScrollOffset"
+                        SelectedItem="{Binding SelectedCard, Mode=TwoWay}"
+                        SelectionMode="Single"
+                        SelectionChangedCommand="{Binding CardSelectedCommand, Mode=OneTime}">
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:HomePageCardItem">
+                    <Grid Style="{StaticResource HomePageCardGrid}">
+                        <Border VerticalOptions="End">
+                            <Border.Shadow>
+                                <Shadow Brush="Black"
+                                        Offset="0,3"
+                                        Opacity=".2"
+                                        Radius="6"/>
+                            </Border.Shadow>
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="8"/>
+                            </Border.StrokeShape>
+
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="32"/>
+                                    <RowDefinition Height="122"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Header with dynamic background color -->
+                                <Label Grid.Row="0"
+                                       BackgroundColor="{Binding BackgroundColor, Mode=OneWay}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       HorizontalTextAlignment="Center"
+                                       Padding="4,0"
+                                       TextColor="White"
+                                       TextTransform="Uppercase"
+                                       VerticalTextAlignment="Center"
+                                       Text="{Binding Status, Mode=OneWay}"/>
+
+                                <!-- Content -->
+                                <Grid Grid.Row="1"
+                                      BackgroundColor="White"
+                                      ColumnSpacing="8"
+                                      Padding="8"
+                                      RowSpacing="8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="46"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="26"/>
+                                        <RowDefinition Height="72"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Label Grid.Column="0"
+                                           Grid.Row="1"
+                                           FontSize="12"
+                                           TextColor="Black"
+                                           HorizontalTextAlignment="Start"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="3"
+                                           VerticalTextAlignment="Start"
+                                           Text="{Binding Title, Mode=OneTime}"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+
+            <CollectionView.ItemsLayout>
+                <GridItemsLayout HorizontalItemSpacing="0"
+                                 Orientation="Vertical">
+                    <GridItemsLayout.Span>
+                        <OnIdiom x:TypeArguments="x:Int32"
+                                 Default="4"
+                                 Phone="2"/>
+                    </GridItemsLayout.Span>
+                </GridItemsLayout>
+            </CollectionView.ItemsLayout>
+        </CollectionView>
+    </inputCtrl:ExtendedRefreshView>
+</ContentPage>

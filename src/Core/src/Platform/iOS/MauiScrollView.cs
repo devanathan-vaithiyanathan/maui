@@ -60,7 +60,7 @@ namespace Microsoft.Maui.Platform
 		/// </summary>
 		SafeAreaPadding _safeArea = SafeAreaPadding.Empty;
 
-		SafeAreaPadding _systemAdjustedContentInset = SafeAreaPadding.Empty;
+		UIEdgeInsets _systemAdjustedContentInset = UIEdgeInsets.Zero;
 
 		/// <summary>
 		/// Flag indicating whether the safe area needs to be recalculated.
@@ -78,8 +78,6 @@ namespace Microsoft.Maui.Platform
 		readonly bool[] _blockedEdgesCache = new bool[4];
 		bool _blockedEdgesCacheValid;
 
-		// Cached result of whether this scroll view is hosted by a PageSheet.
-		// Invalidated when UIKit moves the scroll view to a window.
 		bool? _isInsidePageSheet;
 
 		/// <summary>
@@ -413,7 +411,6 @@ namespace Microsoft.Maui.Platform
 			_safeAreaInvalidated = false;
 
 			var oldSafeArea = _safeArea;
-			var systemAdjustedContentInset = SystemAdjustedContentInset.ToSafeAreaInsets();
 
 			// iOS sets AdjustedContentInset only when the ContentSize exceeds the ScrollView's Bounds.
 			// If ContentSize is smaller, AdjustedContentInset is zero, and SafeAreaInsets are applied to child views instead.
@@ -426,11 +423,6 @@ namespace Microsoft.Maui.Platform
 			else
 				_safeArea = GetInset(SystemAdjustedContentInset).ToSafeAreaInsets();
 
-			if (_safeArea.IsEmptyAtPixelLevel())
-			{
-				_safeArea = SafeAreaPadding.Empty;
-			}
-
 			var oldApplyingSafeAreaAdjustments = _appliesSafeAreaAdjustments;
 			// Parent-edge blocking is now resolved per-edge inline while computing GetInset() above
 			// (see ResolveParentBlockedEdges/GetManualInsetForEdge) for BOTH the manual (mixed-edge)
@@ -439,10 +431,10 @@ namespace Microsoft.Maui.Platform
 			// whole-view parent check is needed.
 			_appliesSafeAreaAdjustments = RespondsToSafeArea() && !_safeArea.IsEmpty;
 
-			if (!_systemAdjustedContentInset.EqualsAtPixelLevel(systemAdjustedContentInset))
+			if (_systemAdjustedContentInset != SystemAdjustedContentInset)
 			{
 				InvalidateConstraintsCache();
-				_systemAdjustedContentInset = systemAdjustedContentInset;
+				_systemAdjustedContentInset = SystemAdjustedContentInset;
 				return false;
 			}
 
@@ -531,7 +523,7 @@ namespace Microsoft.Maui.Platform
 		/// readers between arranges.
 		/// </summary>
 		bool UIKitCompensatesForSafeArea =>
-			!SystemAdjustedContentInset.ToSafeAreaInsets().IsEmptyAtPixelLevel()
+			SystemAdjustedContentInset != UIEdgeInsets.Zero
 			&& ContentInsetAdjustmentBehavior != UIScrollViewContentInsetAdjustmentBehavior.Never;
 
 		/// <summary>
@@ -643,12 +635,11 @@ namespace Microsoft.Maui.Platform
 			// This avoids inset flip-flopping and keeps layout behavior stable and predictable.
 			if (ContentInsetAdjustmentBehavior == UIScrollViewContentInsetAdjustmentBehavior.Automatic)
 			{
-				// Sheets skip only inflation, not the Automatic branch, to avoid falling through to manual safe-area padding.
+				// We do this to keep the content scrollable
+				// if we don't do this the ContentAdjustedInset + contentSize will cause the content to go off the screen and not be scrollable
+				// So the bottom content will just go off the screen until the contentsize triggers the scrollable area
 				if (!IsInsidePageSheet())
 				{
-					// We do this to keep the content scrollable
-					// if we don't do this the ContentAdjustedInset + contentSize will cause the content to go off the screen and not be scrollable
-					// So the bottom content will just go off the screen until the contentsize triggers the scrollable area
 					if (width <= Bounds.Width &&
 						(_safeArea.HorizontalThickness + width) > Bounds.Width)
 					{
@@ -662,7 +653,7 @@ namespace Microsoft.Maui.Platform
 					}
 				}
 			}
-			else if (SystemAdjustedContentInset == UIEdgeInsets.Zero || ContentInsetAdjustmentBehavior == UIScrollViewContentInsetAdjustmentBehavior.Never)
+			else if (ContentInsetAdjustmentBehavior != UIScrollViewContentInsetAdjustmentBehavior.Automatic)
 			{
 				// UIKit is not currently reserving any space for the safe area on
 				// this scroll view - either because the adjustment behavior is set
@@ -731,7 +722,12 @@ namespace Microsoft.Maui.Platform
 			UIResponder? responder = this;
 			while (responder is not null)
 			{
-				if (responder is UIViewController { ModalPresentationStyle: UIModalPresentationStyle.PageSheet })
+				// A pushed controller can have a sheet style without being presented as a sheet.
+				if (responder is UIViewController
+					{
+						ModalPresentationStyle: UIModalPresentationStyle.PageSheet,
+						PresentingViewController: not null
+					})
 				{
 					_isInsidePageSheet = true;
 					return true;

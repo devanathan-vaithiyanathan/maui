@@ -63,6 +63,10 @@ public class ScrollViewInitialOffsetInGridRow : _IssuesUITest
 				Assert.That(first.Y, Is.EqualTo(visibleTop + 16).Within(2),
 					$"First item Y={first.Y}, expected visible top {visibleTop} + 16 (scroll frame Y={scroll.Y}, adjustedTop={adjustedTop}); {text}");
 			}
+			if (pushButton is "PushAsyncNoHeaderButton")
+			{
+				VerifyScreenshot();
+			}
 			Assert.That(success, Is.True, $"ScrollView did not rest at the top when the page appeared: {text}");
 		}
 		finally

@@ -107,15 +107,21 @@ namespace Microsoft.Maui.Handlers
 			// the offset inside setBounds: when the size changes — it keeps the content under the
 			// view's center stable, i.e. it scrolls by half the delta — so a parent layout
 			// resizing this view in the pass in which its content grows past the viewport would
-			// leave it scrolled. Arranging must not scroll: put the offset back, clamped to what
-			// the new size currently allows.
+			// leave it scrolled. Preserve the content-relative offset, accounting for any inset
+			// change during arrange, and clamp to what the new size currently allows.
 			var contentOffset = scrollView.ContentOffset;
+			var adjustedInset = scrollView.AdjustedContentInset;
 
 			base.PlatformArrange(rect);
 
-			if (scrollView.ContentOffset != contentOffset)
+			var newAdjustedInset = scrollView.AdjustedContentInset;
+			var targetOffset = new CGPoint(
+				contentOffset.X + adjustedInset.Left - newAdjustedInset.Left,
+				contentOffset.Y + adjustedInset.Top - newAdjustedInset.Top);
+
+			if (scrollView.ContentOffset != targetOffset)
 			{
-				scrollView.ContentOffset = ClampToScrollableRange(scrollView, contentOffset);
+				scrollView.ContentOffset = ClampToScrollableRange(scrollView, targetOffset);
 			}
 		}
 

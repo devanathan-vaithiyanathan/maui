@@ -641,21 +641,25 @@ namespace Microsoft.Maui.Platform
 			// This logic adds safe area padding to the contentSize *only if* the content is nearly large enough to require scrolling,
 			// ensuring the scroll view remains in "scrollable mode" and keeps safe area insets at the scroll view level.
 			// This avoids inset flip-flopping and keeps layout behavior stable and predictable.
-			if (ContentInsetAdjustmentBehavior == UIScrollViewContentInsetAdjustmentBehavior.Automatic && !IsInsidePageSheet())
+			if (ContentInsetAdjustmentBehavior == UIScrollViewContentInsetAdjustmentBehavior.Automatic)
 			{
-				// We do this to keep the content scrollable
-				// if we don't do this the ContentAdjustedInset + contentSize will cause the content to go off the screen and not be scrollable
-				// So the bottom content will just go off the screen until the contentsize triggers the scrollable area
-				if (width <= Bounds.Width &&
-					(_safeArea.HorizontalThickness + width) > Bounds.Width)
+				// Sheets skip only inflation, not the Automatic branch, to avoid falling through to manual safe-area padding.
+				if (!IsInsidePageSheet())
 				{
-					width += Bounds.Width + 1;
-				}
+					// We do this to keep the content scrollable
+					// if we don't do this the ContentAdjustedInset + contentSize will cause the content to go off the screen and not be scrollable
+					// So the bottom content will just go off the screen until the contentsize triggers the scrollable area
+					if (width <= Bounds.Width &&
+						(_safeArea.HorizontalThickness + width) > Bounds.Width)
+					{
+						width += Bounds.Width + 1;
+					}
 
-				if (height <= Bounds.Height &&
-					(_safeArea.VerticalThickness + height) > Bounds.Height)
-				{
-					height = Bounds.Height + 1;
+					if (height <= Bounds.Height &&
+						(_safeArea.VerticalThickness + height) > Bounds.Height)
+					{
+						height = Bounds.Height + 1;
+					}
 				}
 			}
 			else if (SystemAdjustedContentInset == UIEdgeInsets.Zero || ContentInsetAdjustmentBehavior == UIScrollViewContentInsetAdjustmentBehavior.Never)

@@ -1,4 +1,5 @@
-﻿using ObjCRuntime;
+﻿using Microsoft.Maui.Graphics;
+using ObjCRuntime;
 using UIKit;
 
 namespace Microsoft.Maui.Handlers
@@ -63,6 +64,19 @@ namespace Microsoft.Maui.Handlers
 			handler.PlatformView?.UpdateIndicatorShape(indicator);
 		}
 
+		internal static void MapFlowDirection(IIndicatorViewHandler handler, IIndicatorView indicator)
+		{
+			ViewMapper.UpdateProperty(handler, indicator, nameof(IView.FlowDirection));
+
+			var layoutHandler = (indicator as ITemplatedIndicatorView)?.IndicatorsLayoutOverride?.Handler;
+			layoutHandler?.UpdateValue(nameof(IView.FlowDirection));
+
+			// if (layoutHandler?.PlatformView is UIView platformLayout)
+			// {
+			// 	platformLayout.SetNeedsLayout();
+			// }
+		}
+
 		void UpdateIndicator()
 		{
 			if (VirtualView is ITemplatedIndicatorView iTemplatedIndicatorView)
@@ -74,6 +88,9 @@ namespace Microsoft.Maui.Handlers
 					ClearIndicators();
 					handler = indicatorsLayoutOverride.ToPlatform(MauiContext);
 					PlatformView.AddSubview(handler);
+
+					var size = indicatorsLayoutOverride.Measure(double.PositiveInfinity, double.PositiveInfinity);
+					indicatorsLayoutOverride.Arrange(new Rect(0, 0, size.Width, size.Height));
 				}
 			}
 

@@ -544,14 +544,18 @@ namespace Microsoft.Maui.Controls.Platform
 							return;
 						}
 
-						try
+						// Dialogs have a separate dispatcher. Forward to the activity so app callbacks
+						// can intercept the back press before MAUI handles modal navigation.
+						if (activity is ComponentActivity componentActivity)
 						{
-							IPlatformApplication.Current?.Services?.InvokeLifecycleEvents<AndroidLifecycle.OnBackPressed>(del =>
-							{
-								del(activity);
-							});
+							componentActivity.OnBackPressedDispatcher.OnBackPressed();
+							return;
 						}
-						finally { }
+
+						IPlatformApplication.Current?.Services?.InvokeLifecycleEvents<AndroidLifecycle.OnBackPressed>(del =>
+						{
+							del(activity);
+						});
 					}
 				}
 			}

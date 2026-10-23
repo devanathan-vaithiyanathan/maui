@@ -57,7 +57,6 @@ namespace Microsoft.Maui.Platform
 				&& (templatedIndicator as ITemplatedIndicatorView)?.IndicatorsLayoutOverride is ILayout layout)
 			{
 				// The template host needs valid bounds before RTL child positioning runs.
-				layout.Measure((double)Bounds.Width, (double)Bounds.Height);
 				layout.Arrange(Bounds.ToRectangle());
 				return;
 			}
@@ -73,15 +72,24 @@ namespace Microsoft.Maui.Platform
 		}
 
 		/// <inheritdoc/>
+		/// <remarks>
+		/// Retains the native page-control size as a minimum in both flow directions.
+		/// Larger templates can request additional space to keep their indicators inside the control.
+		/// </remarks>
 		public override CGSize SizeThatFits(CGSize size)
 		{
+			var nativeSize = base.SizeThatFits(size);
+
 			if (_indicatorView?.TryGetTarget(out var indicatorView) == true
 				&& (indicatorView as ITemplatedIndicatorView)?.IndicatorsLayoutOverride is ILayout layout)
 			{
-				return layout.Measure((double)size.Width, (double)size.Height).ToCGSize();
+				var templateSize = layout.Measure((double)size.Width, (double)size.Height);
+				return new CGSize(
+					Math.Max((double)nativeSize.Width, templateSize.Width),
+					Math.Max((double)nativeSize.Height, templateSize.Height));
 			}
 
-			return base.SizeThatFits(size);
+			return nativeSize;
 		}
 
 		public void UpdateIndicatorSize()

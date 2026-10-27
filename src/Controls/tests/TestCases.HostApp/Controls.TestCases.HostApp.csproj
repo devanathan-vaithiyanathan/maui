@@ -23,6 +23,12 @@
     <MtouchLink Condition="$(TargetFramework.Contains('-ios')) OR $(TargetFramework.Contains('-maccatalyst'))">SdkOnly</MtouchLink>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug' and $(TargetFramework.Contains('-ios')) and '$(CI)' != 'true' and '$(TF_BUILD)' != 'true'">
+    <!-- Use the locally installed Xcode 27 launcher without changing the repository's SDK pins. -->
+    <MlaunchPath>/usr/local/share/dotnet/packs/Microsoft.iOS.Sdk.net10.0_27.0/27.0.10417-xcode27.0/tools/bin/mlaunch</MlaunchPath>
+    <_MlaunchPath>$(MlaunchPath)</_MlaunchPath>
+  </PropertyGroup>
+
   <PropertyGroup>
     <ApplicationTitle>Controls.TestCases.HostApp</ApplicationTitle>
     <ApplicationId>com.microsoft.maui.uitests</ApplicationId>

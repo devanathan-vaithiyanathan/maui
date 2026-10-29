@@ -385,7 +385,8 @@ namespace Microsoft.Maui.Controls.Shapes
 			matx.Invert();
 
 			// Calculate number of points for polyline approximation
-			int max = (int)(4 * (radiusX + radiusY) * Math.Abs(angle2 - angle1) / (2 * Math.PI) / tolerance);
+			// Even an arc smaller than the tolerance needs one segment to avoid division by zero.
+			int max = Math.Max(1, (int)(4 * (radiusX + radiusY) * Math.Abs(angle2 - angle1) / (2 * Math.PI) / tolerance));
 
 			for (int i = 0; i <= max; i++)
 			{

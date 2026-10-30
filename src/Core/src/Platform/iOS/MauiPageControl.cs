@@ -15,7 +15,7 @@ namespace Microsoft.Maui.Platform
 		WeakReference<IIndicatorView>? _indicatorView;
 		bool _updatingPosition;
 		double _lastAppliedIndicatorSize = DefaultIndicatorSize;
-		private WeakReference<UIView>? _indicatorLayoutView;
+		WeakReference<UIView>? _indicatorLayoutView;
 
 		public MauiPageControl()
 		{
@@ -56,8 +56,10 @@ namespace Microsoft.Maui.Platform
 		public override void LayoutSubviews()
 		{
 			base.LayoutSubviews();
-			if (_indicatorView?.TryGetTarget(out var templatedIndicator) == true
-				&& (templatedIndicator as ITemplatedIndicatorView)?.IndicatorsLayoutOverride is ILayout layout)
+			IIndicatorView? indicatorView = null;
+			_indicatorView?.TryGetTarget(out indicatorView);
+
+			if ((indicatorView as ITemplatedIndicatorView)?.IndicatorsLayoutOverride is ILayout layout)
 			{
 				// The template host needs valid bounds before RTL child positioning runs.
 				layout.Arrange(Bounds.ToRectangle());
@@ -69,8 +71,7 @@ namespace Microsoft.Maui.Platform
 
 			UpdateIndicatorSize();
 
-
-			if (_indicatorView?.TryGetTarget(out var indicatorView) == true && (indicatorView as ITemplatedIndicatorView)?.IndicatorsLayoutOverride == null)
+			if (indicatorView != null)
 			{
 				UpdateIndicatorShape();
 			}

@@ -41,9 +41,6 @@ namespace Microsoft.Maui.Platform
 
 		public void ResetIndicators()
 		{
-			if (_isTemplateIndicator)
-				RemoveAllViews();
-
 			_pageShape = null;
 			_currentPageShape = null;
 			_isTemplateIndicator = false;
@@ -51,7 +48,6 @@ namespace Microsoft.Maui.Platform
 			if ((_indicatorView as ITemplatedIndicatorView)?.IndicatorsLayoutOverride == null)
 			{
 				UpdateShapes();
-				UpdateIndicatorCount();
 			}
 			else
 				UpdateIndicatorTemplate((_indicatorView as ITemplatedIndicatorView)?.IndicatorsLayoutOverride);

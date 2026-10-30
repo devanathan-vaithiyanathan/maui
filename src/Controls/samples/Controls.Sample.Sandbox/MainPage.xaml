@@ -2,4 +2,44 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+    <StackLayout Padding="20"
+            Spacing="20">
+
+        <CarouselView x:Name="MyCarousel"
+                HeightRequest="200">
+            <CarouselView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>Item 1</x:String>
+                    <x:String>Item 2</x:String>
+                    <x:String>Item 3</x:String>
+                </x:Array>
+            </CarouselView.ItemsSource>
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <Label Text="{Binding}"
+                           FontSize="30"
+                           HorizontalOptions="Center"
+                           VerticalOptions="Center"/>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+
+        <IndicatorView x:Name="MyIndicator"
+                       IndicatorColor="LightGray"
+                       SelectedIndicatorColor="Blue"
+                       IndicatorSize="20"
+                       HorizontalOptions="Center"/>
+        <StackLayout Orientation="Horizontal"
+                HorizontalOptions="Center"
+                Spacing="10">
+            <Button x:Name="IconTemplateButton"
+                    Text="Icon Template"
+                    Clicked="OnIconTemplateClicked"
+                    HorizontalOptions="Center"/>
+            <Button x:Name="NormalIndicatorButton"
+                    Text="Normal Indicator"
+                    Clicked="OnNormalIndicatorClicked"
+                    HorizontalOptions="Center"/>
+        </StackLayout>
+    </StackLayout>
 </ContentPage>

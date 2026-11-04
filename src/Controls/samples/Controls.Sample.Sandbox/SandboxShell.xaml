@@ -3,20 +3,48 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="Maui.Controls.Sample.SandboxShell"
     xmlns:local="clr-namespace:Maui.Controls.Sample"
-    x:Name="shell">
-    <TabBar Shell.TabBarForegroundColor="Green"
-        Shell.TabBarUnselectedColor="Red">
-        <Tab Title="MainPage1" Icon="groceries.png">
-            <ShellContent Icon="groceries.png"
-            Title="Home"
+    x:Name="shell"
+    FlyoutBehavior="Disabled"
+    Shell.TabBarIsVisible="False">
+    <TabBar>
+        <ShellContent
             ContentTemplate="{DataTemplate local:MainPage}"
-            Route="MainPage" />
-        </Tab>
-        <Tab Title="MainPage2" Icon="dotnet_bot.png">
-            <ShellContent Icon="dotnet_bot.png"
-            Title="Home"
-            ContentTemplate="{DataTemplate local:MainPage}"
-            Route="MainPage2" />
-        </Tab>
+            Route="GettingStartedPage" />
+        <ShellContent Route="SplashPage">
+            <ShellContent.ContentTemplate>
+                <DataTemplate>
+                    <ContentPage Title="Issue 39859"
+                                 NavigatedTo="OnSplashNavigatedTo">
+                        <Grid Padding="24" RowDefinitions="Auto,Auto,Auto,Auto,*" RowSpacing="12">
+                            <Label Text="dotnet/maui#39859 - startup navigation" FontSize="22" />
+                            <Label Grid.Row="1"
+                                   Text="On Windows, cold-start the app and wait here without interacting. Expected: one GettingStartedPage.NavigatedTo callback. The reported bug is a second Replace callback after the redirect to SplashPage. Close the app completely before repeating." />
+                            <Label Grid.Row="2"
+                                   x:DataType="local:SandboxShell"
+                                   Text="{Binding Source={x:Reference shell}, Path=ControlsVersion}" />
+                            <Label Grid.Row="3"
+                                   x:DataType="local:SandboxShell"
+                                   AutomationId="NavigationStatus"
+                                   FontSize="20"
+                                   Text="{Binding Source={x:Reference shell}, Path=NavigationStatus}" />
+                            <ScrollView Grid.Row="4">
+                                <Label x:DataType="local:SandboxShell"
+                                       AutomationId="NavigationLog"
+                                       Text="{Binding Source={x:Reference shell}, Path=EventLog}" />
+                            </ScrollView>
+                        </Grid>
+                    </ContentPage>
+                </DataTemplate>
+            </ShellContent.ContentTemplate>
+        </ShellContent>
     </TabBar>
+    <ShellContent Title="Items" Route="ItemsPage">
+        <ShellContent.ContentTemplate>
+            <DataTemplate>
+                <ContentPage Title="Items">
+                    <Label Text="Items page - not used during startup reproduction." />
+                </ContentPage>
+            </DataTemplate>
+        </ShellContent.ContentTemplate>
+    </ShellContent>
 </Shell>

@@ -10,7 +10,7 @@ public partial class App : Application
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
 		// To test shell scenarios, change this to true
-		bool useShell = false;
+		bool useShell = true;
 
 		if (!useShell)
 		{
@@ -18,7 +18,11 @@ public partial class App : Application
 		}
 		else
 		{
-			return new Window(new SandboxShell());
+			var shell = new SandboxShell();
+			var window = new Window(shell);
+			window.Created += (_, _) => shell.Record("Window.Created");
+			window.Activated += (_, _) => shell.Record("Window.Activated");
+			return window;
 		}
 	}
 }

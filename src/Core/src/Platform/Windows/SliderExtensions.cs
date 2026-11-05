@@ -109,6 +109,13 @@ namespace Microsoft.Maui.Platform
 			{
 				var service = provider.GetRequiredImageSourceService(thumbImageSource);
 				var nativeThumbImageSource = await service.GetImageSourceAsync(thumbImageSource);
+
+				if (!IsCurrentRequest())
+				{
+					nativeThumbImageSource?.Dispose();
+					return;
+				}
+
 				var nativeThumbImage = nativeThumbImageSource?.Value;
 
 				// BitmapImage is a special case that has an event when the image is loaded
@@ -120,6 +127,9 @@ namespace Microsoft.Maui.Platform
 					void OnImageOpened(object sender, RoutedEventArgs e)
 					{
 						bitmapImage.ImageOpened -= OnImageOpened;
+
+						if (!IsCurrentRequest() || nativeSlider.ThumbImageSource != bitmapImage)
+							return;
 
 						if (nativeSlider.TryGetFirstDescendant<Thumb>(out var thumb))
 						{
@@ -136,6 +146,11 @@ namespace Microsoft.Maui.Platform
 
 				nativeSlider.ThumbImageSource = nativeThumbImageSource?.Value;
 			}
+
+			bool IsCurrentRequest() =>
+				ReferenceEquals(slider.ThumbImageSource, thumbImageSource) &&
+				ReferenceEquals(slider.Handler?.VirtualView, slider) &&
+				ReferenceEquals(slider.Handler?.PlatformView, nativeSlider);
 		}
 
 		static readonly string[] BackgroundColorResourceKeys =

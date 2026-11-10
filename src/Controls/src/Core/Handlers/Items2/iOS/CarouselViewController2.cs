@@ -119,6 +119,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 
 		public override void DraggingStarted(UIScrollView scrollView)
 		{
+			// A user drag interrupts any pending programmatic scroll.
+			_gotoPosition = -1;
 			DragStartPosition = ItemsView?.Position ?? -1;
 			ItemsView?.SetIsDragging(true);
 		}
@@ -565,6 +567,15 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 #endif
 			}
 		}
+
+		internal void SetScrollToTarget(int position)
+		{
+			// Ignore intermediate iOS 26 animation callbacks; a no-op scroll may never report its target.
+			_gotoPosition = position == _lastSyncedPosition ? -1 : position;
+		}
+
+		internal bool IsIntermediateScrollPosition(int position)
+			=> _gotoPosition != -1 && position != _gotoPosition;
 
 		internal void SetPosition(int position)
 		{

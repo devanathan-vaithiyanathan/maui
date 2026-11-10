@@ -53,9 +53,19 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				return;
 			}
 
+			using var indexPath = args.Mode == ScrollToMode.Position
+				? NSIndexPath.FromItemSection(args.Index, args.GroupIndex == -1 ? 0 : args.GroupIndex)
+				: carouselViewController2.GetIndexForItem(args.Item);
+
+			if (!IsIndexPathValid(indexPath) || carouselViewController2.ItemsSource is null ||
+				indexPath.Row >= carouselViewController2.ItemsSource.ItemCount)
+			{
+				return;
+			}
+
 			if (VirtualView?.Loop == true)
 			{
-				var goToIndexPath = carouselViewController2.GetScrollToIndexPath(args.Index);
+				using var goToIndexPath = carouselViewController2.GetScrollToIndexPath(indexPath.Row);
 
 				if (!IsIndexPathValid(goToIndexPath))
 				{
@@ -65,6 +75,8 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 				bool IsHorizontal = VirtualView.ItemsLayout.Orientation == ItemsLayoutOrientation.Horizontal;
 				UICollectionViewScrollDirection scrollDirection = IsHorizontal ? UICollectionViewScrollDirection.Horizontal : UICollectionViewScrollDirection.Vertical;
 				var loopScrollPosition = args.ScrollToPosition.ToCollectionViewScrollPosition(scrollDirection);
+
+				carouselViewController2.SetScrollToTarget(indexPath.Row);
 
 				// This looping path bypasses the base ScrollToRequested, so it must clear/arm
 				// the MacCatalyst pending restore itself; otherwise this scroll is not protected from
@@ -89,6 +101,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items2
 			}
 			else
 			{
+				carouselViewController2.SetScrollToTarget(indexPath.Row);
 				base.ScrollToRequested(sender, args);
 			}
 		}

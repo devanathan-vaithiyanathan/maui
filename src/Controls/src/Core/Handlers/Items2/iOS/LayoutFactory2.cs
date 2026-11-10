@@ -477,6 +477,12 @@ internal static class LayoutFactory2
 					//since we added one item at the beginning of our ItemSource, we need to subtract one
 					carouselPosition = pageIndex - 1;
 
+					// Loop correction must not interrupt a programmatic scroll at an intermediate page.
+					if (cv2Controller.IsIntermediateScrollPosition(carouselPosition))
+					{
+						return;
+					}
+
 					if (itemsView.Position != carouselPosition)
 					{
 						//If we are updating the ItemsSource, we don't want to scroll the CollectionView

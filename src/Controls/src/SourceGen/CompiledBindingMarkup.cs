@@ -337,9 +337,6 @@ internal struct CompiledBindingMarkup
 				if (previousPartIsNullable)
 				{
 					memberAccess = new ConditionalAccess(memberAccess);
-					// Accessing a member through a possibly-null receiver produces a value
-					// that can itself be null, so the overall binding value is nullable.
-					isNullable = true;
 				}
 
 				bindingPathParts.Add(memberAccess);
@@ -359,10 +356,7 @@ internal struct CompiledBindingMarkup
 					AcceptsNullValue: memberIsNullable);
 
 				previousPartType = currentPropertyType;
-				// A reference type (or nullable value type) can be null at runtime regardless of its
-				// nullable annotation, so treat it as nullable for null-conditional access of the next
-				// part. This keeps generated bindings null-tolerant like runtime/XamlC bindings.
-				previousPartIsNullable = currentPropertyType.CanBeNullAtRuntime();
+				previousPartIsNullable = memberIsNullable;
 			}
 
 			if (indexArg != null)
@@ -379,16 +373,14 @@ internal struct CompiledBindingMarkup
 					}
 					index = indexArgInt;
 
-					IPathPart indexAccess = new IndexAccess("", index, arrayType.ElementType.IsValueType, IsArrayElement: true);
+					IPathPart indexAccess = new IndexAccess("", index, arrayType.ElementType.IsValueType);
 					if (previousPartIsNullable)
 					{
 						indexAccess = new ConditionalAccess(indexAccess);
-						isNullable = true;
 					}
 					bindingPathParts.Add(indexAccess);
 
 					previousPartType = arrayType.ElementType;
-					previousPartIsNullable = previousPartType.CanBeNullAtRuntime();
 
 					setterOptions = new SetterOptions(
 						IsWritable: true, // arrays are writable by index
@@ -520,12 +512,10 @@ internal struct CompiledBindingMarkup
 						if (previousPartIsNullable)
 						{
 							indexAccess = new ConditionalAccess(indexAccess);
-							isNullable = true;
 						}
 						bindingPathParts.Add(indexAccess);
 
 						previousPartType = indexer.Type;
-						previousPartIsNullable = previousPartType.CanBeNullAtRuntime();
 
 						setterOptions = new SetterOptions(
 							IsWritable: indexer.SetMethod != null && indexer.SetMethod.IsPublic() && !indexer.SetMethod.IsStatic,
@@ -623,26 +613,21 @@ internal struct CompiledBindingMarkup
 
 		var assignedValueExpression = "value";
 
-		// TProperty can be nullable either because the final member is declared nullable
-		// (AcceptsNullValue) or because null-conditional access somewhere in the path widened it.
-		// In the latter case the final member is declared non-nullable, but NRT annotations are not
-		// enforced at runtime: runtime and XamlC bindings both write null through to the source, so
-		// dropping the assignment here would silently break two-way bindings (e.g. clearing a
-		// selection). Only non-nullable *value* types genuinely cannot be assigned null.
+		// early return for nullable values if the setter doesn't accept them
 		if (binding.PropertyType.IsNullable && !binding.SetterOptions.AcceptsNullValue)
 		{
 			if (binding.PropertyType.IsValueType)
 			{
 				code.WriteLine("if (!value.HasValue)");
-				using (PrePost.NewBlock(code))
-				{
-					code.WriteLine("return;");
-				}
 				assignedValueExpression = "value.Value";
 			}
 			else
 			{
-				assignedValueExpression = "value!";
+				code.WriteLine("if (value is null)");
+			}
+			using (PrePost.NewBlock(code))
+			{
+				code.WriteLine("return;");
 			}
 		}
 
@@ -665,20 +650,12 @@ internal struct CompiledBindingMarkup
 			code.WriteLine("{");
 			code.Indent++;
 			code.WriteLine(setter.AssignmentStatement);
-			foreach (var copyBackStatement in setter.CopyBackStatements)
-			{
-				code.WriteLine(copyBackStatement);
-			}
 			code.Indent--;
 			code.WriteLine("}");
 		}
 		else
 		{
 			code.WriteLine(setter.AssignmentStatement);
-			foreach (var copyBackStatement in setter.CopyBackStatements)
-			{
-				code.WriteLine(copyBackStatement);
-			}
 		}
 
 		code.Indent--;

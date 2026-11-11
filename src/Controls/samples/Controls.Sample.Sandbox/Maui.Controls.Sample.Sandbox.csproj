@@ -5,10 +5,9 @@
     <TargetFrameworks Condition=" '$(UseMaui)' != 'true' and '$(IncludePreviousTfms)' == 'true' ">$(TargetFrameworks);$(MauiSamplePreviousPlatforms)</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <SingleProject>true</SingleProject>
-    <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
     <NoWarn>$(NoWarn);XC0022</NoWarn>
     <!-- Disable multi-RID builds to workaround a parallel build issue -->
     <RuntimeIdentifier Condition="$(TargetFramework.Contains('-maccatalyst'))">maccatalyst-x64</RuntimeIdentifier>
@@ -16,6 +15,8 @@
     <!-- NOTE: By default the UseMaterial3 flag value is false. If you change the UseMaterial3 flag, you MUST delete the artifacts folder 
        and rebuild the entire codebase using: dotnet build ./Microsoft.Maui.BuildTasks.slnf -->
     <UseMaterial3>false</UseMaterial3>
+    <MauiXamlInflator>SourceGen</MauiXamlInflator>
+    <MauiXamlSourceGenerator>true</MauiXamlSourceGenerator>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -51,6 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <MauiXaml Update="MainPage.xaml" Inflator="SourceGen" />
     <MauiImage Include="Resources\Images\*" />
     <MauiImage Update="Resources\Images\dotnet_bot.svg" Color="#FFFFFF" BaseSize="168,208" />
     <MauiImage Include="Resources\AppIcons\appicon.svg" ForegroundFile="Resources\AppIcons\appicon_foreground.svg" IsAppIcon="true" />

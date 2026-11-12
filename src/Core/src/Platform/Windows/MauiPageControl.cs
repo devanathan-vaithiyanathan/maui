@@ -19,8 +19,10 @@ namespace Microsoft.Maui.Platform
 		WBrush? _selectedColor;
 		WBrush? _fillColor;
 		ObservableCollection<WShape>? _dots;
+		bool _isTemplateIndicator;
 
 		internal bool UseShapeIndicator => _indicatorView == null || (_indicatorView is ITemplatedIndicatorView templatedView && templatedView.IndicatorsLayoutOverride != null);
+		internal bool IsTemplateIndicator => _isTemplateIndicator;
 
 		public MauiPageControl()
 		{
@@ -36,6 +38,22 @@ namespace Microsoft.Maui.Platform
 				Items.Clear();
 		}
 
+		internal void SetIndicatorTemplate(ILayout? layout, IMauiContext? mauiContext)
+		{
+			if (layout == null)
+			{
+				ItemsSource = null;
+				_isTemplateIndicator = false;
+				return;
+			}
+
+			if (mauiContext == null)
+				throw new InvalidOperationException("MauiContext is required to display an indicator template.");
+
+			ItemsSource = new[] { layout.ToPlatform(mauiContext) };
+			_isTemplateIndicator = true;
+		}
+
 		internal void UpdateIndicatorsColor()
 		{
 			if (UseShapeIndicator)
@@ -47,7 +65,7 @@ namespace Microsoft.Maui.Platform
 				_fillColor = solidPaint?.ToPlatform();
 			if (_indicatorView?.SelectedIndicatorColor is SolidPaint selectedSolidPaint)
 				_selectedColor = selectedSolidPaint.ToPlatform();
-			var position = _indicatorView?.Position;
+			var position = GetIndexFromPosition();
 			int i = 0;
 			foreach (var item in Items)
 			{

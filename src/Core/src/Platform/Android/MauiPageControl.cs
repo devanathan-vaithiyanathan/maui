@@ -23,8 +23,6 @@ namespace Microsoft.Maui.Platform
 		IIndicatorView? _indicatorView;
 
 		bool _isTemplateIndicator;
-
-		internal bool IsTemplateIndicator => _isTemplateIndicator;
 		
 		static readonly IndicatorAccessibilityDelegate _accessibilityDelegate = new();
 

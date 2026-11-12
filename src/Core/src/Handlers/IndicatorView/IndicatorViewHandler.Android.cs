@@ -66,16 +66,7 @@ namespace Microsoft.Maui.Handlers
 		internal static void MapIndicatorsLayoutOverride(IIndicatorViewHandler handler, IIndicatorView indicator)
 		{
 			if ((indicator as ITemplatedIndicatorView)?.IndicatorsLayoutOverride == null)
-			{
-				if (!handler.PlatformView.IsTemplateIndicator)
-					return;
-
 				handler.PlatformView.RemoveAllViews();
-				handler.PlatformView.ResetIndicators();
-				handler.PlatformView.UpdateIndicatorCount();
-				handler.UpdateValue(nameof(IIndicatorView.IndicatorsShape));
-				return;
-			}
 
 			handler.PlatformView.ResetIndicators();
 			handler.PlatformView.UpdateIndicatorCount();

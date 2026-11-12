@@ -25,18 +25,16 @@ namespace Microsoft.Maui.Handlers
 		internal static void MapIndicatorsLayoutOverride(IIndicatorViewHandler handler, IIndicatorView indicator)
 		{
 			var layout = (indicator as ITemplatedIndicatorView)?.IndicatorsLayoutOverride;
-			if (layout == null)
+			if (layout != null)
 			{
-				if (!handler.PlatformView.IsTemplateIndicator)
-					return;
-
-				handler.PlatformView.SetIndicatorTemplate(null, null);
-				handler.PlatformView.UpdateIndicatorsColor();
-				handler.UpdateValue(nameof(IIndicatorView.IndicatorsShape));
+				var mauiContext = handler.MauiContext
+					?? throw new InvalidOperationException("MauiContext is required to display an indicator template.");
+				handler.PlatformView.ItemsSource = new[] { layout.ToPlatform(mauiContext) };
 			}
 			else
 			{
-				handler.PlatformView.SetIndicatorTemplate(layout, handler.MauiContext);
+				handler.PlatformView.CreateIndicators();
+				handler.PlatformView.UpdateIndicatorsColor();
 			}
 		}
 	}

@@ -114,8 +114,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			foreach (var pair in _cells)
 			{
 				var template = GetDataTemplate(pair.Key).SelectDataTemplate(pair.Key, _context.Shell);
-				var cellId = ((IDataTemplateController)template).IdString;
-				if (string.Equals(pair.Value.ReuseIdentifier, cellId, StringComparison.Ordinal))
+				if (ReferenceEquals(pair.Value.Template, template))
 				{
 					continue;
 				}
@@ -196,14 +195,14 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			UIContainerCell cell;
 			if (!_cells.TryGetValue(context, out cell))
 			{
-				var view = (View)template.CreateContent(context, _context.Shell);
-				cell = new UIContainerCell(cellId, view, _context.Shell, context);
+				var view = (View)selectedTemplate.CreateContent(context, _context.Shell);
+				cell = new UIContainerCell(cellId, view, _context.Shell, context, selectedTemplate);
 			}
 			else
 			{
 				var view = _cells[context].View;
 				cell.Disconnect(keepRenderer: true);
-				cell = new UIContainerCell(cellId, view, _context.Shell, context);
+				cell = new UIContainerCell(cellId, view, _context.Shell, context, selectedTemplate);
 			}
 
 			cell.SetAccessibilityProperties(context);

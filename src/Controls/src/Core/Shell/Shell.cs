@@ -28,6 +28,8 @@ namespace Microsoft.Maui.Controls
 	[DebuggerTypeProxy(typeof(ShellDebugView))]
 	public partial class Shell : Page, IShellController, IPropertyPropagationController, IPageContainer<Page>, IFlyoutView
 	{
+		static readonly DataTemplate NullFlyoutItemTemplate = new DataTemplate();
+
 		/// <summary>
 		/// The currently presented page.
 		/// </summary>
@@ -155,14 +157,18 @@ namespace Microsoft.Maui.Controls
 		/// Customizes the appearance of each <see cref = "MenuItem" />.
 		/// </summary>
 		public static readonly BindableProperty MenuItemTemplateProperty =
-			BindableProperty.CreateAttached(nameof(MenuItemTemplate), typeof(DataTemplate), typeof(Shell), null, BindingMode.OneTime, propertyChanged: OnFlyoutItemTemplateChanged);
+			BindableProperty.CreateAttached(nameof(MenuItemTemplate), typeof(DataTemplate), typeof(Shell), NullFlyoutItemTemplate, BindingMode.OneTime, propertyChanged: OnFlyoutItemTemplateChanged);
 
 		/// <summary>
 		/// Gets the <see cref = "DataTemplate" /> applied to <see cref = "MenuItem" /> objects in the MenuItems collection.
 		/// </summary>
 		/// <param name="obj">The object to get the <see cref="DataTemplate"/> from.</param>
 		/// <returns>The <see cref = "DataTemplate" /> applied to <paramref name="obj"/>.</returns>
-		public static DataTemplate GetMenuItemTemplate(BindableObject obj) => (DataTemplate)obj.GetValue(MenuItemTemplateProperty);
+		public static DataTemplate GetMenuItemTemplate(BindableObject obj)
+		{
+			var template = (DataTemplate)obj.GetValue(MenuItemTemplateProperty);
+			return ReferenceEquals(template, NullFlyoutItemTemplate) ? null : template;
+		}
 
 		/// <summary>
 		/// Sets the <see cref = "DataTemplate" /> applied to <see cref = "MenuItem" /> objects in the MenuItems collection.
@@ -179,7 +185,7 @@ namespace Microsoft.Maui.Controls
 		///  The <see cref = "DataTemplate" /> applied to each <see cref = "FlyoutItem" /> object managed by Shell.
 		/// </summary>
 		public static readonly BindableProperty ItemTemplateProperty =
-			BindableProperty.CreateAttached(nameof(ItemTemplate), typeof(DataTemplate), typeof(Shell), null, BindingMode.OneTime, propertyChanged: OnFlyoutItemTemplateChanged);
+			BindableProperty.CreateAttached(nameof(ItemTemplate), typeof(DataTemplate), typeof(Shell), NullFlyoutItemTemplate, BindingMode.OneTime, propertyChanged: OnFlyoutItemTemplateChanged);
 
 		readonly WeakEventManager _flyoutItemTemplateChanged = new WeakEventManager();
 
@@ -203,7 +209,11 @@ namespace Microsoft.Maui.Controls
 		/// </summary>
 		/// <param name="obj">The object that sets the <see cref = "DataTemplate" /> applied to Item objects.</param>
 		/// <returns>The <see cref = "DataTemplate" /> applied to Item objects.</returns>
-		public static DataTemplate GetItemTemplate(BindableObject obj) => (DataTemplate)obj.GetValue(ItemTemplateProperty);
+		public static DataTemplate GetItemTemplate(BindableObject obj)
+		{
+			var template = (DataTemplate)obj.GetValue(ItemTemplateProperty);
+			return ReferenceEquals(template, NullFlyoutItemTemplate) ? null : template;
+		}
 
 		/// <summary>
 		/// Sets the <see cref = "DataTemplate" /> applied to each <see cref = "FlyoutItem" /> object managed by Shell.
@@ -820,10 +830,14 @@ namespace Microsoft.Maui.Controls
 			BindableObject templateSource = GetBindableObjectWithFlyoutItemTemplate(flyoutItem);
 
 			if (templateSource.IsSet(bp))
-				return templateSource.GetValue(bp) as DataTemplate;
+				return bp == MenuItemTemplateProperty
+					? GetMenuItemTemplate(templateSource)
+					: GetItemTemplate(templateSource);
 
 			if (shell is not null && shell.IsSet(bp))
-				return shell.GetValue(bp) as DataTemplate;
+				return bp == MenuItemTemplateProperty
+					? GetMenuItemTemplate(shell)
+					: GetItemTemplate(shell);
 
 			return null;
 		}

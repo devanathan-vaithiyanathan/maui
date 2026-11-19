@@ -72,8 +72,13 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				}
 			}
 
-			DataTemplate dataTemplate = ShellController.GetFlyoutItemDataTemplate(item.Element);
-			if (item.Element is IMenuItemController)
+			return GetDataTemplate(item.Element);
+		}
+
+		DataTemplate GetDataTemplate(Element element)
+		{
+			DataTemplate dataTemplate = ShellController.GetFlyoutItemDataTemplate(element);
+			if (element is IMenuItemController)
 			{
 				if (DefaultMenuItemTemplate != null && Shell.MenuItemTemplate == dataTemplate)
 					dataTemplate = DefaultMenuItemTemplate;
@@ -84,8 +89,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 					dataTemplate = DefaultItemTemplate;
 			}
 
-			var template = dataTemplate.SelectDataTemplate(item.Element, Shell);
-			return template;
+			return dataTemplate.SelectDataTemplate(element, Shell);
 		}
 
 		public override void OnViewRecycled(Java.Lang.Object holder)
@@ -214,7 +218,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 					}
 
 					toAdd = toAdd ?? new AdapterListItem(element, first);
-					toAdd.UpdateTemplate(Shell.ResolveFlyoutItemTemplate(Shell, element));
+					toAdd.UpdateTemplate(GetDataTemplate(element));
 					result.Add(toAdd);
 					first = false;
 				}
@@ -241,7 +245,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			foreach (var item in _listItems)
 			{
 				var oldViewType = item.ViewType;
-				if (!item.UpdateTemplate(Shell.ResolveFlyoutItemTemplate(Shell, item.Element)))
+				if (!item.UpdateTemplate(GetDataTemplate(item.Element)))
 					continue;
 
 				// Evict pooled holders and reject holders recycled later for this obsolete type.

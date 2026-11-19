@@ -28,9 +28,10 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		internal UITableView TableView { get; set; }
 
 		[UnconditionalSuppressMessage("Memory", "MEM0003", Justification = "View MeasureInvalidated subscription is removed in Disconnect.")]
-		internal UIContainerCell(string cellId, View view, Shell shell, object context) : base(UITableViewCellStyle.Default, cellId)
+		internal UIContainerCell(string cellId, View view, Shell shell, object context, DataTemplate template = null) : base(UITableViewCellStyle.Default, cellId)
 		{
 			View = view;
+			Template = template;
 			_viewResource = view as IElementDefinition;
 			_viewResource?.AddResourcesChangedListener(OnResourcesChanged);
 			View.MeasureInvalidated += MeasureInvalidated;
@@ -125,6 +126,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		}
 
 		public View View { get; private set; }
+		internal DataTemplate Template { get; }
 
 		[UnconditionalSuppressMessage("Memory", "MEM0003", Justification = "BaseShellItem PropertyChanged subscription is removed when BindingContext changes and in Disconnect.")]
 		public object BindingContext

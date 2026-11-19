@@ -1,6 +1,7 @@
 ﻿using Android.Content.Res;
 using Google.Android.Material.ProgressIndicator;
 using Microsoft.Maui.Graphics;
+using AColor = Android.Graphics.Color;
 using AProgressBar = Android.Widget.ProgressBar;
 
 namespace Microsoft.Maui.Platform
@@ -29,24 +30,32 @@ namespace Microsoft.Maui.Platform
 		static void UpdateProgressBarColor(this AProgressBar platformProgressBar, IProgress progress)
 		{
 			Color color = progress.ProgressColor;
+			ColorStateList? tintList;
 
-			if (color == null)
+			if (color is not null)
 			{
-				(platformProgressBar.Indeterminate ? platformProgressBar.IndeterminateDrawable :
-					platformProgressBar.ProgressDrawable)?.ClearColorFilter();
+				tintList = ColorStateList.ValueOf(color.ToPlatform());
 			}
 			else
 			{
-				var tintList = ColorStateList.ValueOf(color.ToPlatform());
+				// The default progress drawables are tinted with ?attr/colorControlActivated.
+				// Setting a null tint list would strip that tint, so restore the theme color instead.
+				var context = platformProgressBar.Context;
+				if (context is null)
+				{
+					return;
+				}
 
-				if (platformProgressBar.Indeterminate)
-				{
-					platformProgressBar.IndeterminateTintList = tintList;
-				}
-				else
-				{
-					platformProgressBar.ProgressTintList = tintList;
-				}
+				tintList = ColorStateList.ValueOf(new AColor(context.GetThemeAttrColor(Resource.Attribute.colorControlActivated)));
+			}
+
+			if (platformProgressBar.Indeterminate)
+			{
+				platformProgressBar.IndeterminateTintList = tintList;
+			}
+			else
+			{
+				platformProgressBar.ProgressTintList = tintList;
 			}
 		}
 

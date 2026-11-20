@@ -113,7 +113,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			var invalidatedItems = new List<Element>();
 			foreach (var pair in _cells)
 			{
-				var template = GetDataTemplate(pair.Key).SelectDataTemplate(pair.Key, _context.Shell);
+				var template = GetDataTemplate(pair.Key);
 				if (ReferenceEquals(pair.Value.Template, template))
 				{
 					continue;
@@ -188,23 +188,31 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			int row = indexPath.Row;
 			var context = Groups[section][row];
 
-			DataTemplate template = GetDataTemplate(context);
-			var selectedTemplate = template.SelectDataTemplate(context, _context.Shell);
-			var cellId = ((IDataTemplateController)selectedTemplate).IdString;
+			var selectedTemplate = GetDataTemplate(context);
+			var template = selectedTemplate ?? BaseShellItem.CreateDefaultFlyoutItemCell(context);
+			var cellId = ((IDataTemplateController)template).IdString;
 
 			UIContainerCell cell;
-			if (!_cells.TryGetValue(context, out cell))
+			if (_cells.TryGetValue(context, out cell) && !ReferenceEquals(cell.Template, selectedTemplate))
 			{
-				var view = (View)selectedTemplate.CreateContent(context, _context.Shell);
-				cell = new UIContainerCell(cellId, view, _context.Shell, context, selectedTemplate);
+				cell.Disconnect(_context.Shell);
+				_cells.Remove(context);
+				cell = null;
+			}
+
+			if (cell == null)
+			{
+				var view = (View)template.CreateContent();
+				cell = new UIContainerCell(cellId, view, _context.Shell, context);
 			}
 			else
 			{
 				var view = _cells[context].View;
 				cell.Disconnect(keepRenderer: true);
-				cell = new UIContainerCell(cellId, view, _context.Shell, context, selectedTemplate);
+				cell = new UIContainerCell(cellId, view, _context.Shell, context);
 			}
 
+			cell.Template = selectedTemplate;
 			cell.SetAccessibilityProperties(context);
 
 			// Resolve MatchParent to the Shell's concrete FlowDirection. Shell menu item cells have a
@@ -232,7 +240,9 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		DataTemplate GetDataTemplate(Element context)
 		{
-			DataTemplate template = ShellController.GetFlyoutItemDataTemplate(context);
+			DataTemplate template = Shell.ResolveFlyoutItemTemplate(_context.Shell, context);
+			if (template == null)
+				return null;
 			if (context is IMenuItemController)
 			{
 				if (DefaultMenuItemTemplate != null && _context.Shell.MenuItemTemplate == template)
@@ -244,7 +254,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 					template = DefaultItemTemplate;
 			}
 
-			return template;
+			return template.SelectDataTemplate(context, _context.Shell);
 		}
 
 		static void OnViewMeasureInvalidated(UIContainerCell cell)

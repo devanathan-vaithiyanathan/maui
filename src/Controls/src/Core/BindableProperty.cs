@@ -257,6 +257,8 @@ namespace Microsoft.Maui.Controls
 
 		internal BindingPropertyChangingDelegate PropertyChanging { get; private set; }
 
+		internal bool NotifyOnSetStateChanged { get; set; }
+
 		internal ValidateValueDelegate ValidateValue { get; private set; }
 
 		private PropertyChangedEventArgs _changedEventArgs;

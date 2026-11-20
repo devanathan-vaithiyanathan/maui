@@ -129,6 +129,7 @@ namespace Microsoft.Maui.Controls
 			if (bpcontext == null)
 				return;
 
+			bool wasSet = property.NotifyOnSetStateChanged && IsSet(property);
 			var original = bpcontext.Values.GetSpecificityAndValue();
 			if (original.Key == SetterSpecificity.FromHandler)
 			{
@@ -137,7 +138,14 @@ namespace Microsoft.Maui.Controls
 
 			var newValue = bpcontext.Values.GetClearedValue(specificity);
 			var changed = !Equals(original.Value, newValue);
-			if (changed)
+			var topSpecificity = bpcontext.Values.GetSpecificity();
+			var remainingSpecificity = topSpecificity == specificity
+				? bpcontext.Values.GetClearedSpecificity()
+				: topSpecificity;
+			bool isSet = (bpcontext.Attributes & BindableContextAttributes.IsDefaultValueCreated) != 0
+				|| remainingSpecificity != SetterSpecificity.DefaultValue;
+			bool notify = changed || (property.NotifyOnSetStateChanged && wasSet != isSet);
+			if (notify)
 			{
 				property.PropertyChanging?.Invoke(this, original.Value, newValue);
 				NotifyPropertyChanging(property);
@@ -149,7 +157,7 @@ namespace Microsoft.Maui.Controls
 			if (property.CoerceValue != null)
 				property.CoerceValue(this, newValue);
 
-			OnBindablePropertySet(property, original.Value, newValue, changed, changed);
+			OnBindablePropertySet(property, original.Value, newValue, changed, notify);
 		}
 
 		/// <summary>
@@ -714,6 +722,7 @@ namespace Microsoft.Maui.Controls
 
 		void SetValueActual(BindableProperty property, BindablePropertyContext context, object value, bool currentlyApplying, SetValueFlags attributes, SetterSpecificity specificity, bool silent = false)
 		{
+			bool wasSet = property.NotifyOnSetStateChanged && IsSet(property);
 			var specificityAndValue = context.Values.GetSpecificityAndValue();
 			var original = specificityAndValue.Value;
 			var originalSpecificity = specificityAndValue.Key;
@@ -748,7 +757,8 @@ namespace Microsoft.Maui.Controls
 			// bool clearTwoWayBindings = (attributes & SetValueFlags.ClearTwoWayBindings) != 0 && specificity != SetterSpecificity.FromHandler;
 
 			bool sameValue = ReferenceEquals(context.Property, BindingContextProperty) ? ReferenceEquals(value, original) : Equals(value, original);
-			if (!silent && (!sameValue || raiseOnEqual))
+			bool setStateChanged = property.NotifyOnSetStateChanged && wasSet != (specificity != SetterSpecificity.DefaultValue);
+			if (!silent && (!sameValue || raiseOnEqual || setStateChanged))
 			{
 				property.PropertyChanging?.Invoke(this, original, value);
 
@@ -767,7 +777,7 @@ namespace Microsoft.Maui.Controls
 
 			BindingBase binding = context.Bindings.GetValue();
 
-			if (!silent && (!sameValue || raiseOnEqual))
+			if (!silent && (!sameValue || raiseOnEqual || setStateChanged))
 			{
 				if (binding != null && !currentlyApplying)
 				{

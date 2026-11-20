@@ -72,12 +72,15 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 				}
 			}
 
-			return GetDataTemplate(item.Element);
+			return item.Template ?? BaseShellItem.CreateDefaultFlyoutItemCell(item.Element);
 		}
 
 		DataTemplate GetDataTemplate(Element element)
 		{
-			DataTemplate dataTemplate = ShellController.GetFlyoutItemDataTemplate(element);
+			DataTemplate dataTemplate = Shell.ResolveFlyoutItemTemplate(Shell, element);
+			if (dataTemplate == null)
+				return null;
+
 			if (element is IMenuItemController)
 			{
 				if (DefaultMenuItemTemplate != null && Shell.MenuItemTemplate == dataTemplate)
@@ -89,7 +92,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 					dataTemplate = DefaultItemTemplate;
 			}
 
-			return dataTemplate.SelectDataTemplate(element, Shell);
+			var template = dataTemplate.SelectDataTemplate(element, Shell);
+			return template;
 		}
 
 		public override void OnViewRecycled(Java.Lang.Object holder)
@@ -311,14 +315,14 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 			public int Index { get; }
 			internal int ViewType { get; private set; }
-			DataTemplate _template;
+			internal DataTemplate Template { get; private set; }
 
 			internal bool UpdateTemplate(DataTemplate template)
 			{
-				if (_template == template)
+				if (ReferenceEquals(Template, template))
 					return false;
 
-				_template = template;
+				Template = template;
 				// A new view type prevents RecyclerView from reusing content created from the old template.
 				ViewType = IndexCounter++;
 				return true;

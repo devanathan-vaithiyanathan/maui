@@ -1,13 +1,17 @@
-﻿using Android.Content.Res;
+using System.Runtime.CompilerServices;
+using Android.Graphics.Drawables;
 using Google.Android.Material.ProgressIndicator;
 using Microsoft.Maui.Graphics;
-using AColor = Android.Graphics.Color;
 using AProgressBar = Android.Widget.ProgressBar;
+using ColorFilter = Android.Graphics.ColorFilter;
+using PorterDuff = Android.Graphics.PorterDuff;
 
 namespace Microsoft.Maui.Platform
 {
 	public static class ProgressBarExtensions
 	{
+		static readonly ConditionalWeakTable<Drawable, ProgressColorState> s_progressColorStates = new();
+
 		public const int Maximum = 10000;
 
 		public static void UpdateProgress(this AProgressBar platformProgressBar, IProgress progress)
@@ -29,34 +33,38 @@ namespace Microsoft.Maui.Platform
 
 		static void UpdateProgressBarColor(this AProgressBar platformProgressBar, IProgress progress)
 		{
-			Color color = progress.ProgressColor;
-			ColorStateList? tintList;
+			var drawable = platformProgressBar.Indeterminate
+				? platformProgressBar.IndeterminateDrawable
+				: platformProgressBar.ProgressDrawable;
 
-			if (color is not null)
+			if (!platformProgressBar.Indeterminate && drawable is LayerDrawable layers)
 			{
-				tintList = ColorStateList.ValueOf(color.ToPlatform());
-			}
-			else
-			{
-				// The default progress drawables are tinted with ?attr/colorControlActivated.
-				// Setting a null tint list would strip that tint, so restore the theme color instead.
-				var context = platformProgressBar.Context;
-				if (context is null)
-				{
-					return;
-				}
-
-				tintList = ColorStateList.ValueOf(new AColor(context.GetThemeAttrColor(Resource.Attribute.colorControlActivated)));
+				drawable = layers.FindDrawableByLayerId(global::Android.Resource.Id.Progress) ?? drawable;
 			}
 
-			if (platformProgressBar.Indeterminate)
+			if (drawable is null)
+				return;
+
+			if (progress.ProgressColor is { } color)
 			{
-				platformProgressBar.IndeterminateTintList = tintList;
+				drawable.Mutate();
+				if (!s_progressColorStates.TryGetValue(drawable, out _))
+					s_progressColorStates.Add(drawable, new ProgressColorState(drawable.ColorFilter));
+
+				// An explicit filter takes precedence over tint without replacing the widget's
+				// ColorStateList or the drawable's own stateful tint.
+				drawable.SetColorFilter(color.ToPlatform(), PorterDuff.Mode.SrcIn!);
 			}
-			else
+			else if (s_progressColorStates.TryGetValue(drawable, out var state))
 			{
-				platformProgressBar.ProgressTintList = tintList;
+				drawable.SetColorFilter(state.ColorFilter);
+				s_progressColorStates.Remove(drawable);
 			}
+		}
+
+		sealed class ProgressColorState(ColorFilter? colorFilter)
+		{
+			public ColorFilter? ColorFilter { get; } = colorFilter;
 		}
 
 		static void UpdateLinearProgressIndicatorColor(this LinearProgressIndicator materialProgressBar, IProgress progress)

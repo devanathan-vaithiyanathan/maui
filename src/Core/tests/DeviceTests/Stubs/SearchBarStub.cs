@@ -4,7 +4,7 @@ using Microsoft.Maui.Graphics;
 
 namespace Microsoft.Maui.DeviceTests.Stubs
 {
-	public partial class SearchBarStub : StubBase, ISearchBar, ITextInputStub
+	public partial class SearchBarStub : StubBase, ISearchBar, ISearchBarCancelButtonVisibility, ITextInputStub
 	{
 		string _text;
 
@@ -26,6 +26,8 @@ namespace Microsoft.Maui.DeviceTests.Stubs
 		public Color TextColor { get; set; }
 
 		public Color CancelButtonColor { get; set; }
+
+		public bool ShowCancelButton { get; set; } = true;
 
 		public Color SearchIconColor { get; set; }
 

@@ -1,3 +1,9 @@
 ﻿<ContentPage x:Class="Maui.Controls.Sample.MainPage"
              xmlns:local="clr-namespace:Maui.Controls.Sample">
+    <VerticalStackLayout>
+        <SearchBar x:Name="searchBar"
+                ShowCancelButton="False"/>
+        <Button Text="Click Me"
+                Clicked="Button_Clicked"/>
+    </VerticalStackLayout>
 </ContentPage>

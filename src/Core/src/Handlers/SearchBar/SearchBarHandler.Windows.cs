@@ -136,6 +136,21 @@ namespace Microsoft.Maui.Handlers
 			handler.PlatformView?.UpdateCancelButtonColor(searchBar);
 		}
 
+		/// <summary>Maps the search bar's cancel and clear button visibility.</summary>
+		/// <param name="handler">The search bar handler.</param>
+		/// <param name="searchBar">The search bar.</param>
+		public static void MapShowCancelButton(ISearchBarHandler handler, ISearchBar searchBar)
+		{
+			if (handler.PlatformView is { IsLoaded: true } platformView)
+			{
+				var showCancelButton = searchBar.AllowsCancelButton();
+				var wasEnabled = MauiTextBox.GetIsDeleteButtonEnabled(platformView);
+				MauiTextBox.SetIsDeleteButtonEnabled(platformView, showCancelButton);
+				if (!showCancelButton && !wasEnabled)
+					MauiTextBox.OnIsDeleteButtonEnabledPropertyChanged(platformView);
+			}
+		}
+
 		internal static void MapSearchIconColor(ISearchBarHandler handler, ISearchBar searchBar)
 		{
 			handler.PlatformView?.UpdateSearchIconColor(searchBar);
@@ -163,6 +178,7 @@ namespace Microsoft.Maui.Handlers
 				PlatformView?.UpdateIsTextPredictionEnabled(VirtualView);
 				PlatformView?.UpdateIsSpellCheckEnabled(VirtualView);
 				PlatformView?.UpdateCancelButtonColor(VirtualView);
+				UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
 				PlatformView?.UpdateSearchIconColor(VirtualView);
 				PlatformView?.UpdateKeyboard(VirtualView);
 				PlatformView?.UpdateReturnType(VirtualView);

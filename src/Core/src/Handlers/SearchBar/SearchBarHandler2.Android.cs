@@ -28,6 +28,7 @@ public class SearchBarHandler2 : ViewHandler<ISearchBar, MauiMaterialSearchBarTe
         [nameof(ISearchBar.Text)] = MapText,
         [nameof(ISearchBar.TextColor)] = MapTextColor,
         [nameof(ISearchBar.CancelButtonColor)] = MapCancelButtonColor,
+        [nameof(ISearchBarCancelButtonVisibility.ShowCancelButton)] = MapShowCancelButton,
         [nameof(ISearchBar.SearchIconColor)] = MapSearchIconColor,
         [nameof(ISearchBar.Keyboard)] = MapKeyboard,
         [nameof(ISearchBar.ReturnType)] = MapReturnType,
@@ -150,7 +151,7 @@ public class SearchBarHandler2 : ViewHandler<ISearchBar, MauiMaterialSearchBarTe
     public static void MapText(SearchBarHandler2 handler, ISearchBar searchBar)
     {
         handler.PlatformView?.EditText?.UpdateText(searchBar);
-        handler.PlatformView?.UpdateCloseButtonVisibility(!string.IsNullOrEmpty(searchBar.Text));
+        handler.UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
     }
 
     public static void MapTextColor(SearchBarHandler2 handler, ISearchBar searchBar)
@@ -161,6 +162,18 @@ public class SearchBarHandler2 : ViewHandler<ISearchBar, MauiMaterialSearchBarTe
     public static void MapCancelButtonColor(SearchBarHandler2 handler, ISearchBar searchBar)
     {
         handler.PlatformView?.UpdateCancelButtonColor(searchBar);
+    }
+
+    /// <summary>Maps the search bar's cancel and clear button visibility.</summary>
+    /// <param name="handler">The search bar handler.</param>
+    /// <param name="searchBar">The search bar.</param>
+    public static void MapShowCancelButton(SearchBarHandler2 handler, ISearchBar searchBar)
+    {
+        if (handler.PlatformView is MauiMaterialSearchBarTextInputLayout platformView)
+        {
+            platformView.UpdateCloseButtonVisibility(
+                searchBar.AllowsCancelButton() && !string.IsNullOrEmpty(platformView.EditText?.Text));
+        }
     }
 
     public static void MapSearchIconColor(SearchBarHandler2 handler, ISearchBar searchBar)
@@ -227,16 +240,15 @@ public class SearchBarHandler2 : ViewHandler<ISearchBar, MauiMaterialSearchBarTe
 
     void OnTextChanged(object? sender, TextChangedEventArgs e)
     {
-        if (VirtualView is null || sender is not EditText editText)
+        if (((IViewHandler)this).VirtualView is not ISearchBar searchBar || sender is not EditText editText)
         {
             return;
         }
 
         var newText = editText.Text ?? string.Empty;
-        VirtualView.UpdateText(newText);
+        searchBar.UpdateText(newText);
 
-        // Update clear button visibility based on text content
-        PlatformView?.UpdateCloseButtonVisibility(!string.IsNullOrEmpty(newText));
+        UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
     }
 
     void OnEditorAction(object? sender, TextView.EditorActionEventArgs e)
@@ -314,6 +326,7 @@ public class SearchBarHandler2 : ViewHandler<ISearchBar, MauiMaterialSearchBarTe
 
     void OnFocusChange(object? sender, View.FocusChangeEventArgs e)
     {
-        VirtualView?.IsFocused = e.HasFocus;
+        if (((IViewHandler)this).VirtualView is ISearchBar searchBar)
+            searchBar.IsFocused = e.HasFocus;
     }
 }

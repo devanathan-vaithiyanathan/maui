@@ -12,6 +12,8 @@ namespace Microsoft.Maui.Platform
 	{
 		[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = "Proven safe: delegate is cleared in WillMoveToWindow(null) before view is released")]
 		SearchEditorDelegate? _searchEditorDelegate;
+		UITextFieldViewMode _defaultClearButtonMode;
+		bool _clearButtonSuppressed;
 
 		public MauiSearchBar() : this(RectangleF.Empty)
 		{
@@ -64,6 +66,27 @@ namespace Microsoft.Maui.Platform
 		// Mirrors the MauiTextField.SelectionChanged pattern for Entry.
 		[UnconditionalSuppressMessage("Memory", "MEM0001", Justification = "Proven safe in test: MemoryTests.HandlerDoesNotLeak")]
 		internal event EventHandler? SelectionChanged;
+
+		internal void UpdateClearButtonMode(bool showCancelButton)
+		{
+			if (this.GetSearchTextField() is not UITextField editor)
+				return;
+
+			if (!showCancelButton)
+			{
+				if (!_clearButtonSuppressed)
+					_defaultClearButtonMode = editor.ClearButtonMode;
+
+				_clearButtonSuppressed = true;
+				if (editor.ClearButtonMode != UITextFieldViewMode.Never)
+					editor.ClearButtonMode = UITextFieldViewMode.Never;
+			}
+			else if (_clearButtonSuppressed)
+			{
+				editor.ClearButtonMode = _defaultClearButtonMode;
+				_clearButtonSuppressed = false;
+			}
+		}
 
 		public override void WillMoveToWindow(UIWindow? window)
 		{

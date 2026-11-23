@@ -18,7 +18,7 @@ namespace Microsoft.Maui.Controls
 	/// placeholder text, and optionally a cancel button. Use the <see cref="SearchCommand"/> to respond to search requests.
 	/// </remarks>
 	[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-	public partial class SearchBar : InputView, ITextAlignmentElement, ISearchBarController, IElementConfiguration<SearchBar>, ICommandElement, ISearchBar
+	public partial class SearchBar : InputView, ITextAlignmentElement, ISearchBarController, IElementConfiguration<SearchBar>, ICommandElement, ISearchBar, ISearchBarCancelButtonVisibility
 	{
 		/// <summary>Bindable property for <see cref="ReturnType"/>. This is a bindable property.</summary>
 		public static readonly BindableProperty ReturnTypeProperty = BindableProperty.Create(nameof(ReturnType), typeof(ReturnType), typeof(SearchBar), ReturnType.Search);
@@ -41,6 +41,9 @@ namespace Microsoft.Maui.Controls
 
 		/// <summary>Bindable property for <see cref="CancelButtonColor"/>. This is a bindable property.</summary>
 		public static readonly BindableProperty CancelButtonColorProperty = BindableProperty.Create(nameof(CancelButtonColor), typeof(Color), typeof(SearchBar), default(Color));
+
+		/// <summary>Bindable property for <see cref="ShowCancelButton"/>.</summary>
+		public static readonly BindableProperty ShowCancelButtonProperty = BindableProperty.Create(nameof(ShowCancelButton), typeof(bool), typeof(SearchBar), BooleanBoxes.TrueBox);
 
 		/// <summary>Bindable property for <see cref="SearchIconColor"/>. This is a bindable property.</summary>
 		public static readonly BindableProperty SearchIconColorProperty = BindableProperty.Create(nameof(SearchIconColor), typeof(Color), typeof(SearchBar), default(Color));
@@ -119,6 +122,19 @@ namespace Microsoft.Maui.Controls
 			get { return (Color)GetValue(CancelButtonColorProperty); }
 			set { SetValue(CancelButtonColorProperty, value); }
 		}
+
+		/// <summary>
+		/// Gets or sets whether the platform's cancel and clear buttons can be shown.
+		/// This is a bindable property.
+		/// </summary>
+		/// <value>The default is <see langword="true"/>, which uses the platform's usual visibility behavior.</value>
+		/// <remarks>Setting this property to <see langword="false"/> hides both the cancel and clear buttons where available.</remarks>
+		public bool ShowCancelButton
+		{
+			get => (bool)GetValue(ShowCancelButtonProperty);
+			set => SetValue(ShowCancelButtonProperty, BooleanBoxes.Box(value));
+		}
+
 		/// <summary>
 		/// Gets or sets the color of the search icon in the <see cref="SearchBar"/>.
 		/// This is a bindable property.

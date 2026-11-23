@@ -1,1 +1,4 @@
 #nullable enable
+Microsoft.Maui.Controls.SearchBar.ShowCancelButton.get -> bool
+Microsoft.Maui.Controls.SearchBar.ShowCancelButton.set -> void
+~static readonly Microsoft.Maui.Controls.SearchBar.ShowCancelButtonProperty -> Microsoft.Maui.Controls.BindableProperty

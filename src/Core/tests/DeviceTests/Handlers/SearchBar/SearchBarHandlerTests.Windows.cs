@@ -9,6 +9,43 @@ namespace Microsoft.Maui.DeviceTests
 {
 	public partial class SearchBarHandlerTests
 	{
+		[Theory]
+		[InlineData(true)]
+		[InlineData(false)]
+		public async Task CancelButtonVisibilityFollowsRuntimeChanges(bool initiallyVisible)
+		{
+			var searchBar = new Controls.SearchBar { Text = "search", ShowCancelButton = initiallyVisible };
+
+			await AttachAndRun(searchBar, async handler =>
+			{
+				await AssertEventually(() => handler.PlatformView.IsLoaded);
+
+				var platformView = handler.PlatformView;
+				var deleteButton = Assert.IsAssignableFrom<Button>(platformView.GetDescendantByName<Button>("DeleteButton"));
+				var grid = Assert.IsAssignableFrom<Grid>(deleteButton.Parent);
+				var column = grid.ColumnDefinitions[Grid.GetColumn(deleteButton)];
+
+				Assert.Equal(initiallyVisible, deleteButton.IsEnabled);
+
+				searchBar.ShowCancelButton = false;
+				Assert.False(deleteButton.IsEnabled);
+				Assert.Equal(0d, column.Width.Value);
+
+				var editor = Assert.IsAssignableFrom<TextBox>(platformView.GetFirstDescendant<TextBox>());
+				editor.Focus(Microsoft.UI.Xaml.FocusState.Programmatic);
+				searchBar.Text = "typed";
+				Assert.False(deleteButton.IsEnabled);
+				Assert.Equal(0d, column.Width.Value);
+
+				searchBar.ShowCancelButton = true;
+				Assert.True(deleteButton.IsEnabled);
+				Assert.Equal(Microsoft.UI.Xaml.GridUnitType.Auto, column.Width.GridUnitType);
+
+				searchBar.Text = string.Empty;
+				Assert.Equal(Microsoft.UI.Xaml.GridUnitType.Auto, column.Width.GridUnitType);
+			});
+		}
+
 		// Regression tests for https://github.com/dotnet/maui/issues/30779
 		// SearchBar.CursorPosition and SelectionLength were not updated when the user typed
 

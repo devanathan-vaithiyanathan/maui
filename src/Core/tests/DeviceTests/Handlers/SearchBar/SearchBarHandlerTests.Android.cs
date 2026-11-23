@@ -16,6 +16,74 @@ namespace Microsoft.Maui.DeviceTests
 {
 	public partial class SearchBarHandlerTests
 	{
+		[Theory]
+		[InlineData(true)]
+		[InlineData(false)]
+		public async Task CancelButtonVisibilityFollowsRuntimeChanges(bool initiallyVisible)
+		{
+			var searchBar = new Controls.SearchBar { Text = "search", ShowCancelButton = initiallyVisible };
+
+			await AttachAndRun(searchBar, async handler =>
+			{
+				var platformView = handler.PlatformView;
+				var cancelButton = Assert.IsAssignableFrom<ImageView>(platformView.GetCancelButton());
+				Assert.Equal(initiallyVisible ? ViewStates.Visible : ViewStates.Gone, cancelButton.Visibility);
+
+				searchBar.ShowCancelButton = false;
+				Assert.Equal(ViewStates.Gone, cancelButton.Visibility);
+
+				platformView.SetQuery("typed", false);
+				Assert.IsAssignableFrom<EditText>(handler.QueryEditor).RequestFocus();
+				await AssertEventually(() => cancelButton.Visibility == ViewStates.Gone);
+
+				searchBar.ShowCancelButton = true;
+				Assert.Equal(ViewStates.Visible, cancelButton.Visibility);
+
+				searchBar.Text = string.Empty;
+				Assert.Equal(ViewStates.Gone, cancelButton.Visibility);
+
+				searchBar.ShowCancelButton = false;
+				searchBar.Text = "again";
+				Assert.Equal(ViewStates.Gone, cancelButton.Visibility);
+			});
+		}
+
+		[Theory]
+		[InlineData(true)]
+		[InlineData(false)]
+		public async Task Material3CancelButtonVisibilityFollowsRuntimeChanges(bool initiallyVisible)
+		{
+			await InvokeOnMainThreadAsync(async () =>
+			{
+				var searchBar = new Controls.SearchBar { Text = "search", ShowCancelButton = initiallyVisible };
+				var handler = CreateHandler<SearchBarHandler2>(searchBar);
+
+				await handler.PlatformView.AttachAndRun(() =>
+				{
+					var platformView = handler.PlatformView;
+					var editor = Assert.IsAssignableFrom<EditText>(platformView.EditText);
+					Assert.Equal(initiallyVisible, platformView.EndIconVisible);
+
+					searchBar.ShowCancelButton = false;
+					Assert.False(platformView.EndIconVisible);
+
+					editor.Text = "typed";
+					editor.RequestFocus();
+					Assert.False(platformView.EndIconVisible);
+
+					searchBar.ShowCancelButton = true;
+					Assert.True(platformView.EndIconVisible);
+
+					searchBar.Text = string.Empty;
+					Assert.False(platformView.EndIconVisible);
+
+					searchBar.ShowCancelButton = false;
+					searchBar.Text = "again";
+					Assert.False(platformView.EndIconVisible);
+				});
+			});
+		}
+
 		// Regression tests for https://github.com/dotnet/maui/issues/30779
 		// SearchBar.CursorPosition and SelectionLength were not updated when the user typed
 

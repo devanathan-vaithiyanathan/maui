@@ -2,11 +2,77 @@
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
 using UIKit;
+using Xunit;
+using static Microsoft.Maui.DeviceTests.AssertHelpers;
 
 namespace Microsoft.Maui.DeviceTests
 {
 	public partial class SearchBarTests
 	{
+		[Fact]
+		public async Task CancelButtonVisibilityFollowsTextByDefault()
+		{
+			await InvokeOnMainThreadAsync(() =>
+			{
+				var searchBar = new Controls.SearchBar();
+				var handler = CreateHandler<SearchBarHandler>(searchBar);
+
+				Assert.False(handler.PlatformView.ShowsCancelButton);
+				searchBar.Text = "search";
+				Assert.True(handler.PlatformView.ShowsCancelButton);
+				searchBar.Text = string.Empty;
+				Assert.False(handler.PlatformView.ShowsCancelButton);
+			});
+		}
+
+		[Collection(RunInNewWindowCollection)]
+		[Category(TestCategory.SearchBar)]
+		public class CancelButtonVisibilityTests : ControlsHandlerTestBase
+		{
+			[Theory]
+			[InlineData(true)]
+			[InlineData(false)]
+			public async Task CancelButtonCanBeToggledWhileEditing(bool showCancelButton)
+			{
+				await InvokeOnMainThreadAsync(async () =>
+				{
+					var searchBar = new Controls.SearchBar { Text = "initial", ShowCancelButton = showCancelButton };
+					var handler = CreateHandler<SearchBarHandler>(searchBar);
+
+					await handler.PlatformView.AttachAndRun(async () =>
+					{
+						Assert.Equal(showCancelButton, handler.PlatformView.ShowsCancelButton);
+						Assert.True(searchBar.Focus());
+						await AssertEventually(() => searchBar.IsFocused);
+
+						searchBar.ShowCancelButton = false;
+						Assert.False(handler.PlatformView.ShowsCancelButton);
+						searchBar.CancelButtonColor = Graphics.Colors.Red;
+						searchBar.Text = "changed";
+						Assert.False(handler.PlatformView.ShowsCancelButton);
+
+						handler.QueryEditor.Text = "typed";
+						handler.QueryEditor.SendActionForControlEvents(UIControlEvent.EditingChanged);
+						Assert.Equal("typed", searchBar.Text);
+						Assert.False(handler.PlatformView.ShowsCancelButton);
+
+						searchBar.ShowCancelButton = true;
+						Assert.True(handler.PlatformView.ShowsCancelButton);
+						Assert.True(searchBar.IsFocused);
+						searchBar.Text = string.Empty;
+						Assert.False(handler.PlatformView.ShowsCancelButton);
+						searchBar.Text = "again";
+						Assert.True(handler.PlatformView.ShowsCancelButton);
+						searchBar.ShowCancelButton = false;
+						Assert.False(handler.PlatformView.ShowsCancelButton);
+						searchBar.Unfocus();
+						await AssertEventually(() => !searchBar.IsFocused);
+						Assert.False(handler.PlatformView.ShowsCancelButton);
+					});
+				});
+			}
+		}
+
 		static MauiSearchBar GetPlatformControl(SearchBarHandler handler) =>
 			handler.PlatformView;
 

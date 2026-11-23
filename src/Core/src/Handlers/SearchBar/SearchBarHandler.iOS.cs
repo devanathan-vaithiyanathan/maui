@@ -24,7 +24,7 @@ namespace Microsoft.Maui.Handlers
 
 		protected override void ConnectHandler(MauiSearchBar platformView)
 		{
-			_proxy.Connect(this, VirtualView, platformView);
+			_proxy.Connect(this, platformView);
 
 			base.ConnectHandler(platformView);
 
@@ -164,9 +164,20 @@ namespace Microsoft.Maui.Handlers
 		public static void MapCancelButtonColor(ISearchBarHandler handler, ISearchBar searchBar)
 		{
 			handler.PlatformView?.UpdateCancelButton(searchBar);
-			if (handler is SearchBarHandler searchBarHandler)
-				handler.PlatformView?.UpdateClearButtonVisibility(!string.IsNullOrEmpty(searchBar.Text));
+			handler.PlatformView?.UpdateClearButtonVisibility(searchBar);
+		}
 
+		/// <summary>
+		/// Maps the search bar's cancel and clear button visibility.
+		/// </summary>
+		/// <param name="handler">The search bar handler.</param>
+		/// <param name="searchBar">The search bar.</param>
+		public static void MapShowCancelButton(ISearchBarHandler handler, ISearchBar searchBar)
+		{
+			handler.PlatformView?.UpdateClearButtonMode(searchBar.AllowsCancelButton());
+			handler.PlatformView?.UpdateCancelButtonVisibility(searchBar);
+			handler.UpdateValue(nameof(ISearchBar.CancelButtonColor));
+			handler.PlatformView?.UpdateClearButtonVisibility(searchBar);
 		}
 
 		internal static void MapSearchIconColor(ISearchBarHandler handler, ISearchBar searchBar)
@@ -183,25 +194,35 @@ namespace Microsoft.Maui.Handlers
 			handler.PlatformView?.UpdateReturnType(searchBar);
 		}
 
-		void UpdateCancelButtonVisibility()
+		void UpdateButtonVisibility()
 		{
-			if (PlatformView.ShowsCancelButton != VirtualView.ShouldShowCancelButton())
-				UpdateValue(nameof(ISearchBar.CancelButtonColor));
+			if (((IViewHandler)this).VirtualView is ISearchBar searchBar &&
+				((IViewHandler)this).PlatformView is MauiSearchBar platformView)
+			{
+				if (platformView.ShowsCancelButton != searchBar.ShouldShowCancelButton() ||
+					(!searchBar.AllowsCancelButton() && platformView.GetSearchTextField() is UITextField { ClearButtonMode: not UITextFieldViewMode.Never }))
+				{
+					UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
+				}
+
+				if (((IViewHandler)this).VirtualView == searchBar && ((IViewHandler)this).PlatformView == platformView)
+					platformView.UpdateClearButtonVisibility(searchBar);
+			}
 		}
 
 		class MauiSearchBarProxy
 		{
 			WeakReference<SearchBarHandler>? _handler;
-			WeakReference<ISearchBar>? _virtualView;
 
-			ISearchBar? VirtualView => _virtualView is not null && _virtualView.TryGetTarget(out var v) ? v : null;
+			ISearchBar? VirtualView => Handler is SearchBarHandler handler
+				? ((IViewHandler)handler).VirtualView as ISearchBar
+				: null;
 
 			SearchBarHandler? Handler => _handler is not null && _handler.TryGetTarget(out var h) ? h : null;
 
-			public void Connect(SearchBarHandler handler, ISearchBar virtualView, MauiSearchBar platformView)
+			public void Connect(SearchBarHandler handler, MauiSearchBar platformView)
 			{
 				_handler = new(handler);
-				_virtualView = new(virtualView);
 
 				platformView.CancelButtonClicked += OnCancelClicked;
 				platformView.SearchButtonClicked += OnSearchButtonClicked;
@@ -218,7 +239,6 @@ namespace Microsoft.Maui.Handlers
 
 			public void Disconnect(MauiSearchBar platformView, UITextField? editor)
 			{
-				_virtualView = null;
 				_handler = null;
 
 				platformView.CancelButtonClicked -= OnCancelClicked;
@@ -263,7 +283,7 @@ namespace Microsoft.Maui.Handlers
 
 					if (Handler is SearchBarHandler handler)
 					{
-						handler.UpdateCancelButtonVisibility();
+						handler.UpdateButtonVisibility();
 					}
 				}
 			}
@@ -278,6 +298,8 @@ namespace Microsoft.Maui.Handlers
 			{
 				if (VirtualView is ISearchBar virtualView)
 					virtualView.IsFocused = true;
+
+				Handler?.UpdateButtonVisibility();
 			}
 
 			void OnEditingChanged(object? sender, EventArgs e)
@@ -287,11 +309,7 @@ namespace Microsoft.Maui.Handlers
 					virtualView.UpdateText(textField.Text);
 				}
 
-				if (Handler is SearchBarHandler handler)
-				{
-					handler.UpdateCancelButtonVisibility();
-					handler.PlatformView?.UpdateClearButtonVisibility(!string.IsNullOrEmpty(VirtualView?.Text));
-				}
+				Handler?.UpdateButtonVisibility();
 			}
 
 			void OnSelectionChanged(object? sender, EventArgs e)
@@ -321,6 +339,8 @@ namespace Microsoft.Maui.Handlers
 			{
 				if (VirtualView is ISearchBar virtualView)
 					virtualView.IsFocused = false;
+
+				Handler?.UpdateButtonVisibility();
 			}
 		}
 	}

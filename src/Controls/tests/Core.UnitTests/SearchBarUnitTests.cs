@@ -19,6 +19,20 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 		}
 
 		[Fact]
+		public void ShowCancelButtonSupportsBinding()
+		{
+			var source = new SearchBar();
+			var target = new SearchBar { BindingContext = source };
+			target.SetBinding(SearchBar.ShowCancelButtonProperty, nameof(SearchBar.ShowCancelButton));
+
+			Assert.True(target.ShowCancelButton);
+			source.ShowCancelButton = false;
+			Assert.False(target.ShowCancelButton);
+			source.ShowCancelButton = true;
+			Assert.True(target.ShowCancelButton);
+		}
+
+		[Fact]
 		public void TestContentsChanged()
 		{
 			SearchBar searchBar = new SearchBar();

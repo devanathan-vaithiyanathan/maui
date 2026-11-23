@@ -5,6 +5,7 @@ using Android.Graphics;
 using Android.Graphics.Drawables;
 using Android.Text;
 using Android.Util;
+using Android.Views;
 using Android.Views.InputMethods;
 using Android.Widget;
 using Google.Android.Material.TextField;
@@ -131,6 +132,22 @@ namespace Microsoft.Maui.Platform
 			}
 		}
 
+		internal static void UpdateCancelButtonVisibility(this SearchView searchView, ISearchBar searchBar)
+		{
+			var showCancelButton = searchBar.AllowsCancelButton();
+
+			if (searchView is MauiSearchView mauiSearchView)
+			{
+				mauiSearchView.UpdateCancelButtonVisibility(showCancelButton);
+			}
+			else if (searchView.GetCancelButton() is ImageView cancelButton)
+			{
+				cancelButton.Visibility = showCancelButton && !string.IsNullOrEmpty(searchView.Query)
+					? ViewStates.Visible
+					: ViewStates.Gone;
+			}
+		}
+
 		public static void UpdateCancelButtonColor(this SearchView searchView, ISearchBar searchBar)
 		{
 			var cancelButton = searchView.GetCancelButton();
@@ -179,7 +196,7 @@ namespace Microsoft.Maui.Platform
 			}
 		}
 
-		static ImageView? GetCancelButton(this SearchView searchView)
+		internal static ImageView? GetCancelButton(this SearchView searchView)
 		{
 			if (searchView.Resources is null)
 			{

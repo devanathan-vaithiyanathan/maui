@@ -6,8 +6,7 @@ namespace Microsoft.Maui.Platform
 {
 	public static class ProgressBarExtensions
 	{
-		static readonly ConditionalWeakTable<ProgressBar, object> s_progressColorOverrides = new();
-		static readonly object s_progressColorOverride = new();
+		static readonly ConditionalWeakTable<ProgressBar, StrongBox<object>> s_originalForegrounds = new();
 
 		public static void UpdateProgress(this ProgressBar platformProgressBar, IProgress progress)
 		{
@@ -19,13 +18,19 @@ namespace Microsoft.Maui.Platform
 			Color progressColor = progress.ProgressColor;
 			if (progressColor is not null)
 			{
+				if (!s_originalForegrounds.TryGetValue(platformProgressBar, out _))
+					s_originalForegrounds.Add(platformProgressBar, new(platformProgressBar.ReadLocalValue(ProgressBar.ForegroundProperty)));
+
 				platformProgressBar.Foreground = progressColor.ToPlatform();
-				s_progressColorOverrides.GetValue(platformProgressBar, _ => s_progressColorOverride);
 			}
-			else if (s_progressColorOverrides.TryGetValue(platformProgressBar, out _))
+			else if (s_originalForegrounds.TryGetValue(platformProgressBar, out var originalForeground))
 			{
-				platformProgressBar.ClearValue(ProgressBar.ForegroundProperty);
-				s_progressColorOverrides.Remove(platformProgressBar);
+				if (originalForeground.Value == Microsoft.UI.Xaml.DependencyProperty.UnsetValue)
+					platformProgressBar.ClearValue(ProgressBar.ForegroundProperty);
+				else
+					platformProgressBar.SetValue(ProgressBar.ForegroundProperty, originalForeground.Value);
+
+				s_originalForegrounds.Remove(platformProgressBar);
 			}
 		}
 	}

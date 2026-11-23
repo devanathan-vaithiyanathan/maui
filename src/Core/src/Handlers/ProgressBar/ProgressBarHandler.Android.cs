@@ -14,6 +14,12 @@ namespace Microsoft.Maui.Handlers
 			};
 		}
 
+		protected override void DisconnectHandler(AndroidProgressBar platformView)
+		{
+			platformView.ResetProgressColor();
+			base.DisconnectHandler(platformView);
+		}
+
 		public static void MapProgress(IProgressBarHandler handler, IProgress progress)
 		{
 			handler.PlatformView?.UpdateProgress(progress);

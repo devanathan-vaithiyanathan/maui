@@ -1,16 +1,18 @@
 using System.Runtime.CompilerServices;
 using Android.Graphics.Drawables;
+using Android.Views;
 using Google.Android.Material.ProgressIndicator;
 using Microsoft.Maui.Graphics;
 using AProgressBar = Android.Widget.ProgressBar;
 using ColorFilter = Android.Graphics.ColorFilter;
 using PorterDuff = Android.Graphics.PorterDuff;
+using AView = Android.Views.View;
 
 namespace Microsoft.Maui.Platform
 {
 	public static class ProgressBarExtensions
 	{
-		static readonly ConditionalWeakTable<Drawable, ProgressColorState> s_progressColorStates = new();
+		static readonly ConditionalWeakTable<AProgressBar, ProgressColorOverride> s_progressColorOverrides = new();
 
 		public const int Maximum = 10000;
 
@@ -33,38 +35,128 @@ namespace Microsoft.Maui.Platform
 
 		static void UpdateProgressBarColor(this AProgressBar platformProgressBar, IProgress progress)
 		{
-			var drawable = platformProgressBar.Indeterminate
-				? platformProgressBar.IndeterminateDrawable
-				: platformProgressBar.ProgressDrawable;
-
-			if (!platformProgressBar.Indeterminate && drawable is LayerDrawable layers)
+			if (progress.ProgressColor is not { } color)
 			{
-				drawable = layers.FindDrawableByLayerId(global::Android.Resource.Id.Progress) ?? drawable;
-			}
-
-			if (drawable is null)
+				platformProgressBar.ResetProgressColor();
 				return;
-
-			if (progress.ProgressColor is { } color)
-			{
-				drawable.Mutate();
-				if (!s_progressColorStates.TryGetValue(drawable, out _))
-					s_progressColorStates.Add(drawable, new ProgressColorState(drawable.ColorFilter));
-
-				// An explicit filter takes precedence over tint without replacing the widget's
-				// ColorStateList or the drawable's own stateful tint.
-				drawable.SetColorFilter(color.ToPlatform(), PorterDuff.Mode.SrcIn!);
 			}
-			else if (s_progressColorStates.TryGetValue(drawable, out var state))
+
+			if (!s_progressColorOverrides.TryGetValue(platformProgressBar, out var colorOverride))
 			{
-				drawable.SetColorFilter(state.ColorFilter);
-				s_progressColorStates.Remove(drawable);
+				colorOverride = new ProgressColorOverride(platformProgressBar);
+				s_progressColorOverrides.Add(platformProgressBar, colorOverride);
+			}
+
+			colorOverride.Update(color);
+		}
+
+		internal static void ResetProgressColor(this AProgressBar platformProgressBar)
+		{
+			if (s_progressColorOverrides.TryGetValue(platformProgressBar, out var colorOverride))
+			{
+				colorOverride.Stop();
+				s_progressColorOverrides.Remove(platformProgressBar);
 			}
 		}
 
-		sealed class ProgressColorState(ColorFilter? colorFilter)
+		sealed class ProgressColorOverride : Java.Lang.Object, ViewTreeObserver.IOnPreDrawListener, AView.IOnAttachStateChangeListener
 		{
-			public ColorFilter? ColorFilter { get; } = colorFilter;
+			readonly AProgressBar _platformProgressBar;
+			ViewTreeObserver? _viewTreeObserver;
+			Drawable? _sourceDrawable;
+			Drawable? _drawable;
+			ColorFilter? _originalColorFilter;
+			Color? _color;
+			Color? _appliedColor;
+
+			public ProgressColorOverride(AProgressBar platformProgressBar)
+			{
+				_platformProgressBar = platformProgressBar;
+				platformProgressBar.AddOnAttachStateChangeListener(this);
+				if (platformProgressBar.IsAttachedToWindow)
+					OnViewAttachedToWindow(platformProgressBar);
+			}
+
+			public void Update(Color color)
+			{
+				_color = color;
+				ApplyColor();
+				_platformProgressBar.Invalidate();
+			}
+
+			public bool OnPreDraw()
+			{
+				ApplyColor();
+				return true;
+			}
+
+			public void OnViewAttachedToWindow(AView view)
+			{
+				_viewTreeObserver = view.ViewTreeObserver;
+				_viewTreeObserver.AddOnPreDrawListener(this);
+				ApplyColor();
+			}
+
+			public void OnViewDetachedFromWindow(AView view)
+			{
+				if (_viewTreeObserver?.IsAlive == true)
+					_viewTreeObserver.RemoveOnPreDrawListener(this);
+				_viewTreeObserver = null;
+			}
+
+			void ApplyColor()
+			{
+				var drawable = _platformProgressBar.Indeterminate
+					? _platformProgressBar.IndeterminateDrawable
+					: _platformProgressBar.ProgressDrawable;
+
+				if (!_platformProgressBar.Indeterminate && drawable is LayerDrawable layers)
+					drawable = layers.FindDrawableByLayerId(global::Android.Resource.Id.Progress) ?? drawable;
+
+				if (!ReferenceEquals(drawable, _sourceDrawable))
+				{
+					RestoreDrawable();
+					_sourceDrawable = drawable;
+					_drawable = drawable?.Mutate();
+					_originalColorFilter = _drawable?.ColorFilter;
+				}
+
+				if (_drawable is null)
+					return;
+
+				if (_color is null)
+				{
+					RestoreDrawable();
+					return;
+				}
+
+				if (!Equals(_color, _appliedColor))
+				{
+					_drawable.SetColorFilter(_color.ToPlatform(), PorterDuff.Mode.SrcIn!);
+					_appliedColor = _color;
+				}
+			}
+
+			void RestoreDrawable()
+			{
+				_drawable?.SetColorFilter(_originalColorFilter);
+				_drawable = null;
+				_sourceDrawable = null;
+				_originalColorFilter = null;
+				_appliedColor = null;
+			}
+
+			public void Stop()
+			{
+				_platformProgressBar.RemoveOnAttachStateChangeListener(this);
+				if (_viewTreeObserver?.IsAlive == true)
+					_viewTreeObserver.RemoveOnPreDrawListener(this);
+				_viewTreeObserver = null;
+				ApplyColor();
+				RestoreDrawable();
+				_platformProgressBar.Invalidate();
+				Dispose();
+			}
 		}
 
 		static void UpdateLinearProgressIndicatorColor(this LinearProgressIndicator materialProgressBar, IProgress progress)

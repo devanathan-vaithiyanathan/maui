@@ -30,7 +30,7 @@ namespace Microsoft.Maui.Controls.Internals
 		{
 		}
 
-		/// <summary>Creates prompt arguments with an initial selection, or null to preserve platform defaults.</summary>
+		/// <summary>Creates prompt arguments with an initial selection, or null for platform-specific default behavior.</summary>
 		public PromptArguments(string title, string message, string accept, string cancel, string placeholder, int maxLength, Keyboard keyboard, string initialValue, PromptTextSelection initialSelection)
 		{
 			Title = title;
@@ -63,7 +63,8 @@ namespace Microsoft.Maui.Controls.Internals
 		/// <summary>Gets the initial value for the input field.</summary>
 		public string InitialValue { get; }
 
-		/// <summary>Gets the one-time initial selection, or null to preserve platform selection behavior.</summary>
+		/// <summary>Gets the one-time initial selection, or null for platform-specific default behavior.</summary>
+		/// <remarks>Mac Catalyst places the caret at the end for null; other platforms preserve native defaults.</remarks>
 		public PromptTextSelection InitialSelection { get; }
 
 		/// <summary>Gets the maximum input length, or -1 for no limit.</summary>

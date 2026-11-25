@@ -53,7 +53,6 @@ namespace Microsoft.Maui.Platform
 
 		internal void UpdateCancelButtonVisibility(bool showCancelButton)
 		{
-			var wasHidden = !_showCancelButton;
 			_showCancelButton = showCancelButton;
 
 			if (this.GetCancelButton() is not ImageView cancelButton)
@@ -61,7 +60,7 @@ namespace Microsoft.Maui.Platform
 
 			if (!showCancelButton)
 				cancelButton.Visibility = ViewStates.Gone;
-			else if (wasHidden)
+			else
 				cancelButton.Visibility = string.IsNullOrEmpty(Query) ? ViewStates.Gone : ViewStates.Visible;
 		}
 

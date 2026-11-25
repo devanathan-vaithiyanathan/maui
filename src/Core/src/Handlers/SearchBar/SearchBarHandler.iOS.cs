@@ -78,6 +78,7 @@ namespace Microsoft.Maui.Handlers
 
 			// Any text update requires that we update any attributed string formatting
 			MapFormatting(handler, searchBar);
+			handler.UpdateValue(nameof(ISearchBarClearButtonVisibility.ClearButtonVisibility));
 		}
 
 		public static void MapPlaceholder(ISearchBarHandler handler, ISearchBar searchBar)
@@ -172,9 +173,10 @@ namespace Microsoft.Maui.Handlers
 		/// </summary>
 		/// <param name="handler">The search bar handler.</param>
 		/// <param name="searchBar">The search bar.</param>
-		public static void MapShowCancelButton(ISearchBarHandler handler, ISearchBar searchBar)
+		public static void MapClearButtonVisibility(ISearchBarHandler handler, ISearchBar searchBar)
 		{
-			handler.PlatformView?.UpdateClearButtonMode(searchBar.AllowsCancelButton());
+			handler.PlatformView?.UpdateClearButtonMode(
+				(searchBar as ISearchBarClearButtonVisibility)?.ClearButtonVisibility);
 			handler.PlatformView?.UpdateCancelButtonVisibility(searchBar);
 			handler.UpdateValue(nameof(ISearchBar.CancelButtonColor));
 			handler.PlatformView?.UpdateClearButtonVisibility(searchBar);
@@ -199,11 +201,7 @@ namespace Microsoft.Maui.Handlers
 			if (((IViewHandler)this).VirtualView is ISearchBar searchBar &&
 				((IViewHandler)this).PlatformView is MauiSearchBar platformView)
 			{
-				if (platformView.ShowsCancelButton != searchBar.ShouldShowCancelButton() ||
-					(!searchBar.AllowsCancelButton() && platformView.GetSearchTextField() is UITextField { ClearButtonMode: not UITextFieldViewMode.Never }))
-				{
-					UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
-				}
+				UpdateValue(nameof(ISearchBarClearButtonVisibility.ClearButtonVisibility));
 
 				if (((IViewHandler)this).VirtualView == searchBar && ((IViewHandler)this).PlatformView == platformView)
 					platformView.UpdateClearButtonVisibility(searchBar);
@@ -260,7 +258,7 @@ namespace Microsoft.Maui.Handlers
 				// so we fire this off again so it can set the color
 				if (Handler is SearchBarHandler handler)
 				{
-					handler.UpdateValue(nameof(ISearchBar.CancelButtonColor));
+					handler.UpdateValue(nameof(ISearchBarClearButtonVisibility.ClearButtonVisibility));
 				}
 			}
 

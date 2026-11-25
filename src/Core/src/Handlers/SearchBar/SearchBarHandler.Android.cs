@@ -86,7 +86,7 @@ namespace Microsoft.Maui.Handlers
 		public static void MapText(ISearchBarHandler handler, ISearchBar searchBar)
 		{
 			handler.PlatformView?.UpdateText(searchBar);
-			handler.UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
+			handler.UpdateValue(nameof(ISearchBarClearButtonVisibility.ClearButtonVisibility));
 		}
 
 		public static void MapPlaceholder(ISearchBarHandler handler, ISearchBar searchBar)
@@ -184,7 +184,7 @@ namespace Microsoft.Maui.Handlers
 		/// <summary>Maps the search bar's cancel and clear button visibility.</summary>
 		/// <param name="handler">The search bar handler.</param>
 		/// <param name="searchBar">The search bar.</param>
-		public static void MapShowCancelButton(ISearchBarHandler handler, ISearchBar searchBar)
+		public static void MapClearButtonVisibility(ISearchBarHandler handler, ISearchBar searchBar)
 		{
 			handler.PlatformView?.UpdateCancelButtonVisibility(searchBar);
 		}
@@ -223,7 +223,7 @@ namespace Microsoft.Maui.Handlers
 			if (((IViewHandler)this).VirtualView is ISearchBar searchBar)
 			{
 				searchBar.UpdateText(e.NewText);
-				UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
+				UpdateValue(nameof(ISearchBarClearButtonVisibility.ClearButtonVisibility));
 			}
 			e.Handled = true;
 			// Typing always repositions the cursor; schedule a deferred cursor/selection read.
@@ -328,7 +328,7 @@ namespace Microsoft.Maui.Handlers
 					return;
 
 				virtualView.IsFocused = hasFocus;
-				handler.UpdateValue(nameof(ISearchBarCancelButtonVisibility.ShowCancelButton));
+				handler.UpdateValue(nameof(ISearchBarClearButtonVisibility.ClearButtonVisibility));
 			}
 		}
 	}

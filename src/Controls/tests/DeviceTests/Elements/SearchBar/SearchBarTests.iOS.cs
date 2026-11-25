@@ -10,7 +10,7 @@ namespace Microsoft.Maui.DeviceTests
 	public partial class SearchBarTests
 	{
 		[Fact]
-		public async Task CancelButtonVisibilityFollowsTextByDefault()
+		public async Task CancelButtonIsHiddenWithoutFocusByDefault()
 		{
 			await InvokeOnMainThreadAsync(() =>
 			{
@@ -19,7 +19,7 @@ namespace Microsoft.Maui.DeviceTests
 
 				Assert.False(handler.PlatformView.ShowsCancelButton);
 				searchBar.Text = "search";
-				Assert.True(handler.PlatformView.ShowsCancelButton);
+				Assert.False(handler.PlatformView.ShowsCancelButton);
 				searchBar.Text = string.Empty;
 				Assert.False(handler.PlatformView.ShowsCancelButton);
 			});
@@ -30,22 +30,22 @@ namespace Microsoft.Maui.DeviceTests
 		public class CancelButtonVisibilityTests : ControlsHandlerTestBase
 		{
 			[Theory]
-			[InlineData(true)]
-			[InlineData(false)]
-			public async Task CancelButtonCanBeToggledWhileEditing(bool showCancelButton)
+			[InlineData(ClearButtonVisibility.WhileEditing)]
+			[InlineData(ClearButtonVisibility.Never)]
+			public async Task CancelButtonCanBeToggledWhileEditing(ClearButtonVisibility visibility)
 			{
 				await InvokeOnMainThreadAsync(async () =>
 				{
-					var searchBar = new Controls.SearchBar { Text = "initial", ShowCancelButton = showCancelButton };
+					var searchBar = new Controls.SearchBar { Text = "initial", ClearButtonVisibility = visibility };
 					var handler = CreateHandler<SearchBarHandler>(searchBar);
 
 					await handler.PlatformView.AttachAndRun(async () =>
 					{
-						Assert.Equal(showCancelButton, handler.PlatformView.ShowsCancelButton);
 						Assert.True(searchBar.Focus());
 						await AssertEventually(() => searchBar.IsFocused);
+						Assert.Equal(visibility == ClearButtonVisibility.WhileEditing, handler.PlatformView.ShowsCancelButton);
 
-						searchBar.ShowCancelButton = false;
+						searchBar.ClearButtonVisibility = ClearButtonVisibility.Never;
 						Assert.False(handler.PlatformView.ShowsCancelButton);
 						searchBar.CancelButtonColor = Graphics.Colors.Red;
 						searchBar.Text = "changed";
@@ -56,17 +56,22 @@ namespace Microsoft.Maui.DeviceTests
 						Assert.Equal("typed", searchBar.Text);
 						Assert.False(handler.PlatformView.ShowsCancelButton);
 
-						searchBar.ShowCancelButton = true;
+						searchBar.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
 						Assert.True(handler.PlatformView.ShowsCancelButton);
 						Assert.True(searchBar.IsFocused);
 						searchBar.Text = string.Empty;
 						Assert.False(handler.PlatformView.ShowsCancelButton);
+						searchBar.Text = null;
+						Assert.False(handler.PlatformView.ShowsCancelButton);
 						searchBar.Text = "again";
 						Assert.True(handler.PlatformView.ShowsCancelButton);
-						searchBar.ShowCancelButton = false;
-						Assert.False(handler.PlatformView.ShowsCancelButton);
 						searchBar.Unfocus();
 						await AssertEventually(() => !searchBar.IsFocused);
+						Assert.False(handler.PlatformView.ShowsCancelButton);
+						Assert.True(searchBar.Focus());
+						await AssertEventually(() => searchBar.IsFocused);
+						Assert.True(handler.PlatformView.ShowsCancelButton);
+						searchBar.ClearButtonVisibility = ClearButtonVisibility.Never;
 						Assert.False(handler.PlatformView.ShowsCancelButton);
 					});
 				});

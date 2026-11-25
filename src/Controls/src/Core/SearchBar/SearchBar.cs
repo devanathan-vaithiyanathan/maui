@@ -18,7 +18,7 @@ namespace Microsoft.Maui.Controls
 	/// placeholder text, and optionally a cancel button. Use the <see cref="SearchCommand"/> to respond to search requests.
 	/// </remarks>
 	[DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-	public partial class SearchBar : InputView, ITextAlignmentElement, ISearchBarController, IElementConfiguration<SearchBar>, ICommandElement, ISearchBar, ISearchBarCancelButtonVisibility
+	public partial class SearchBar : InputView, ITextAlignmentElement, ISearchBarController, IElementConfiguration<SearchBar>, ICommandElement, ISearchBar, ISearchBarClearButtonVisibility
 	{
 		/// <summary>Bindable property for <see cref="ReturnType"/>. This is a bindable property.</summary>
 		public static readonly BindableProperty ReturnTypeProperty = BindableProperty.Create(nameof(ReturnType), typeof(ReturnType), typeof(SearchBar), ReturnType.Search);
@@ -42,8 +42,8 @@ namespace Microsoft.Maui.Controls
 		/// <summary>Bindable property for <see cref="CancelButtonColor"/>. This is a bindable property.</summary>
 		public static readonly BindableProperty CancelButtonColorProperty = BindableProperty.Create(nameof(CancelButtonColor), typeof(Color), typeof(SearchBar), default(Color));
 
-		/// <summary>Bindable property for <see cref="ShowCancelButton"/>.</summary>
-		public static readonly BindableProperty ShowCancelButtonProperty = BindableProperty.Create(nameof(ShowCancelButton), typeof(bool), typeof(SearchBar), BooleanBoxes.TrueBox);
+		/// <summary>Bindable property for <see cref="ClearButtonVisibility"/>.</summary>
+		public static readonly BindableProperty ClearButtonVisibilityProperty = BindableProperty.Create(nameof(ClearButtonVisibility), typeof(ClearButtonVisibility), typeof(SearchBar), ClearButtonVisibility.WhileEditing);
 
 		/// <summary>Bindable property for <see cref="SearchIconColor"/>. This is a bindable property.</summary>
 		public static readonly BindableProperty SearchIconColorProperty = BindableProperty.Create(nameof(SearchIconColor), typeof(Color), typeof(SearchBar), default(Color));
@@ -124,15 +124,19 @@ namespace Microsoft.Maui.Controls
 		}
 
 		/// <summary>
-		/// Gets or sets whether the platform's cancel and clear buttons can be shown.
+		/// Gets or sets when the platform's cancel and clear buttons are shown.
 		/// This is a bindable property.
 		/// </summary>
-		/// <value>The default is <see langword="true"/>, which uses the platform's usual visibility behavior.</value>
-		/// <remarks>Setting this property to <see langword="false"/> hides both the cancel and clear buttons where available.</remarks>
-		public bool ShowCancelButton
+		/// <value>The default is <see cref="ClearButtonVisibility.WhileEditing"/>.</value>
+		/// <remarks>
+		/// <see cref="ClearButtonVisibility.Never"/> hides both buttons where available.
+		/// <see cref="ClearButtonVisibility.WhileEditing"/> shows them only while the search bar
+		/// has focus and its text is not null or empty.
+		/// </remarks>
+		public ClearButtonVisibility ClearButtonVisibility
 		{
-			get => (bool)GetValue(ShowCancelButtonProperty);
-			set => SetValue(ShowCancelButtonProperty, BooleanBoxes.Box(value));
+			get => (ClearButtonVisibility)GetValue(ClearButtonVisibilityProperty);
+			set => SetValue(ClearButtonVisibilityProperty, value);
 		}
 
 		/// <summary>

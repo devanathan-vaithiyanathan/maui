@@ -19,17 +19,17 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 		}
 
 		[Fact]
-		public void ShowCancelButtonSupportsBinding()
+		public void ClearButtonVisibilitySupportsBinding()
 		{
 			var source = new SearchBar();
 			var target = new SearchBar { BindingContext = source };
-			target.SetBinding(SearchBar.ShowCancelButtonProperty, nameof(SearchBar.ShowCancelButton));
+			target.SetBinding(SearchBar.ClearButtonVisibilityProperty, nameof(SearchBar.ClearButtonVisibility));
 
-			Assert.True(target.ShowCancelButton);
-			source.ShowCancelButton = false;
-			Assert.False(target.ShowCancelButton);
-			source.ShowCancelButton = true;
-			Assert.True(target.ShowCancelButton);
+			Assert.Equal(ClearButtonVisibility.WhileEditing, target.ClearButtonVisibility);
+			source.ClearButtonVisibility = ClearButtonVisibility.Never;
+			Assert.Equal(ClearButtonVisibility.Never, target.ClearButtonVisibility);
+			source.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
+			Assert.Equal(ClearButtonVisibility.WhileEditing, target.ClearButtonVisibility);
 		}
 
 		[Fact]

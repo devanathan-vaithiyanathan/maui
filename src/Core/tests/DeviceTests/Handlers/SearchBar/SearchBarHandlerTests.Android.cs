@@ -17,67 +17,85 @@ namespace Microsoft.Maui.DeviceTests
 	public partial class SearchBarHandlerTests
 	{
 		[Theory]
-		[InlineData(true)]
-		[InlineData(false)]
-		public async Task CancelButtonVisibilityFollowsRuntimeChanges(bool initiallyVisible)
+		[InlineData(ClearButtonVisibility.WhileEditing)]
+		[InlineData(ClearButtonVisibility.Never)]
+		public async Task CancelButtonVisibilityFollowsRuntimeChanges(ClearButtonVisibility visibility)
 		{
-			var searchBar = new Controls.SearchBar { Text = "search", ShowCancelButton = initiallyVisible };
+			var searchBar = new Controls.SearchBar { Text = "search", ClearButtonVisibility = visibility };
 
 			await AttachAndRun(searchBar, async handler =>
 			{
 				var platformView = handler.PlatformView;
 				var cancelButton = Assert.IsAssignableFrom<ImageView>(platformView.GetCancelButton());
-				Assert.Equal(initiallyVisible ? ViewStates.Visible : ViewStates.Gone, cancelButton.Visibility);
+				var editor = Assert.IsAssignableFrom<EditText>(handler.QueryEditor);
+				editor.RequestFocus();
+				await AssertEventually(() => searchBar.IsFocused);
+				Assert.Equal(visibility == ClearButtonVisibility.WhileEditing ? ViewStates.Visible : ViewStates.Gone, cancelButton.Visibility);
 
-				searchBar.ShowCancelButton = false;
+				searchBar.ClearButtonVisibility = ClearButtonVisibility.Never;
 				Assert.Equal(ViewStates.Gone, cancelButton.Visibility);
 
 				platformView.SetQuery("typed", false);
 				Assert.IsAssignableFrom<EditText>(handler.QueryEditor).RequestFocus();
 				await AssertEventually(() => cancelButton.Visibility == ViewStates.Gone);
 
-				searchBar.ShowCancelButton = true;
+				searchBar.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
 				Assert.Equal(ViewStates.Visible, cancelButton.Visibility);
+
+				editor.ClearFocus();
+				await AssertEventually(() => !searchBar.IsFocused && cancelButton.Visibility == ViewStates.Gone);
+				editor.RequestFocus();
+				await AssertEventually(() => searchBar.IsFocused && cancelButton.Visibility == ViewStates.Visible);
 
 				searchBar.Text = string.Empty;
 				Assert.Equal(ViewStates.Gone, cancelButton.Visibility);
 
-				searchBar.ShowCancelButton = false;
+				searchBar.Text = null;
+				Assert.Equal(ViewStates.Gone, cancelButton.Visibility);
+				searchBar.ClearButtonVisibility = ClearButtonVisibility.Never;
 				searchBar.Text = "again";
 				Assert.Equal(ViewStates.Gone, cancelButton.Visibility);
 			});
 		}
 
 		[Theory]
-		[InlineData(true)]
-		[InlineData(false)]
-		public async Task Material3CancelButtonVisibilityFollowsRuntimeChanges(bool initiallyVisible)
+		[InlineData(ClearButtonVisibility.WhileEditing)]
+		[InlineData(ClearButtonVisibility.Never)]
+		public async Task Material3CancelButtonVisibilityFollowsRuntimeChanges(ClearButtonVisibility visibility)
 		{
 			await InvokeOnMainThreadAsync(async () =>
 			{
-				var searchBar = new Controls.SearchBar { Text = "search", ShowCancelButton = initiallyVisible };
+				var searchBar = new Controls.SearchBar { Text = "search", ClearButtonVisibility = visibility };
 				var handler = CreateHandler<SearchBarHandler2>(searchBar);
 
 				await handler.PlatformView.AttachAndRun(() =>
 				{
 					var platformView = handler.PlatformView;
 					var editor = Assert.IsAssignableFrom<EditText>(platformView.EditText);
-					Assert.Equal(initiallyVisible, platformView.EndIconVisible);
+					editor.RequestFocus();
+					Assert.Equal(visibility == ClearButtonVisibility.WhileEditing, platformView.EndIconVisible);
 
-					searchBar.ShowCancelButton = false;
+					searchBar.ClearButtonVisibility = ClearButtonVisibility.Never;
 					Assert.False(platformView.EndIconVisible);
 
 					editor.Text = "typed";
 					editor.RequestFocus();
 					Assert.False(platformView.EndIconVisible);
 
-					searchBar.ShowCancelButton = true;
+					searchBar.ClearButtonVisibility = ClearButtonVisibility.WhileEditing;
+					Assert.True(platformView.EndIconVisible);
+
+					editor.ClearFocus();
+					Assert.False(platformView.EndIconVisible);
+					editor.RequestFocus();
 					Assert.True(platformView.EndIconVisible);
 
 					searchBar.Text = string.Empty;
 					Assert.False(platformView.EndIconVisible);
 
-					searchBar.ShowCancelButton = false;
+					searchBar.Text = null;
+					Assert.False(platformView.EndIconVisible);
+					searchBar.ClearButtonVisibility = ClearButtonVisibility.Never;
 					searchBar.Text = "again";
 					Assert.False(platformView.EndIconVisible);
 				});

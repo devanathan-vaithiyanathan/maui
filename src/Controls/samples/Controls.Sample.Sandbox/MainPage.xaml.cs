@@ -9,6 +9,8 @@ public partial class MainPage : ContentPage
 
 	private void Button_Clicked(object? sender, EventArgs e)
 	{
-		searchBar.ShowCancelButton = !searchBar.ShowCancelButton;
+		searchBar.ClearButtonVisibility = searchBar.ClearButtonVisibility == ClearButtonVisibility.Never
+			? ClearButtonVisibility.WhileEditing
+			: ClearButtonVisibility.Never;
 	}
 }

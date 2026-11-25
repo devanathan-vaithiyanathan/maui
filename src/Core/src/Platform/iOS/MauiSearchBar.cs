@@ -13,7 +13,7 @@ namespace Microsoft.Maui.Platform
 		[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = "Proven safe: delegate is cleared in WillMoveToWindow(null) before view is released")]
 		SearchEditorDelegate? _searchEditorDelegate;
 		UITextFieldViewMode _defaultClearButtonMode;
-		bool _clearButtonSuppressed;
+		bool _clearButtonModeOverridden;
 
 		public MauiSearchBar() : this(RectangleF.Empty)
 		{
@@ -67,24 +67,27 @@ namespace Microsoft.Maui.Platform
 		[UnconditionalSuppressMessage("Memory", "MEM0001", Justification = "Proven safe in test: MemoryTests.HandlerDoesNotLeak")]
 		internal event EventHandler? SelectionChanged;
 
-		internal void UpdateClearButtonMode(bool showCancelButton)
+		internal void UpdateClearButtonMode(ClearButtonVisibility? visibility)
 		{
 			if (this.GetSearchTextField() is not UITextField editor)
 				return;
 
-			if (!showCancelButton)
+			if (visibility is ClearButtonVisibility mode)
 			{
-				if (!_clearButtonSuppressed)
+				if (!_clearButtonModeOverridden)
 					_defaultClearButtonMode = editor.ClearButtonMode;
 
-				_clearButtonSuppressed = true;
-				if (editor.ClearButtonMode != UITextFieldViewMode.Never)
-					editor.ClearButtonMode = UITextFieldViewMode.Never;
+				_clearButtonModeOverridden = true;
+				var platformMode = mode == ClearButtonVisibility.WhileEditing
+					? UITextFieldViewMode.WhileEditing
+					: UITextFieldViewMode.Never;
+				if (editor.ClearButtonMode != platformMode)
+					editor.ClearButtonMode = platformMode;
 			}
-			else if (_clearButtonSuppressed)
+			else if (_clearButtonModeOverridden)
 			{
 				editor.ClearButtonMode = _defaultClearButtonMode;
-				_clearButtonSuppressed = false;
+				_clearButtonModeOverridden = false;
 			}
 		}
 

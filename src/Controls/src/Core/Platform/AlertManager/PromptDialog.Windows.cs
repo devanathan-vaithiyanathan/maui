@@ -73,10 +73,8 @@ public sealed partial class PromptDialog : ContentDialog
 	void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
 	{
 		Opened -= OnOpened;
-		if (InitialSelection is PromptTextSelection selection)
-		{
-			var (start, length) = selection.GetRange(TextBoxInput.Text?.Length ?? 0);
-			TextBoxInput.Select(start, length);
-		}
+		var selection = InitialSelection ?? PromptTextSelection.FromPreset(PromptTextSelection.None);
+		var (start, length) = selection.GetRange(TextBoxInput.Text?.Length ?? 0);
+		TextBoxInput.Select(start, length);
 	}
 }

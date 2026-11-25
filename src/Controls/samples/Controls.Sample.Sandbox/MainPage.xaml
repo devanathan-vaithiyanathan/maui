@@ -1,3 +1,40 @@
-﻿<ContentPage x:Class="Maui.Controls.Sample.MainPage"
-             xmlns:local="clr-namespace:Maui.Controls.Sample">
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Maui.Controls.Sample.MainPage"
+             Title="Prompt selection">
+    <Grid RowDefinitions="*">
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="10">
+                <Label Text="DisplayPromptAsync initial selection" FontSize="20" />
+                <Label Text="Open a prompt, type X, and accept. The result appears below. Cancel should report Canceled." />
+                <Label Text="To check one-time selection, edit the text, then refocus if your platform allows it without submitting. Your edits and caret should not be reset." />
+
+                <Button Text="Platform default (omitted)" AutomationId="PromptDefault"
+                        CommandParameter="Default" Clicked="OnPromptClicked" />
+                <Button Text="Platform default (null)" AutomationId="PromptNull"
+                        CommandParameter="Null" Clicked="OnPromptClicked" />
+                <Button Text="Select none → Report.pdfX" AutomationId="PromptNone"
+                        CommandParameter="None" Clicked="OnPromptClicked" />
+                <Button Text="Select all → X" AutomationId="PromptAll"
+                        CommandParameter="All" Clicked="OnPromptClicked" />
+                <Button Text="Select Report → X.pdf" AutomationId="PromptRange"
+                        CommandParameter="Range" Clicked="OnPromptClicked" />
+                <Button Text="Caret before .pdf → ReportX.pdf" AutomationId="PromptCaret"
+                        CommandParameter="Caret" Clicked="OnPromptClicked" />
+                <Button Text="Clamp range to text → X" AutomationId="PromptClampedRange"
+                        CommandParameter="ClampedRange" Clicked="OnPromptClicked" />
+                <Button Text="Clamp caret to end → Report.pdfX" AutomationId="PromptClampedCaret"
+                        CommandParameter="ClampedCaret" Clicked="OnPromptClicked" />
+                <Button Text="Empty text, select all → X" AutomationId="PromptEmpty"
+                        CommandParameter="Empty" Clicked="OnPromptClicked" />
+                <Button Text="UTF-16 range after emoji → A😀X.pdf" AutomationId="PromptUnicode"
+                        CommandParameter="Unicode" Clicked="OnPromptClicked" />
+                <Button Text="Max length: select displayed text" AutomationId="PromptMaxLength"
+                        CommandParameter="MaxLength" Clicked="OnPromptClicked" />
+
+                <Label x:Name="ResultLabel" AutomationId="PromptResult"
+                       Text="Result: no prompt submitted" />
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

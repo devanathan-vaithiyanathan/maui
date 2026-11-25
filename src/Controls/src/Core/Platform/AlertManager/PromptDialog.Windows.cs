@@ -49,7 +49,8 @@ public sealed partial class PromptDialog : ContentDialog
 		set => TextBoxInput.InputScope = value;
 	}
 
-	public bool PreselectInitialValue { get; set; }
+	/// <summary>Gets or sets the initial selection, or null to preserve platform defaults.</summary>
+	public PromptTextSelection InitialSelection { get; set; }
 
 	void Initialize()
 	{
@@ -71,7 +72,11 @@ public sealed partial class PromptDialog : ContentDialog
 
 	void OnOpened(ContentDialog sender, ContentDialogOpenedEventArgs args)
 	{
-		if (PreselectInitialValue && !string.IsNullOrEmpty(Input))
-			TextBoxInput.SelectAll();
+		Opened -= OnOpened;
+		if (InitialSelection is PromptTextSelection selection)
+		{
+			var (start, length) = selection.GetRange(TextBoxInput.Text?.Length ?? 0);
+			TextBoxInput.Select(start, length);
+		}
 	}
 }

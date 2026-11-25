@@ -49,7 +49,7 @@ public sealed partial class PromptDialog : ContentDialog
 		set => TextBoxInput.InputScope = value;
 	}
 
-	/// <summary>Gets or sets the initial selection, or null to preserve platform defaults.</summary>
+	/// <summary>Gets or sets the initial selection, or null to place the caret at the end without selecting text.</summary>
 	public PromptTextSelection InitialSelection { get; set; }
 
 	void Initialize()

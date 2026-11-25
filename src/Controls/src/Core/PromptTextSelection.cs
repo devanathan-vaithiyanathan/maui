@@ -18,7 +18,7 @@ namespace Microsoft.Maui.Controls
 	/// Coordinates are UTF-16 code-unit offsets. Ranges are clamped to the text actually displayed.
 	/// For fixed ranges, a zero length places the caret at <see cref="Start"/>.
 	/// Check <see cref="IsAll"/> and <see cref="IsNone"/> before using the range coordinates.
-	/// A null selection places the caret at the end on Mac Catalyst and preserves native defaults on other platforms.
+	/// A null selection places the caret at the end on Mac Catalyst and Windows and preserves native defaults on other platforms.
 	/// </remarks>
 	public sealed class PromptTextSelection : IEquatable<PromptTextSelection>
 	{
